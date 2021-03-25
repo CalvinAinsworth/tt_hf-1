@@ -1,0 +1,148 @@
+////////////////////////////////
+//   Draw Sig/Bkgd Comparison //
+////////////////////////////////
+int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString savename, vector<TString> legend_entries_titles= {"Sig", "Bkgd"}, bool norm_to_1=false)
+{
+  cout << "Drawing " << title << endl;
+
+  TCanvas *c = new TCanvas("c", "c", 1600, 1200);
+  gStyle->SetOptStat(0);
+
+  if (norm_to_1 == true) {
+    double h_s_int = h_s->Integral(0, h_s->GetNbinsX());
+    h_s->Scale(1/h_s_int);
+    double h_b_int = h_b->Integral(0, h_b->GetNbinsX());
+    h_b->Scale(1/h_b_int); }
+
+  h_s->SetLineColor(2);
+  h_s->SetLineWidth(4);
+  h_b->SetLineColor(4);
+  h_b->SetLineWidth(4);
+
+  TPad *tPad = new TPad("tPad", "tPad", 0.005, 0.4, 0.995, 0.995);
+  TPad *bPad = new TPad("bPad", "bPad", 0.005, 0.1, 0.995, 0.4);
+  tPad->Draw();
+  bPad->Draw("same");
+
+  // Top pad: hists
+  tPad->cd();
+  tPad->SetGrid();
+  tPad->SetRightMargin(0.05);
+  tPad->SetLeftMargin(0.07);
+  tPad->SetBottomMargin(0);
+  tPad->SetTopMargin(0.03);
+
+  h_s->Draw("hist");
+  h_s->SetTitle("");
+  h_s->GetXaxis()->SetLabelSize(0);
+  h_s->GetYaxis()->SetTitle("#bf{norm.}");
+  h_b->Draw("same hist");
+
+  if (norm_to_1 == true) { h_s->GetYaxis()->SetRangeUser(0, 0.3); }
+
+  TLegend *legend = new TLegend(0.7, 0.7, 0.9, 0.9);
+  legend->AddEntry(h_s, legend_entries_titles[0]);
+  legend->AddEntry(h_b, legend_entries_titles[1]);
+  legend->SetTextSize(0.04);
+  legend->Draw("same");
+  
+
+  // Bottom pad: ratio 
+  bPad->cd();
+  bPad->SetRightMargin(0.05);
+  bPad->SetLeftMargin(0.07);
+  bPad->SetTopMargin(0);
+  bPad->SetBottomMargin(0.4);
+  bPad->SetGrid();
+  
+  h_r->SetTitle("");
+  h_r->SetLineColor(1);
+  h_r->SetLineWidth(4);
+
+  h_r->GetXaxis()->SetLabelSize(0.10);
+  h_r->GetXaxis()->SetTitle(title);
+  h_r->GetXaxis()->SetTitleOffset(1.3);
+  h_r->GetXaxis()->SetTitleSize(0.12);
+
+  h_r->GetYaxis()->SetLabelSize(0.05);
+  h_r->GetYaxis()->SetTitle("#bf{Sig/Bkgd}");
+  h_r->GetYaxis()->SetTitleOffset(0.5);
+  h_r->GetYaxis()->SetTitleSize(0.07);
+  h_r->GetYaxis()->CenterTitle();
+  h_r->GetYaxis()->SetRangeUser(0,6);
+  h_r->GetYaxis()->SetNdivisions(8);
+  h_r->Draw("hist");
+
+
+  // Save the plot
+  c->Print("Plots/"+savename+".png");
+  
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+//////////////////
+//     MAIN     //
+//////////////////
+void optimize_kbdt_cut()
+{
+  // Open the TMVA output file
+  TFile *tmva_file = new TFile("TMVA.root");
+
+
+  // Open classifier hists
+  TString var_hists_address = "dataset/Method_KBDT/KBDT/";
+  TH1 *h_NN_classifier_output_S = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_S");
+  TH1 *h_NN_classifier_output_B = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_B");
+ 
+  
+  // Prepare hists
+  int n_bins = h_NN_classifier_output_S->GetNbinsX();
+  double sig_total = h_NN_classifier_output_S->Integral(0, n_bins+1);
+  double bkg_total = h_NN_classifier_output_B->Integral(0, n_bins+1);
+ 
+
+  // Create a hist for ratio
+  double x_min = h_NN_classifier_output_S->FindFirstBinAbove();
+  double x_max = h_NN_classifier_output_S->FindLastBinAbove();
+  TH1 *h_classifiers_ratio = new TH1F("ratio", "ratio", n_bins, x_min, x_max);
+
+
+  // Open the test tree
+  TTree *test_tree = (TTree*)tmva_file->Get("TestTree");
+  float *weight, *KBDT_val;
+  int *topHOF, *event_number;
+  weight = KBDT_val = 0;
+  topHOF = event_number = 0;
+  
+
+  // Find the most optimal KBDT value
+  double classifiers_ratio_best = -99.; 
+  double optimal_KBDT_cut = -99.;  
+  
+  for (int bin=0; bin<n_bins; bin++) {
+    double sig_with_cut = h_NN_classifier_output_S->Integral(0, bin);
+    double bkg_with_cut = h_NN_classifier_output_B->Integral(0, bin);
+    if (bkg_with_cut==0) continue;
+    
+    double classifiers_ratio_tmp = sig_with_cut/sqrt(bkg_with_cut);
+    h_classifiers_ratio->SetBinContent(bin, classifiers_ratio_tmp);
+    cout << "Bin: " << bin << ";    Ratio: " << classifiers_ratio_tmp << ";   BDT val: " << h_NN_classifier_output_S->GetBinCenter(bin) << endl;
+    if (classifiers_ratio_tmp > classifiers_ratio_best) {
+      classifiers_ratio_best = classifiers_ratio_tmp;
+      optimal_KBDT_cut = h_NN_classifier_output_S->GetBinCenter(bin); }
+    
+  } // [bin] loop over bins 
+
+  cout << "\n\nThe optimal KBDT value is " << optimal_KBDT_cut << endl;
+
+  
+  int classifier_draw = draw_sig_bkgd_plot(h_NN_classifier_output_S, h_NN_classifier_output_B, h_classifiers_ratio, "KBDT", "optimize_kbdt_cut", {"Sig", "Bkgd"}, true);
+}
