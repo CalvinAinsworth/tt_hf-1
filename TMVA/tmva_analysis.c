@@ -36,14 +36,14 @@ void tmva_analysis()
   
 
   // Add variables
-  dataloader->AddVariable("NN_dR_bjet_lep0", 'F');
-  dataloader->AddVariable("NN_dR_bjet_lep1", 'F');
-  dataloader->AddVariable("NN_min_dR_bjet_lep", 'F');
-  //dataloader->AddVariable("NN_m_bjet_lep_min_dR", 'F');
-  dataloader->AddVariable("NN_m_bjet_el", 'F');
-  dataloader->AddVariable("NN_m_bjet_mu", 'F');
-  dataloader->AddVariable("NN_m_bjet_lep_max", 'F');
-  //dataloader->AddVariable("NN_m_bjet_lep_min", 'F');
+  dataloader->AddVariable("NN_dR_jet_lep0", 'F');
+  dataloader->AddVariable("NN_dR_jet_lep1", 'F');
+  dataloader->AddVariable("NN_min_dR_jet_lep", 'F');
+  //dataloader->AddVariable("NN_m_jet_lep_min_dR", 'F');
+  dataloader->AddVariable("NN_m_jet_el", 'F');
+  dataloader->AddVariable("NN_m_jet_mu", 'F');
+  dataloader->AddVariable("NN_m_jet_lep_max", 'F');
+  //dataloader->AddVariable("NN_m_jet_lep_min", 'F');
   dataloader->AddVariable("NN_min_dR_jet_bjet", 'F');
   cout << "==> Added variables" << endl;
 
@@ -63,7 +63,6 @@ void tmva_analysis()
 
 
   // Initialize trees
-  // Swap bkgd and sig
   dataloader->AddSignalTree( (TTree*)input->Get("NN_signal"), 1.0 );
   dataloader->AddBackgroundTree( (TTree*)input->Get("NN_background"), 1.0);
   cout << "==> Loaded Signal and Bkgd trees" << endl;
@@ -96,7 +95,10 @@ void tmva_analysis()
   */
   // Testing BDT setup
   factory->BookMethod(dataloader, TMVA::Types::kBDT, "KBDT",
-		      "!H:!V:NTrees=400:MinNodeSize=5%:MaxDepth=3:BoostType=AdaBoost:SeparationType=GiniIndex:nCuts=20:VarTransform=Decorrelate");
+  		      "!H:!V:NTrees=400:MinNodeSize=5%:MaxDepth=3:BoostType=AdaBoost:SeparationType=GiniIndex:nCuts=20:VarTransform=Decorrelate");
+
+  //factory->BookMethod( dataloader, TMVA::Types::kMLP, "MLP", 
+  //		       "H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5:!UseRegulator" );
 
   cout << "==> Booked a specific BDT method" << endl;
   

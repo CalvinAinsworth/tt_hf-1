@@ -69,7 +69,7 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
   h_r->GetYaxis()->SetTitleOffset(0.5);
   h_r->GetYaxis()->SetTitleSize(0.07);
   h_r->GetYaxis()->CenterTitle();
-  h_r->GetYaxis()->SetRangeUser(0,6);
+  h_r->GetYaxis()->SetRangeUser(0,25);
   h_r->GetYaxis()->SetNdivisions(8);
   h_r->Draw("hist");
 
@@ -110,8 +110,9 @@ void optimize_kbdt_cut()
  
 
   // Create a hist for ratio
-  double x_min = h_NN_classifier_output_S->FindFirstBinAbove();
-  double x_max = h_NN_classifier_output_S->FindLastBinAbove();
+  double x_min = h_NN_classifier_output_S->GetXaxis()->GetBinLowEdge(1);
+  double x_max = h_NN_classifier_output_S->GetXaxis()->GetBinUpEdge(h_NN_classifier_output_S->GetNbinsX());
+  cout << "x_min = " << x_min << ";\tx_max = " << x_max << endl;
   TH1 *h_classifiers_ratio = new TH1F("ratio", "ratio", n_bins, x_min, x_max);
 
 
@@ -128,8 +129,8 @@ void optimize_kbdt_cut()
   double optimal_KBDT_cut = -99.;  
   
   for (int bin=0; bin<n_bins; bin++) {
-    double sig_with_cut = h_NN_classifier_output_S->Integral(0, bin);
-    double bkg_with_cut = h_NN_classifier_output_B->Integral(0, bin);
+    double sig_with_cut = h_NN_classifier_output_S->Integral(bin, n_bins);
+    double bkg_with_cut = h_NN_classifier_output_B->Integral(bin, n_bins);
     if (bkg_with_cut==0) continue;
     
     double classifiers_ratio_tmp = sig_with_cut/sqrt(bkg_with_cut);

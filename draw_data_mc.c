@@ -1,7 +1,7 @@
 ///////////////////////////////
 // Draw Data/Bkgd Comparison //
 ///////////////////////////////
-int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename)
+int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, vector<TString> legend_entries = {"Data", "MC"}, bool norm_to_1 = false)
 {
   cout << "Drawing " << title << endl;
 
@@ -18,6 +18,13 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename)
   tPad->Draw();
   bPad->Draw("same");
 
+  double data_int = h_data->Integral(0, h_data->GetNbinsX()+1);
+  double mc_int = h_mc->Integral(0, h_mc->GetNbinsX()+1);
+
+  if (norm_to_1==true) {
+    h_data->Scale(1/data_int);
+    h_mc->Scale(1/mc_int); }
+  
 
   // Top pad: hists
   tPad->cd();
@@ -30,12 +37,18 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename)
   
   h_data->Draw("E1P");
   h_data->SetMarkerSize(1.5);
+  h_data->SetLineWidth(0);
   h_data->SetTitle("");
   h_data->GetXaxis()->SetLabelSize(0);
   h_data->GetYaxis()->SetTitle("#bf{N Events}");
   h_mc->Draw("e2 hist same");
   h_mc->SetLineWidth(4);
   h_mc->SetLineColor(2);
+
+  TLegend *legend = new TLegend(0.7, 0.7, 0.95, 0.95);
+  legend->AddEntry(h_data, legend_entries[0]);
+  legend->AddEntry(h_mc, legend_entries[1]);
+  legend->Draw("same");
   
 
   // Bottom pad: ratio
@@ -68,8 +81,6 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename)
   // Save the plot and print yileds
   c->Print("Plots/data_mc_comparison/"+savename+".png");
 
-  double data_int = h_data->Integral(0, h_data->GetNbinsX());
-  double mc_int = h_mc->Integral(0, h_mc->GetNbinsX());
   cout << "Data integral = " << data_int << "\nmc integral =   " << mc_int << "\n\n" << endl;
   
   return 0;
@@ -143,4 +154,14 @@ void draw_data_mc()
   int draw_NN__2b_emu_OS_dR_bjet_lep1 = draw_data_mc_plot(h_data_NN__2b_emu_OS_dR_bjet_lep1, h_mc_NN__2b_emu_OS_dR_bjet_lep1, "#bf{dR(bjet, lep1)}", "2b_emu_OS_dR_bjet_lep1");
   int draw_NN__2b_emu_OS_min_dR_bjet_lep = draw_data_mc_plot(h_data_NN__2b_emu_OS_min_dR_bjet_lep, h_mc_NN__2b_emu_OS_min_dR_bjet_lep, "#bf{dR_{min}(bjet-fix, lep)}", "2b_emu_OS_min_dR_bjet_lep");
   int draw_NN__2b_emu_OS_min_dR_jet_bjet = draw_data_mc_plot(h_data_NN__2b_emu_OS_min_dR_jet_bjet, h_mc_NN__2b_emu_OS_min_dR_jet_bjet, "#bf{dR_{min}(jet-fix, bjet)}", "2b_emu_OS_min_dR_jet_bjet");
+
+
+
+  // Study discrepancy in the invariant mass hists
+  TH1 *h_mc_m_bjet_el_plus_mu = (TH1F*)h_mc_NN__2b_emu_OS_m_bjet_el->Clone();
+  h_mc_m_bjet_el_plus_mu->Add(h_mc_NN__2b_emu_OS_m_bjet_mu);
+  TH1 *h_mc_m_bjet_min_plus_max = (TH1F*)h_mc_NN__2b_emu_OS_m_bjet_lep_min->Clone();
+  h_mc_m_bjet_min_plus_max->Add(h_mc_NN__2b_emu_OS_m_bjet_lep_max);
+  int draw_m_comparison = draw_data_mc_plot(h_mc_m_bjet_el_plus_mu, h_mc_m_bjet_min_plus_max, "#bf{m_{bjet, lep}}", "invariant_mass_study_0", {"m(bejt, el) + m(bejt, mu)", "m_{min}(bjet, lep) + m_{max}(bejt, lep)"}, true);
+
 }

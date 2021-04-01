@@ -78,7 +78,7 @@ int draw_correlations(TH2 *h_corr, TString title, vector<TString> axis_labels, T
 void draw_tmva_plots()
 {
   // Open the TMVA output file
-  TFile *tmva_file = new TFile("TMVA.root");
+  TFile *tmva_file = new TFile("TMVA1.root");
 
   
   // Open hists

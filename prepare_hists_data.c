@@ -243,7 +243,7 @@ void prepare_hists_data()
 		dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
 		dR1 = el_lvec.DeltaR(jets_lvec[jet_i]); }
 	      else {
-		dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
+		dR0 = el_lvec.DeltaR(jets_lvec[jet_i]);
 		dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
 	      
 	      h_dR_bjet_lep0->Fill(dR0);
@@ -251,6 +251,7 @@ void prepare_hists_data()
 	      h_min_dR_bjet_lep->Fill( min(dR0, dR1) );
 	      
 	      // Compute inv masses for bjet-lep pairs
+	      
 	      // bjet and the closest lepton
 	      double m_bjet_lep = 0;
 	      double dr_bjet_el = jets_lvec[jet_i].DeltaR(el_lvec);
@@ -258,9 +259,11 @@ void prepare_hists_data()
 	      if (dr_bjet_el <= dr_bjet_mu) { m_bjet_lep = (jets_lvec[jet_i] + el_lvec).M(); }
 	      else { m_bjet_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
 	      if (m_bjet_lep!=0) h_m_bjet_lep_min_dR->Fill(m_bjet_lep);
+	      
 	      // bjet and el/mu
 	      h_m_bjet_el->Fill( (jets_lvec[jet_i] + el_lvec).M() );
 	      h_m_bjet_mu->Fill( (jets_lvec[jet_i] + mu_lvec).M() );
+	      
 	      // bjet and lepton to min/max inv mass
 	      double m_max_bjet_lep = max((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
 	      double m_min_bjet_lep = min((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
@@ -270,17 +273,18 @@ void prepare_hists_data()
 	    } // [if] - DL1r tagget jet_i
 	    
 	    // Compute min inv mass for jet-bjet pairs
+	    double min_dR_jet_bjet = 999999.;
 	    for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
 	      if (jet_i==jet_j) continue;
-	      double min_dR_jet_bjet = 999999.;
 	      if ( (*jet_DL1r_77)[jet_j]==1) {
 		double dR_jet_bjet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
 		min_dR_jet_bjet = min(min_dR_jet_bjet, dR_jet_bjet);
-	      } // [if] - DL1r tagger jet_j
+	      } // if - DL1r tagged jet_j
 	      
-	      h_min_dR_jet_bjet->Fill(min_dR_jet_bjet);
-	    
 	    } // [jet_j] - loop over jets
+
+	    h_min_dR_jet_bjet->Fill(min_dR_jet_bjet);
+	    
 	    
 	  } // [jet_i] - loop over jets
 	  
