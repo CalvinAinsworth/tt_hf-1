@@ -98,7 +98,7 @@ void optimize_kbdt_cut()
 
 
   // Open classifier hists
-  TString var_hists_address = "dataset/Method_KBDT/KBDT/";
+  TString var_hists_address = "dataset/Method_BDT/KBDT/";
   TH1 *h_NN_classifier_output_S = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_S");
   TH1 *h_NN_classifier_output_B = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_B");
  

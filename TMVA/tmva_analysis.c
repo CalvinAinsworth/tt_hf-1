@@ -31,7 +31,7 @@ void tmva_analysis()
   
   
   // Open the input file
-  TFile *input = TFile::Open("tt_jets_NN_input.root");
+  TFile *input = TFile::Open("tt_jets_NN_input1.root");
   cout << "==> Opened an input file" << endl;
   
 
@@ -51,8 +51,9 @@ void tmva_analysis()
   // Add spectators
   dataloader->AddSpectator("topHadronOriginFlag", 'I');
   dataloader->AddSpectator("jet_isbtagged_DL1r_77", 'I');
-  dataloader->AddSpectator("NN_event_number");
-  dataloader->AddSpectator("NN_tot_event_weight");
+  dataloader->AddSpectator("NN_jet_DL1r", "F");
+  dataloader->AddSpectator("NN_event_number", "I");
+  dataloader->AddSpectator("NN_tot_event_weight", "F");
   cout << "==> Added spectators" << endl;
 
 
