@@ -67,6 +67,8 @@ void create_skimmed_ntuple()
       
   } // [entry] - loop over entries
   
+  tmva_file->Close();
+
 
   // ///
   // Work with the map of events
@@ -135,6 +137,7 @@ void create_skimmed_ntuple()
   } // [it1] - loop over events
   
 
-  ntuple->Write();
+  tree->Write("test", TTree::kOverwrite);
+ 
 
 }
