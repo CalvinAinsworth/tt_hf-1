@@ -66,6 +66,8 @@ int draw_correlations(TH2 *h_corr, TString title, vector<TString> axis_labels, T
   
   c->Print("Plots/"+savename+".png");
 
+  cout << "Plotted " << title << endl << endl << endl;
+
   return 0;
 }
 
@@ -78,30 +80,30 @@ int draw_correlations(TH2 *h_corr, TString title, vector<TString> axis_labels, T
 void draw_tmva_plots()
 {
   // Open the TMVA output file
-  TFile *tmva_file = new TFile("TMVA1.root");
+  TFile *tmva_file = new TFile("TMVA200.root");
 
   
   // Open hists
   
-  TString var_hists_address = "dataset/Method_KBDT/KBDT/";
+  TString var_hists_address = "dataset/Method_BDT/KBDT/";
 
   // Signal hists  
-  TH1 *h_NN_dR_bjet_lep0_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_dR_bjet_lep0__Signal");
-  TH1 *h_NN_dR_bjet_lep1_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_dR_bjet_lep1__Signal");
-  TH1 *h_NN_min_dR_bjet_lep_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_min_dR_bjet_lep__Signal");
-  TH1 *h_NN_m_bjet_el_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_bjet_el__Signal");
-  TH1 *h_NN_m_bjet_mu_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_bjet_mu__Signal");
-  TH1 *h_NN_m_bjet_lep_max_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_bjet_lep_max__Signal");
+  TH1 *h_NN_dR_bjet_lep0_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_dR_jet_lep0__Signal");
+  TH1 *h_NN_dR_bjet_lep1_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_dR_jet_lep1__Signal");
+  TH1 *h_NN_min_dR_bjet_lep_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_min_dR_jet_lep__Signal");
+  TH1 *h_NN_m_bjet_el_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_jet_el__Signal");
+  TH1 *h_NN_m_bjet_mu_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_jet_mu__Signal");
+  TH1 *h_NN_m_bjet_lep_max_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_jet_lep_max__Signal");
   TH1 *h_NN_min_dR_jet_bjet_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_min_dR_jet_bjet__Signal");
   TH2 *h_NN_corr_mtrx_S = (TH2F*)tmva_file->Get("dataset/CorrelationMatrixS");
   
   // Background hists
-  TH1 *h_NN_dR_bjet_lep0_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_dR_bjet_lep0__Background");
-  TH1 *h_NN_dR_bjet_lep1_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_dR_bjet_lep1__Background");
-  TH1 *h_NN_min_dR_bjet_lep_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_min_dR_bjet_lep__Background");
-  TH1 *h_NN_m_bjet_el_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_bjet_el__Background");
-  TH1 *h_NN_m_bjet_mu_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_bjet_mu__Background");
-  TH1 *h_NN_m_bjet_lep_max_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_bjet_lep_max__Background");
+  TH1 *h_NN_dR_bjet_lep0_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_dR_jet_lep0__Background");
+  TH1 *h_NN_dR_bjet_lep1_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_dR_jet_lep1__Background");
+  TH1 *h_NN_min_dR_bjet_lep_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_min_dR_jet_lep__Background");
+  TH1 *h_NN_m_bjet_el_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_jet_el__Background");
+  TH1 *h_NN_m_bjet_mu_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_jet_mu__Background");
+  TH1 *h_NN_m_bjet_lep_max_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_m_jet_lep_max__Background");
   TH1 *h_NN_min_dR_jet_bjet_B = (TH1F*)tmva_file->Get(var_hists_address+"NN_min_dR_jet_bjet__Background");
   TH2 *h_NN_corr_mtrx_B = (TH2F*)tmva_file->Get("dataset/CorrelationMatrixB");
   
@@ -112,7 +114,8 @@ void draw_tmva_plots()
   TH1 *h_NN_trainingRejBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_trainingRejBvsS");
   TH1 *h_NN_classifier_output_S = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_S");
   TH1 *h_NN_classifier_output_B = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_B");
-  
+  TH1 *h_NN_trainRejBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_trainingRejBvsS");
+
   // Draw Sig_Bkgd pairs
   int dR_bjet_lep0_draw = draw_hists(h_NN_dR_bjet_lep0_S, h_NN_dR_bjet_lep0_B, "#bf{#DeltaR(jet - lep0)}", "dR_jet_lep0");
   int dR_bjet_lep1_draw = draw_hists(h_NN_dR_bjet_lep1_S, h_NN_dR_bjet_lep1_B, "#bf{#DeltaR(jet - lep1)}", "dR_jet_lep1");
@@ -131,5 +134,6 @@ void draw_tmva_plots()
   int NN_effBvsS_draw = draw_hists(h_NN_rejBvsS, h_NN_effBvsS, "#bf{Signal eff.}", "eff-rej_BvsS", {"Bkgd rej.", "Bkgd eff."}, false);
   int NN_trainingEffBvsS = draw_hists(h_NN_trainingRejBvsS, h_NN_trainingEffBvsS, "#bf{Signal eff.}", "training_eff-rej_BvsS", {"Bkgd rej.", "Bkgd eff."}, false);
   int NN_classifier_output_draw = draw_hists(h_NN_classifier_output_S, h_NN_classifier_output_B, "#bf{KBDT}", "classifier_output");
+  int NN_train_test_gejBvsS = draw_hists(h_NN_trainRejBvsS, h_NN_rejBvsS, "#bf{Signal eff.}", "train_test_RejBvsS", {"Training", "Testing"}, false);
 
 }

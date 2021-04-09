@@ -94,7 +94,7 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
 void optimize_kbdt_cut()
 {
   // Open the TMVA output file
-  TFile *tmva_file = new TFile("TMVA.root");
+  TFile *tmva_file = new TFile("TMVA200.root");
 
 
   // Open classifier hists

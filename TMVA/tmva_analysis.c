@@ -3,6 +3,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <map>
+#include <ifstream>
 #include "TMVA/Factory.h"
 #include "TMVA/DataLoader.h"
 #include "TMVA/Tools.h"
@@ -10,6 +11,23 @@
 
 void tmva_analysis()
 {
+  // Create TString for TMVA method options
+  TString method_options = "!H:!V";
+  TString method_name = "";
+  ifstream config_file("tmva_config.txt", ifstream::binary);
+  if (new_file.is_open()) {
+    string str1;
+    string delim = ": ";
+    while (getline(config_file, str1)) {
+      string par_name = str1.substr(0, str1.find(delim));
+      string par_val  = str1.substr(str1.find(delim)+2, str1.size()); // +2 due to delim length
+      string addition = ":" + par_name + "=" + par_vel;
+      if (par_name != "TMVA Method") { method_options += addition; }
+      else { method_name += par_val; } }
+  }
+  config_file.close();
+  
+  
   // Default MVA methods to be trained + tested
   map<string, bool> Use;
   Use["BDT"] = false;
@@ -31,7 +49,7 @@ void tmva_analysis()
   
   
   // Open the input file
-  TFile *input = TFile::Open("tt_jets_NN_input1.root");
+  TFile *input = TFile::Open("tt_jets_NN_input.root");
   cout << "==> Opened an input file" << endl;
   
 
@@ -95,8 +113,7 @@ void tmva_analysis()
 			"!H:!V:NTrees=50:MinNodeSize=2.5%:UseFisherCuts:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex:nCuts=20");
   */
   // Testing BDT setup
-  factory->BookMethod(dataloader, TMVA::Types::kBDT, "KBDT",
-  		      "!H:!V:NTrees=400:MinNodeSize=5%:MaxDepth=3:BoostType=AdaBoost:SeparationType=GiniIndex:nCuts=20:VarTransform=Decorrelate");
+  factory->BookMethod(dataloader, TMVA::Types::kBDT, "KBDT", method_options);
 
   //factory->BookMethod( dataloader, TMVA::Types::kMLP, "MLP", 
   //		       "H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5:!UseRegulator" );
