@@ -217,6 +217,9 @@ void prepare_hists_mc()
   vector<int> NN_event_number;
   vector<float> NN_jet_DL1r;
   int event_number_combined = 0; // Declare the cumulative variable right here
+  vector<float> NN_met, NN_jet_pt, NN_jet_eta, NN_jet_phi, NN_jet_e;
+  vector<float> NN_mu_pt, NN_mu_eta, NN_mu_phi, NN_mu_e, NN_mu_charge;
+  vector<float> NN_el_pt, NN_el_eta, NN_el_phi, NN_el_e, NN_el_charge;
 
 
   // Loop over directories with ntuples collections
@@ -558,6 +561,14 @@ void prepare_hists_mc()
 		  // ///
 		  if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
 
+		    // TEST PT
+		    for (int jet_i = 0; jet_i<jet_pt->size(); jet_i++) {
+		      for (int jet_j = 0; jet_j<jet_pt->size(); jet_j++) {
+			if (jet_i==jet_j) continue;
+			if ( (*jet_pt)[jet_i] == (*jet_pt)[jet_j] ) cout << "Alarma!" << endl;
+		      }}
+
+		    
 		    // MET hists:
 		    h_met->Fill(met*0.001, weights);
 		    h_met_phi->Fill(met_phi, weights);
@@ -737,7 +748,7 @@ void prepare_hists_mc()
 			  double inv_mass_j_lep = 0;
 			  if (dr_j_el <= dr_j_mu) { inv_mass_j_lep = (jets_lvec[jet_i] + el_lvec).M(); }
 			  else { inv_mass_j_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
-			  if (inv_mass_j_lep != 0) h_inv_mass_lep_bjet_not_from_top_min_dR->Fill(inv_mass_j_lep, weights); } }
+			  if (inv_mass_j_lep != 0) h_inv_mass_lep_bjet_not_from_top_min_dR->Fill(inv_mass_j_lep, weights); } } // [else], [jet_i] closing 
 		      
 		      // bjets and leptons - min and max invarinat masses
 		      if ((*jet_DL1r_77)[jet_i]==1) {
@@ -783,7 +794,24 @@ void prepare_hists_mc()
 		      NN_tHOF_v.push_back((*topHadronOriginFlag)[jet_i]);
 		      NN_jet_DL1r_77_v.push_back((*jet_DL1r_77)[jet_i]); 
 		      NN_jet_DL1r.push_back((*jet_DL1r)[jet_i]);
-			
+		      NN_tot_event_weight.push_back( weights );
+                      NN_event_number.push_back( event_number_combined );
+                      NN_met.push_back( met );
+                      NN_jet_pt.push_back( (*jet_pt)[jet_i] );
+                      NN_jet_eta.push_back( (*jet_eta)[jet_i] );
+                      NN_jet_phi.push_back( (*jet_phi)[jet_i] );
+                      NN_jet_e.push_back( (*jet_e)[jet_i] );
+                      NN_mu_pt.push_back( (*mu_pt)[0] );
+                      NN_mu_eta.push_back( (*mu_eta)[0] );
+                      NN_mu_phi.push_back( (*mu_phi)[0] );
+                      NN_mu_e.push_back( (*mu_e)[0] );
+                      NN_mu_charge.push_back( (*mu_charge)[0] );
+                      NN_el_pt.push_back( (*el_pt)[0] );
+                      NN_el_eta.push_back( (*el_eta)[0] );
+                      NN_el_phi.push_back( (*el_phi)[0] );
+                      NN_el_e.push_back( (*el_e)[0] );
+                      NN_el_charge.push_back( (*el_charge)[0] );
+	
 		      // Compute min_dR jet-lep0/1
 		      double dR0 = 0;
 		      double dR1 = 0;
@@ -846,8 +874,23 @@ void prepare_hists_mc()
 		      NN_min_dR_jet_bjet_v.push_back(min_dR_jet_bjet);
 
 		      // Save the total event weigth value for the given jet
-		      NN_tot_event_weight.push_back(weights);
-		      NN_event_number.push_back(event_number_combined);
+		      /*NN_tot_event_weight.push_back( weights );
+		      NN_event_number.push_back( event_number_combined );
+		      NN_met.push_back( met );
+		      NN_jet_pt.push_back( (*jet_pt)[jet_i] );
+		      NN_jet_eta.push_back( (*jet_eta)[jet_i] );
+		      NN_jet_phi.push_back( (*jet_phi)[jet_i] );
+		      NN_jet_e.push_back( (*jet_e)[jet_i] );
+		      NN_mu_pt.push_back( (*mu_pt)[0] );
+		      NN_mu_eta.push_back( (*mu_eta)[0] );
+		      NN_mu_phi.push_back( (*mu_phi)[0] );
+		      NN_mu_e.push_back( (*mu_e)[0] );
+		      NN_mu_charge.push_back( (*mu_charge)[0] );
+		      NN_el_pt.push_back( (*el_pt)[0] );
+		      NN_el_eta.push_back( (*el_eta)[0] );
+		      NN_el_phi.push_back( (*el_phi)[0] );
+		      NN_el_e.push_back( (*el_e)[0] );
+		      NN_el_charge.push_back( (*el_charge)[0] );*/
 
 		    } // [jet_i] - loop over jets
 		    
@@ -1033,6 +1076,9 @@ void prepare_hists_mc()
   float NN_tot_event_weight_sig;
   int NN_event_number_sig;
   float NN_jet_DL1r_sig;
+  float NN_met_sig, NN_jet_pt_sig, NN_jet_eta_sig, NN_jet_phi_sig, NN_jet_e_sig;
+  float NN_mu_pt_sig, NN_mu_eta_sig, NN_mu_phi_sig, NN_mu_e_sig, NN_mu_charge_sig;
+  float NN_el_pt_sig, NN_el_eta_sig, NN_el_phi_sig, NN_el_e_sig, NN_el_charge_sig;
 
   // Background tree variables
   int NN_tHOF_bkg, NN_jet_DL1r_77_bkg;
@@ -1043,6 +1089,9 @@ void prepare_hists_mc()
   float NN_tot_event_weight_bkg;
   int NN_event_number_bkg;
   float NN_jet_DL1r_bkg;
+  float NN_met_bkg,  NN_jet_pt_bkg, NN_jet_eta_bkg, NN_jet_phi_bkg, NN_jet_e_bkg;
+  float NN_mu_pt_bkg, NN_mu_eta_bkg, NN_mu_phi_bkg, NN_mu_e_bkg, NN_mu_charge_bkg;
+  float NN_el_pt_bkg, NN_el_eta_bkg, NN_el_phi_bkg, NN_el_e_bkg, NN_el_charge_bkg;
   
   // Signal tree set branches 
   NN_sig_tree->Branch("topHadronOriginFlag", &NN_tHOF_sig, "topHadronOriginFlag/I");
@@ -1059,6 +1108,21 @@ void prepare_hists_mc()
   NN_sig_tree->Branch("NN_tot_event_weight", &NN_tot_event_weight_sig, "NN_tot_event_weight/F");
   NN_sig_tree->Branch("NN_event_number", &NN_event_number_sig, "NN_event_number/I");
   NN_sig_tree->Branch("NN_jet_DL1r", &NN_jet_DL1r_sig, "NN_jet_DL1r/F");
+  NN_sig_tree->Branch("NN_met", &NN_met_sig, "NN_met/F");
+  NN_sig_tree->Branch("NN_jet_pt", &NN_jet_pt_sig, "NN_jet_pt/F");
+  NN_sig_tree->Branch("NN_jet_eta", &NN_jet_eta_sig, "NN_jet_eta/F");
+  NN_sig_tree->Branch("NN_jet_phi", &NN_jet_phi_sig, "NN_jet_phi/F");
+  NN_sig_tree->Branch("NN_jet_e", &NN_jet_e_sig, "NN_jet_e/F");
+  NN_sig_tree->Branch("NN_mu_pt", &NN_mu_pt_sig, "NN_mu_pt/F");
+  NN_sig_tree->Branch("NN_mu_eta", &NN_mu_eta_sig, "NN_mu_eta/F");
+  NN_sig_tree->Branch("NN_mu_phi", &NN_mu_phi_sig, "NN_mu_phi/F");
+  NN_sig_tree->Branch("NN_mu_e", &NN_mu_e_sig, "NN_mu_e/F");
+  NN_sig_tree->Branch("NN_mu_charge", &NN_mu_charge_sig, "NN_mu_charge/F");
+  NN_sig_tree->Branch("NN_el_pt", &NN_el_pt_sig, "NN_el_pt/F");
+  NN_sig_tree->Branch("NN_el_eta", &NN_el_eta_sig, "NN_el_eta/F");
+  NN_sig_tree->Branch("NN_el_phi", &NN_el_phi_sig, "NN_el_phi/F");
+  NN_sig_tree->Branch("NN_el_e", &NN_el_e_sig, "NN_el_e/F");
+  NN_sig_tree->Branch("NN_el_charge", &NN_el_charge_sig, "NN_el_charge/F");
   
   // Background tree set branches
   NN_bkg_tree->Branch("topHadronOriginFlag", &NN_tHOF_bkg, "topHadronOriginFlag/I");
@@ -1075,7 +1139,22 @@ void prepare_hists_mc()
   NN_bkg_tree->Branch("NN_tot_event_weight", &NN_tot_event_weight_bkg, "NN_tot_event_weight/F");
   NN_bkg_tree->Branch("NN_event_number", &NN_event_number_bkg, "NN_event_number/I");
   NN_bkg_tree->Branch("NN_jet_DL1r", &NN_jet_DL1r_bkg, "NN_jet_DL1r/F");
-  
+  NN_bkg_tree->Branch("NN_met", &NN_met_bkg, "NN_met/F");
+  NN_bkg_tree->Branch("NN_jet_pt", &NN_jet_pt_bkg, "NN_jet_pt/F");
+  NN_bkg_tree->Branch("NN_jet_eta", &NN_jet_eta_bkg, "NN_jet_eta/F");
+  NN_bkg_tree->Branch("NN_jet_phi", &NN_jet_phi_bkg, "NN_jet_phi/F");
+  NN_bkg_tree->Branch("NN_jet_e", &NN_jet_e_bkg, "NN_jet_e/F");
+  NN_bkg_tree->Branch("NN_mu_pt", &NN_mu_pt_bkg, "NN_mu_pt/F");
+  NN_bkg_tree->Branch("NN_mu_eta", &NN_mu_eta_bkg, "NN_mu_eta/F");
+  NN_bkg_tree->Branch("NN_mu_phi", &NN_mu_phi_bkg, "NN_mu_phi/F");
+  NN_bkg_tree->Branch("NN_mu_e", &NN_mu_e_bkg, "NN_mu_e/F");
+  NN_bkg_tree->Branch("NN_mu_charge", &NN_mu_charge_bkg, "NN_mu_charge/F");
+  NN_bkg_tree->Branch("NN_el_pt", &NN_el_pt_bkg, "NN_el_pt/F");
+  NN_bkg_tree->Branch("NN_el_eta", &NN_el_eta_bkg, "NN_el_eta/F");
+  NN_bkg_tree->Branch("NN_el_phi", &NN_el_phi_bkg, "NN_el_phi/F");
+  NN_bkg_tree->Branch("NN_el_e", &NN_el_e_bkg, "NN_el_e/F");
+  NN_bkg_tree->Branch("NN_el_charge", &NN_el_charge_bkg, "NN_el_charge/F");
+
   for (int entry=0; entry<NN_tHOF_v.size(); entry++) {
 
     // Signal tree - b-tags from top 
@@ -1094,6 +1173,21 @@ void prepare_hists_mc()
       NN_tot_event_weight_bkg = NN_tot_event_weight[entry];
       NN_event_number_bkg = NN_event_number[entry];
       NN_jet_DL1r_bkg = NN_jet_DL1r[entry];
+      NN_met_sig = NN_met[entry];
+      NN_jet_pt_sig = NN_jet_pt[entry];
+      NN_jet_eta_sig = NN_jet_eta[entry];
+      NN_jet_phi_sig = NN_jet_phi[entry];
+      NN_jet_e_sig = NN_jet_e[entry];
+      NN_mu_pt_sig = NN_mu_pt[entry];
+      NN_mu_eta_sig = NN_mu_eta[entry];
+      NN_mu_phi_sig = NN_mu_phi[entry];
+      NN_mu_e_sig = NN_mu_e[entry];
+      NN_mu_charge_sig = NN_mu_charge[entry];
+      NN_el_pt_sig = NN_el_pt[entry];
+      NN_el_eta_sig = NN_el_eta[entry];
+      NN_el_phi_sig = NN_el_phi[entry];
+      NN_el_e_sig = NN_el_e[entry];
+      NN_el_charge_sig = NN_el_charge[entry];
 
       //cout << "NN_tHOF_v = " << NN_tHOF_v[entry] << endl;
       //cout << "&NN_tHOF_v = " << &NN_tHOF_v[entry] << endl;
@@ -1118,6 +1212,21 @@ void prepare_hists_mc()
       NN_tot_event_weight_sig = NN_tot_event_weight[entry];
       NN_event_number_sig = NN_event_number[entry];
       NN_jet_DL1r_sig = NN_jet_DL1r[entry];
+      NN_met_bkg = NN_met[entry];
+      NN_jet_pt_bkg = NN_jet_pt[entry];
+      NN_jet_eta_bkg = NN_jet_eta[entry];
+      NN_jet_phi_bkg = NN_jet_phi[entry];
+      NN_jet_e_bkg = NN_jet_e[entry];
+      NN_mu_pt_bkg = NN_mu_pt[entry];
+      NN_mu_eta_bkg = NN_mu_eta[entry];
+      NN_mu_phi_bkg = NN_mu_phi[entry];
+      NN_mu_e_bkg = NN_mu_e[entry];
+      NN_mu_charge_bkg = NN_mu_charge[entry];
+      NN_el_pt_bkg = NN_el_pt[entry];
+      NN_el_eta_bkg = NN_el_eta[entry];
+      NN_el_phi_bkg = NN_el_phi[entry];
+      NN_el_e_bkg = NN_el_e[entry];
+      NN_el_charge_bkg = NN_el_charge[entry];
       
       NN_sig_tree->Fill(); }
   }

@@ -38,7 +38,7 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
   h_s->GetYaxis()->SetTitle("#bf{norm.}");
   h_b->Draw("same hist");
 
-  if (norm_to_1 == true) { h_s->GetYaxis()->SetRangeUser(0, 0.3); }
+  if (norm_to_1 == true) { h_s->GetYaxis()->SetRangeUser(0, 0.2); }
 
   TLegend *legend = new TLegend(0.7, 0.7, 0.9, 0.9);
   legend->AddEntry(h_s, legend_entries_titles[0]);
@@ -65,11 +65,11 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
   h_r->GetXaxis()->SetTitleSize(0.12);
 
   h_r->GetYaxis()->SetLabelSize(0.05);
-  h_r->GetYaxis()->SetTitle("#bf{Sig/Bkgd}");
-  h_r->GetYaxis()->SetTitleOffset(0.5);
+  h_r->GetYaxis()->SetTitle("#int^{max}_{bin}Sig  #bf{/} #sqrt{#int^{max}_{bin}Bkg}");
+  h_r->GetYaxis()->SetTitleOffset(0.4);
   h_r->GetYaxis()->SetTitleSize(0.07);
   h_r->GetYaxis()->CenterTitle();
-  h_r->GetYaxis()->SetRangeUser(0,25);
+  h_r->GetYaxis()->SetRangeUser(0,30);
   h_r->GetYaxis()->SetNdivisions(8);
   h_r->Draw("hist");
 
@@ -94,7 +94,7 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
 void optimize_kbdt_cut()
 {
   // Open the TMVA output file
-  TFile *tmva_file = new TFile("TMVA200.root");
+  TFile *tmva_file = new TFile("TMVA800.root");
 
 
   // Open classifier hists

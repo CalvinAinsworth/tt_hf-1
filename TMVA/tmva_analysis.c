@@ -3,7 +3,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <map>
-#include <ifstream>
+#include <iostream>
 #include "TMVA/Factory.h"
 #include "TMVA/DataLoader.h"
 #include "TMVA/Tools.h"
@@ -15,13 +15,13 @@ void tmva_analysis()
   TString method_options = "!H:!V";
   TString method_name = "";
   ifstream config_file("tmva_config.txt", ifstream::binary);
-  if (new_file.is_open()) {
+  if (config_file.is_open()) {
     string str1;
     string delim = ": ";
     while (getline(config_file, str1)) {
       string par_name = str1.substr(0, str1.find(delim));
       string par_val  = str1.substr(str1.find(delim)+2, str1.size()); // +2 due to delim length
-      string addition = ":" + par_name + "=" + par_vel;
+      string addition = ":" + par_name + "=" + par_val;
       if (par_name != "TMVA Method") { method_options += addition; }
       else { method_name += par_val; } }
   }
@@ -72,6 +72,22 @@ void tmva_analysis()
   dataloader->AddSpectator("NN_jet_DL1r", "F");
   dataloader->AddSpectator("NN_event_number", "I");
   dataloader->AddSpectator("NN_tot_event_weight", "F");
+  dataloader->AddSpectator("NN_met", "F");
+  dataloader->AddSpectator("NN_jet_pt", "F");
+  dataloader->AddSpectator("NN_jet_eta", "F");
+  dataloader->AddSpectator("NN_jet_phi", "F");
+  dataloader->AddSpectator("NN_jet_e", "F");
+  dataloader->AddSpectator("NN_mu_pt", "F");
+  dataloader->AddSpectator("NN_mu_eta", "F");
+  dataloader->AddSpectator("NN_mu_phi", "F");
+  dataloader->AddSpectator("NN_mu_e", "F");
+  dataloader->AddSpectator("NN_mu_charge", "F");
+  dataloader->AddSpectator("NN_el_pt", "F");
+  dataloader->AddSpectator("NN_el_eta", "F");
+  dataloader->AddSpectator("NN_el_phi", "F");
+  dataloader->AddSpectator("NN_el_e", "F");
+  dataloader->AddSpectator("NN_el_charge", "F");
+  
   cout << "==> Added spectators" << endl;
 
 
