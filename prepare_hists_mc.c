@@ -205,7 +205,7 @@ void prepare_hists_mc()
   likelihood.SetBTagging(KLFitter::LikelihoodBase::BtaggingMethod::kNotag);
   likelihood.SetFlagTopMassFixed(true);
   fitter.SetLikelihood(&likelihood);
-
+  
 
   // Create vars for NN
   vector<int> NN_tHOF_v, NN_jet_DL1r_77_v;
@@ -265,6 +265,7 @@ void prepare_hists_mc()
       // Loop over jobs/DIDs
       for (int job_number=0; job_number<paths_to_jobs.size(); job_number++)
 	{
+	  
 	  // Get info about the job/DID from its name
 	  vector<TString> path_to_jobs_components = split(paths_to_jobs[job_number], '/');
 	  TString job_name = path_to_jobs_components[path_to_jobs_components.size() - 1];
@@ -292,7 +293,7 @@ void prepare_hists_mc()
 
 	  // Loop over ntuples of one job/DID
 	  for (int ntuple_number=0; ntuple_number<paths_to_ntuples.size(); ntuple_number++)
-	    {
+	    {  
 	      
 	      // Open ntuple
 	      cout << paths_to_ntuples[ntuple_number] << endl;
@@ -561,13 +562,6 @@ void prepare_hists_mc()
 		  // ///
 		  if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
 
-		    // TEST PT
-		    for (int jet_i = 0; jet_i<jet_pt->size(); jet_i++) {
-		      for (int jet_j = 0; jet_j<jet_pt->size(); jet_j++) {
-			if (jet_i==jet_j) continue;
-			if ( (*jet_pt)[jet_i] == (*jet_pt)[jet_j] ) cout << "Alarma!" << endl;
-		      }}
-
 		    
 		    // MET hists:
 		    h_met->Fill(met*0.001, weights);
@@ -660,7 +654,7 @@ void prepare_hists_mc()
 		    double min_dR_b_from_top_to_lep = 999999.;
 		    double min_dR_b_not_from_top_to_lep = 999999.;
 		    double min_dR_not_b_to_lep = 999999.;
-
+		    
 		    for (int i=0; i<(*jet_pt).size(); i++) {
 
 		      for (int j=0; j<(*jet_pt).size(); j++) {
@@ -769,7 +763,7 @@ void prepare_hists_mc()
 			double max_inv_mass_lep_other_jet_tmp = max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
 			min_inv_mass_lep_other_jet = min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
 			max_inv_mass_lep_other_jet = max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() ); }
-		    } // DL1r==1
+		    } // [jet_i] loop
 		    
 		      // Fill the min/max invariant mass hists 
 		    if (min_inv_mass_lep_bjet_from_top!=999999) h_min_inv_mass_lep_bjet_from_top->Fill(min_inv_mass_lep_bjet_from_top, weights);
@@ -811,7 +805,8 @@ void prepare_hists_mc()
                       NN_el_phi.push_back( (*el_phi)[0] );
                       NN_el_e.push_back( (*el_e)[0] );
                       NN_el_charge.push_back( (*el_charge)[0] );
-	
+		      
+		      
 		      // Compute min_dR jet-lep0/1
 		      double dR0 = 0;
 		      double dR1 = 0;
@@ -872,11 +867,11 @@ void prepare_hists_mc()
 		      
 		      h_min_dR_jet_bjet->Fill(min_dR_jet_bjet, weights);
 		      NN_min_dR_jet_bjet_v.push_back(min_dR_jet_bjet);
-
+		      
 		    } // [jet_i] - loop over jets
 		    
 		    event_number_combined++;
-
+		    
 		    // Sort the events wrt jet pT
 		    //sort (jet_pt->begin(), jet_pt->end(), greater<int>());
 		    
@@ -887,7 +882,7 @@ void prepare_hists_mc()
 		    if (job_DID=="411077") { h_bjets_n_411077->Fill(btags_n, weights); h_topHFFF_411077->Fill(topHFFF, weights); }
 		    if (job_DID=="411078") { h_bjets_n_411078->Fill(btags_n, weights); h_topHFFF_411078->Fill(topHFFF, weights); }
 		    if (job_DID=="410472") { h_bjets_n_410472->Fill(btags_n, weights); h_topHFFF_410472->Fill(topHFFF, weights); }
-
+		    
 		  } // 2+b (tags) selection
 
 		  
@@ -929,7 +924,7 @@ void prepare_hists_mc()
                       h_tag2_DL1r[topHFFF]->Fill((*jet_DL1r)[2], weights);
 
 		    } // 2+b, emu, OS cuts 
-
+		  
 		} // [entry] - loop over entries
 	      
 	      // Close ntuple after we're done with it
@@ -944,7 +939,7 @@ void prepare_hists_mc()
 
 
   // Save histograms
-
+  
   TFile *hists_file = new TFile("hists_mc.root", "RECREATE");
 
   // dR_min between bjets and leptons, 3b channel  
@@ -1040,7 +1035,7 @@ void prepare_hists_mc()
 
   // Close the hists file
   hists_file->Close();
-
+  
   
   // Fill NN ROOT file
   // Wee need a signal and a background trees separately with no overlap in events
@@ -1136,29 +1131,27 @@ void prepare_hists_mc()
   NN_bkg_tree->Branch("NN_el_e", &NN_el_e_bkg, "NN_el_e/F");
   NN_bkg_tree->Branch("NN_el_charge", &NN_el_charge_bkg, "NN_el_charge/F");
 
+  cout << "\n\n\n" << endl;
+
   for (int entry=0; entry<NN_tHOF_v.size(); entry++) {
-
-    //TEST
-    if (entry!=0) {
-      if (NN_jet_pt[entry] == NN_jet_pt[entry-1]) cout << "Error!!\n\tEntry : " << (entry-1) << ";\tpt = " << NN_jet_pt[entry-1] << ";\tDL1r = " << NN_jet_DL1r[entry-1] << "\n\tEntry : " << entry << ";\tpt = " << NN_jet_pt[entry] << ";\tDL1r = " << NN_jet_DL1r[entry] << endl << endl; 
-    }
-
+    
     // Signal tree - b-tags from top 
-    if (NN_tHOF_v[entry]==4) {
-      NN_tHOF_bkg = NN_tHOF_v[entry];
-      NN_jet_DL1r_77_bkg = NN_jet_DL1r_77_v[entry];
-      NN_dR_jet_lep0_bkg = NN_dR_jet_lep0_v[entry];
-      NN_dR_jet_lep1_bkg = NN_dR_jet_lep1_v[entry];
-      NN_min_dR_jet_lep_bkg = NN_min_dR_jet_lep_v[entry];
-      NN_m_jet_lep_min_dR_bkg = NN_m_jet_lep_min_dR_v[entry];
-      NN_m_jet_el_bkg = NN_m_jet_el_v[entry];
-      NN_m_jet_mu_bkg = NN_m_jet_mu_v[entry];
-      NN_m_jet_lep_max_bkg = NN_m_jet_lep_max_v[entry];
-      NN_m_jet_lep_min_bkg = NN_m_jet_lep_min_v[entry];
-      NN_min_dR_jet_bjet_bkg = NN_min_dR_jet_bjet_v[entry];
-      NN_tot_event_weight_bkg = NN_tot_event_weight[entry];
-      NN_event_number_bkg = NN_event_number[entry];
-      NN_jet_DL1r_bkg = NN_jet_DL1r[entry];
+    if (NN_tHOF_v[entry]!=4) {
+      
+      NN_tHOF_sig = NN_tHOF_v[entry];
+      NN_jet_DL1r_77_sig = NN_jet_DL1r_77_v[entry];
+      NN_dR_jet_lep0_sig = NN_dR_jet_lep0_v[entry];
+      NN_dR_jet_lep1_sig = NN_dR_jet_lep1_v[entry];
+      NN_min_dR_jet_lep_sig = NN_min_dR_jet_lep_v[entry];
+      NN_m_jet_lep_min_dR_sig = NN_m_jet_lep_min_dR_v[entry];
+      NN_m_jet_el_sig = NN_m_jet_el_v[entry];
+      NN_m_jet_mu_sig = NN_m_jet_mu_v[entry];
+      NN_m_jet_lep_max_sig = NN_m_jet_lep_max_v[entry];
+      NN_m_jet_lep_min_sig = NN_m_jet_lep_min_v[entry];
+      NN_min_dR_jet_bjet_sig = NN_min_dR_jet_bjet_v[entry];
+      NN_tot_event_weight_sig = NN_tot_event_weight[entry];
+      NN_event_number_sig = NN_event_number[entry];
+      NN_jet_DL1r_sig = NN_jet_DL1r[entry];
       NN_met_sig = NN_met[entry];
       NN_jet_pt_sig = NN_jet_pt[entry];
       NN_jet_eta_sig = NN_jet_eta[entry];
@@ -1175,27 +1168,22 @@ void prepare_hists_mc()
       NN_el_e_sig = NN_el_e[entry];
       NN_el_charge_sig = NN_el_charge[entry];
 
-      //cout << "NN_tHOF_v = " << NN_tHOF_v[entry] << endl;
-      //cout << "&NN_tHOF_v = " << &NN_tHOF_v[entry] << endl;
-      //cout << "NN_tHOF_sig = " << NN_tHOF_sig << endl;
-      //cout << "*NN_tHOF_sig = " << *NN_tHOF_sig << endl << endl;
-
-      NN_bkg_tree->Fill(); }
+      NN_sig_tree->Fill(); }
 
     // Background tree - b-tags not from top
     else {
-      NN_tHOF_sig = NN_tHOF_v[entry];
-      NN_jet_DL1r_77_sig = NN_jet_DL1r_77_v[entry];
-      NN_dR_jet_lep0_sig = NN_dR_jet_lep0_v[entry];
-      NN_dR_jet_lep1_sig = NN_dR_jet_lep1_v[entry];
-      NN_min_dR_jet_lep_sig = NN_min_dR_jet_lep_v[entry];
-      NN_m_jet_lep_min_dR_sig = NN_m_jet_lep_min_dR_v[entry];
-      NN_m_jet_el_sig = NN_m_jet_el_v[entry];
-      NN_m_jet_mu_sig = NN_m_jet_mu_v[entry];
-      NN_m_jet_lep_max_sig = NN_m_jet_lep_max_v[entry];
-      NN_m_jet_lep_min_sig = NN_m_jet_lep_min_v[entry];
-      NN_min_dR_jet_bjet_sig = NN_min_dR_jet_bjet_v[entry];
-      NN_tot_event_weight_sig = NN_tot_event_weight[entry];
+      NN_tHOF_bkg = NN_tHOF_v[entry];
+      NN_jet_DL1r_77_bkg = NN_jet_DL1r_77_v[entry];
+      NN_dR_jet_lep0_bkg = NN_dR_jet_lep0_v[entry];
+      NN_dR_jet_lep1_bkg = NN_dR_jet_lep1_v[entry];
+      NN_min_dR_jet_lep_bkg = NN_min_dR_jet_lep_v[entry];
+      NN_m_jet_lep_min_dR_bkg = NN_m_jet_lep_min_dR_v[entry];
+      NN_m_jet_el_bkg = NN_m_jet_el_v[entry];
+      NN_m_jet_mu_bkg = NN_m_jet_mu_v[entry];
+      NN_m_jet_lep_max_bkg = NN_m_jet_lep_max_v[entry];
+      NN_m_jet_lep_min_bkg = NN_m_jet_lep_min_v[entry];
+      NN_min_dR_jet_bjet_bkg = NN_min_dR_jet_bjet_v[entry];
+      NN_tot_event_weight_bkg = NN_tot_event_weight[entry];
       NN_event_number_sig = NN_event_number[entry];
       NN_jet_DL1r_sig = NN_jet_DL1r[entry];
       NN_met_bkg = NN_met[entry];
@@ -1214,7 +1202,7 @@ void prepare_hists_mc()
       NN_el_e_bkg = NN_el_e[entry];
       NN_el_charge_bkg = NN_el_charge[entry];
       
-      NN_sig_tree->Fill(); }
+      NN_bkg_tree->Fill(); }
   }
 
   NN_sig_tree->Write("NN_signal", TTree::kOverwrite);
