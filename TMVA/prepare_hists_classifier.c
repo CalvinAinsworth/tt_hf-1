@@ -63,8 +63,23 @@ int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, vecto
 //////////////////
 //     MAIN     //
 /////////////////
-void prepare_hists_kbdt()
+void prepare_hists_classifier()
 {
+  // Get name of the TMVA method
+  TString method_name = "";
+  ifstream config_file("tmva_config.txt", ifstream::binary);
+  if (config_file.is_open()) {
+    string str1;
+    string delim = ": ";
+    while(getline(config_file, str1)) {
+      string par_name = str1.substr(0, str1.find(delim));
+      string par_val  = str1.substr(str1.find(delim)+2, str1.size()); // +2 due to delim length
+      if (par_name == "TMVA Method")  method_name += par_val;
+    }
+  }
+  config_file.close();
+
+
   // Declare hists
   TH1 *h_dl1r_tag_weight_sig = new TH1F("DL1r_tag_sig", "DL1r_tag_sig", 100, -10, 20);
   TH1 *h_dl1r_tag_weight_bkg = new TH1F("DL1r_tag_bkg", "DL1r_tag_bkg", 100, -10, 20);
@@ -76,13 +91,13 @@ void prepare_hists_kbdt()
 
 
   // Set all the needed branches
-  vector<float> *jet_DL1r_tag_weight, *kbdt, *topHOF, *jet_DL1r_tag_status;
+  vector<float> *jet_DL1r_tag_weight, *classifier, *topHOF, *jet_DL1r_tag_status;
   float weight;
-  jet_DL1r_tag_weight = jet_DL1r_tag_status = kbdt = topHOF = 0;
+  jet_DL1r_tag_weight = jet_DL1r_tag_status = classifier = topHOF = 0;
   
   tree->SetBranchAddress("jet_DL1r", &jet_DL1r_tag_weight);
   tree->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_DL1r_tag_status);
-  tree->SetBranchAddress("KBDT", &kbdt);
+  tree->SetBranchAddress(method_name, &classifier);
   tree->SetBranchAddress("tot_event_weight", &weight);
   tree->SetBranchAddress("topHadronOriginFlag", &topHOF);
   
@@ -101,7 +116,7 @@ void prepare_hists_kbdt()
     for (int jet_i = 0; jet_i<jet_DL1r_tag_weight->size(); jet_i++) {
         
       // Fill DL1r tag weight hist
-      if ( (*kbdt)[jet_i] >= 0.1 ) { h_dl1r_tag_weight_sig->Fill( (*jet_DL1r_tag_weight)[jet_i], weight); }
+      if ( (*classifier)[jet_i] >= 0.1 ) { h_dl1r_tag_weight_sig->Fill( (*jet_DL1r_tag_weight)[jet_i], weight); }
       else { h_dl1r_tag_weight_bkg->Fill( (*jet_DL1r_tag_weight)[jet_i], weight); }
       
       

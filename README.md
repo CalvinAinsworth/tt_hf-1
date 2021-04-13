@@ -47,11 +47,11 @@ The optut of the macros will be stored in the `Plots/` folder.
 # TMVA analysis
 
 ## Run TMVA analysis
-An input file named `tt_jets_NN_input.root` is needed. The ntupe is prepared by `load_klf.c` macro. The ntuple consists of jets as separate entries rather then events (collections of jets). One can set MVA method's parameters with the `tmva_config.txt` file (example for BDT is used here). To run the MVA analysis:
+An input file named `tt_jets_NN_input.root` is needed. The ntupe is prepared by `load_klf.c` macro. The ntuple consists of jets as separate entries rather then events (collections of jets). One must set MVA method's parameters in the `tmva_config.txt` file (example for BDT is used here). All further macros use TMVA method name and parameters values from the config file. There is no need in changes to macros due to different MVA methods. To run the MVA analysis:
 ```bash
 root -l -b tmva_analysis.c
 ```
-AN output file named `TMVA.root` will be created. The file is further used by other macros. To change from BDT to other MVA method change the `tmva_analysis.c` macro and `tmca_config.txt` config accordingly.
+AN output file named `TMVA.root` will be created. The file is further used by other macros.
 
 ## Draw plots from the MVA output
 Run the following macro:
@@ -62,24 +62,23 @@ If other than BDT method used, the macro must be changed accordingly.
 
 ## Optimize the MVA classiffier cut:
 ```bach
-root -l -b optimize_kbdt_cut.c
+root -l -b optimize_claasifier_cut.c
 root -l -b study_tmva_perpormnce_results.c
 ```
-Analyze the resulting plots and select the best MVA method cut with respect to the classifier. If other than BDT method is used, the macros must be changed accorgingly.
+Analyze the resulting plots and select the best MVA method cut with respect to the classifier.
 
 ## Preape a sample with the classifier value for each jet
-Since the MVa analysis takes separate jets as inputs, one needs to recollct back the jets into events. To prepare such an ntuple, run:
+Since the MVA analysis takes separate jets as inputs, one needs to recollct back the jets into events. To prepare such an ntuple, run:
 ```bash
 create_skimmed_ntuple.c
 ```
-The macro gathers jets takes the `TMVA.root` ntuple as an input, gathers jets from event inco collections=events and also collects other information, such as MET, leptons info, total event weight. If more branches are needed, they must be added to `tt_jets_NN_input.root` ntuple at the `root -l -b load_klf.c+` porduction (in the `prepare_hists_mc.c` macro), and then added as spectators in the `tmva_analysis.c` macro.
+The macro gathers jets takes the `TMVA.root` ntuple as an input, gathers jets from event inco collections=events and also collects other information, such as MET, leptons info, total event weight. If more branches are needed, they must be added to `tt_jets_NN_input.root` ntuple at the `root -l -b load_klf.c+` production (in the `prepare_hists_mc.c` macro), and then added as spectators in the `tmva_analysis.c` macro.
 
 ## Study DL1r tag weight with the new cut in MVA classifier
 Simply run:
 ```bash
-prepare_hists_kbdt.c
+prepare_hists_classifier.c
 ```
-If method other than BDT is used, the macro must be changed accordingly.
 
 
 # General Status

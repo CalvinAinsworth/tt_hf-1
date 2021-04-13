@@ -91,16 +91,31 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
 //////////////////
 //     MAIN     //
 //////////////////
-void optimize_kbdt_cut()
+void optimize_classifier_cut()
 {
+  // Get name of the TMVA method 
+  TString method_name = "";
+  ifstream config_file("tmva_config.txt", ifstream::binary);
+  if (config_file.is_open()) {
+    string str1;
+    string delim = ": ";
+    while(getline(config_file, str1)) {
+      string par_name = str1.substr(0, str1.find(delim));
+      string par_val  = str1.substr(str1.find(delim)+2, str1.size()); // +2 due to delim length
+      if (par_name == "TMVA Method")  method_name += par_val;
+    }
+  }
+  config_file.close();
+
+
   // Open the TMVA output file
-  TFile *tmva_file = new TFile("TMVA800.root");
+  TFile *tmva_file = new TFile("TMVA.root");
 
 
   // Open classifier hists
-  TString var_hists_address = "dataset/Method_BDT/KBDT/";
-  TH1 *h_NN_classifier_output_S = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_S");
-  TH1 *h_NN_classifier_output_B = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_B");
+  TString var_hists_address = "dataset/Method_" + method_name + "/" + method_name + "/";
+  TH1 *h_NN_classifier_output_S = (TH1F*)tmva_file->Get(var_hists_address+"MVA_" + method_name + "_S");
+  TH1 *h_NN_classifier_output_B = (TH1F*)tmva_file->Get(var_hists_address+"MVA_" + method_name + "_B");
  
   
   // Prepare hists
@@ -135,15 +150,15 @@ void optimize_kbdt_cut()
     
     double classifiers_ratio_tmp = sig_with_cut/sqrt(bkg_with_cut);
     h_classifiers_ratio->SetBinContent(bin, classifiers_ratio_tmp);
-    cout << "Bin: " << bin << ";    Ratio: " << classifiers_ratio_tmp << ";   BDT val: " << h_NN_classifier_output_S->GetBinCenter(bin) << endl;
+    cout << "Bin: " << bin << ";    Ratio: " << classifiers_ratio_tmp << ";   classifier val: " << h_NN_classifier_output_S->GetBinCenter(bin) << endl;
     if (classifiers_ratio_tmp > classifiers_ratio_best) {
       classifiers_ratio_best = classifiers_ratio_tmp;
       optimal_KBDT_cut = h_NN_classifier_output_S->GetBinCenter(bin); }
     
   } // [bin] loop over bins 
 
-  cout << "\n\nThe optimal KBDT value is " << optimal_KBDT_cut << endl;
+  cout << "\n\nThe optimal classifier value is " << optimal_KBDT_cut << endl;
 
   
-  int classifier_draw = draw_sig_bkgd_plot(h_NN_classifier_output_S, h_NN_classifier_output_B, h_classifiers_ratio, "KBDT", "optimize_kbdt_cut", {"Sig", "Bkgd"}, true);
+  int classifier_draw = draw_sig_bkgd_plot(h_NN_classifier_output_S, h_NN_classifier_output_B, h_classifiers_ratio, method_name, "optimize_" + method_name + "_cut", {"Sig", "Bkgd"}, true);
 }

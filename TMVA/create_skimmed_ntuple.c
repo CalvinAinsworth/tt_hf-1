@@ -10,8 +10,24 @@
 ///////////////////
 void create_skimmed_ntuple()
 {
+  // Get name of the TMVA method
+  TString method_name = "";
+  ifstream config_file("tmva_config.txt", ifstream::binary);
+  if (config_file.is_open()) {
+    string str1;
+    string delim = ": ";
+    while(getline(config_file, str1)) {
+      string par_name = str1.substr(0, str1.find(delim));
+      string par_val  = str1.substr(str1.find(delim)+2, str1.size()); // +2 due to delim length
+      if (par_name == "TMVA Method")  method_name += par_val;
+    }
+  }
+  config_file.close();
+
+
+
   // Set some variables for the analysis
-  double kbdt_cut = 0.1;
+  double classifier_cut = 0.1;
   int n_jets_from_top = 0;
   map<int, map<int, vector<double>> > event_jet_jetinfo;
   // { {event_0: {jet_0 - {DL1r, KBDT, etc}}, {jet_1 - {DL1r, KBDT, etc}} ... },
@@ -33,7 +49,7 @@ void create_skimmed_ntuple()
     
     
     // Set branches
-    float topHOF, jet_isbtagged_DL1r_77, jet_DL1r, kbdt, weight, jet_pt, jet_eta, jet_phi, jet_e;
+    float topHOF, jet_isbtagged_DL1r_77, jet_DL1r, classifier, weight, jet_pt, jet_eta, jet_phi, jet_e;
     float mu_pt, mu_eta, mu_phi, mu_e, mu_charge;
     float el_pt, el_eta, el_phi, el_e, el_charge; 
     float event_number, met;
@@ -45,7 +61,7 @@ void create_skimmed_ntuple()
     tmva_tree->SetBranchAddress("topHadronOriginFlag", &topHOF);
     tmva_tree->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_isbtagged_DL1r_77);
     tmva_tree->SetBranchAddress("NN_jet_DL1r", &jet_DL1r);
-    tmva_tree->SetBranchAddress("KBDT", &kbdt);
+    tmva_tree->SetBranchAddress(method_name, &classifier);
     tmva_tree->SetBranchAddress("NN_tot_event_weight", &weight);
     tmva_tree->SetBranchAddress("NN_jet_pt", &jet_pt);
     tmva_tree->SetBranchAddress("NN_jet_eta", &jet_eta);
@@ -79,7 +95,7 @@ void create_skimmed_ntuple()
       // Black magic
       // jets info
       map<int, vector<double> > jet_jetinfo;
-      vector<double> jetinfo = {topHOF, jet_isbtagged_DL1r_77, jet_DL1r, kbdt, jet_pt, jet_eta, jet_phi, jet_e};
+      vector<double> jetinfo = {topHOF, jet_isbtagged_DL1r_77, jet_DL1r, classifier, jet_pt, jet_eta, jet_phi, jet_e};
       int jetn;
     
       map<int, map<int, vector<double>> >::iterator it1 = event_jet_jetinfo.find(event_number);
@@ -92,7 +108,7 @@ void create_skimmed_ntuple()
 	jet_jetinfo.insert(make_pair(0, jetinfo));
 	event_jet_jetinfo.insert(make_pair(event_number, jet_jetinfo)); }
       
-      // leptons info + met
+      // leptons info + met + weight
       vector<double> lepinfo = {weight, met, el_pt, el_eta, el_phi, el_e, el_charge, mu_pt, mu_eta, mu_phi, mu_e, mu_charge};
       map<int, vector<double>>::iterator it2 = event_lepinfo.find(event_number);
       if ( event_lepinfo.count(event_number) == 0 ) event_lepinfo.insert(make_pair(event_number, lepinfo));
@@ -116,7 +132,7 @@ void create_skimmed_ntuple()
 
   // Declare variables for a tree
   int event_number_save;
-  vector<float> topHOF_save, jet_isbtagged_DL1r_77_save, jet_DL1r_save, kbdt_save, jet_pt_save, jet_eta_save, jet_phi_save, jet_e_save;
+  vector<float> topHOF_save, jet_isbtagged_DL1r_77_save, jet_DL1r_save, classifier_save, jet_pt_save, jet_eta_save, jet_phi_save, jet_e_save;
   float weight_save;
   float mu_pt_save, mu_eta_save, mu_phi_save, mu_e_save, mu_charge_save;
   float el_pt_save, el_eta_save, el_phi_save, el_e_save, el_charge_save;
@@ -127,7 +143,7 @@ void create_skimmed_ntuple()
   tree->Branch("topHadronOriginFlag", &topHOF_save);
   tree->Branch("jet_isbtagged_DL1r_77", &jet_isbtagged_DL1r_77_save);
   tree->Branch("jet_DL1r", &jet_DL1r_save);
-  tree->Branch("KBDT", &kbdt_save);
+  tree->Branch(method_name, &classifier_save);
   tree->Branch("tot_event_weight", &weight_save, "tot_event_weight/F");
   tree->Branch("jet_pt", &jet_pt_save);
   tree->Branch("jet_eta", &jet_eta_save);
@@ -155,7 +171,7 @@ void create_skimmed_ntuple()
     topHOF_save.clear();
     jet_isbtagged_DL1r_77_save.clear();
     jet_DL1r_save.clear();
-    kbdt_save.clear();
+    classifier_save.clear();
     jet_pt_save.clear();
     jet_eta_save.clear();
     jet_phi_save.clear();
@@ -173,12 +189,12 @@ void create_skimmed_ntuple()
       vector<double> jet_pars = it2->second;
       n_jets_in_map_map++;
       
-      //cout << "\tjet_# = " << jetn << ";\t dl1r = " << jet_pars[0] << ";\t kbdt = " << jet_pars[1] << ";\tweight = " << jet_pars[2] << ";\ttopHOF = " << jet_pars[3] << endl; 
+      //cout << "\tjet_# = " << jetn << ";\t dl1r = " << jet_pars[0] << ";\t classifier = " << jet_pars[1] << ";\tweight = " << jet_pars[2] << ";\ttopHOF = " << jet_pars[3] << endl; 
 
       topHOF_save.push_back(jet_pars[0]);
       jet_isbtagged_DL1r_77_save.push_back(jet_pars[1]);
       jet_DL1r_save.push_back(jet_pars[2]);
-      kbdt_save.push_back(jet_pars[3]);
+      classifier_save.push_back(jet_pars[3]);
       jet_pt_save.push_back(jet_pars[4]);
       jet_eta_save.push_back(jet_pars[5]);
       jet_phi_save.push_back(jet_pars[6]);

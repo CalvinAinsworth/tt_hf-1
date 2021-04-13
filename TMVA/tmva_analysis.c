@@ -11,7 +11,7 @@
 
 void tmva_analysis()
 {
-  // Create TString for TMVA method options
+  // Create TStrings for TMVA method options and name
   TString method_options = "!H:!V";
   TString method_name = "";
   ifstream config_file("tmva_config.txt", ifstream::binary);
@@ -26,15 +26,6 @@ void tmva_analysis()
       else { method_name += par_val; } }
   }
   config_file.close();
-  
-  
-  // Default MVA methods to be trained + tested
-  map<string, bool> Use;
-  Use["BDT"] = false;
-  Use["BDTG"] = false;
-  Use["BDTB"] = false;
-  Use["BDTD"] = false;
-  Use["BDTF"] = false;
 
 
   // Create an output file
@@ -49,7 +40,7 @@ void tmva_analysis()
   
   
   // Open the input file
-  TFile *input = TFile::Open("tt_jets_NN_input.root");
+  TFile *input = TFile::Open("tt_jets_NN_input1.root");
   cout << "==> Opened an input file" << endl;
   
 
@@ -105,34 +96,9 @@ void tmva_analysis()
   cout << "==> Prepared the trees" << endl;
   
 
-  // Book MVA methods
-  // There are different BDTs (Boosted Decision Trees)
-  /*  
-  if (Use["BDTG"]==true) // Gradient Boost
-    factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDTG", 
-			"!H:!V:NTrees=1000:MinNodeSize=2.5%:BoostType=Grad:Shrinkage=0.10:UseBaggedBoost:BaggedSampleFraction=0.5:nCuts=20:MaxDepth=2");
-
-  if (Use["BDT"]==true) // Adaptive Boost
-    factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDT",
-			"!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20");
-  
-  if (Use["BDTB"]==true) // Bagging
-    factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDTB",
-			"!H:!V:NTrees=400:BoostType=Bagging:SeparationType=GiniIndex:nCuts=20");
-
-  if (Use["BDTD"]==true) // Decorrelation + Adaptive Boost
-    factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDTD",
-			"!H:!V:NTrees=400:MinNodeSize=5%:MaxDepth=3:BoostType=AdaBoost:SeparationType=GiniIndex:nCuts=20:VarTransform=Decorrelate");
-
-  if (Use["BDTF"]==true) // Allow using Fisher discriminant in mode splitting for (strong) linearly correlated variables
-    factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDTF",
-			"!H:!V:NTrees=50:MinNodeSize=2.5%:UseFisherCuts:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex:nCuts=20");
-  */
-  // Testing BDT setup
-  factory->BookMethod(dataloader, TMVA::Types::kBDT, "KBDT", method_options);
-
-  //factory->BookMethod( dataloader, TMVA::Types::kMLP, "MLP", 
-  //		       "H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5:!UseRegulator" );
+  // Book MVA method
+  if (method_name == "BDT") factory->BookMethod(dataloader, TMVA::Types::kBDT, method_name, method_options);
+  if (method_name == "MLP") factory->BookMethod(dataloader, TMVA::Types::kMLP, method_name, method_options);
 
   cout << "==> Booked a specific BDT method" << endl;
   

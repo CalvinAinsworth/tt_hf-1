@@ -79,13 +79,28 @@ int draw_correlations(TH2 *h_corr, TString title, vector<TString> axis_labels, T
 ////////////////
 void draw_tmva_plots()
 {
+  // Get name of the TMVA method
+  TString method_name = "";
+  ifstream config_file("tmva_config.txt", ifstream::binary);
+  if (config_file.is_open()) {
+    string str1;
+    string delim = ": ";
+    while(getline(config_file, str1)) {
+      string par_name = str1.substr(0, str1.find(delim));
+      string par_val  = str1.substr(str1.find(delim)+2, str1.size()); // +2 due to delim length 
+      if (par_name == "TMVA Method")  method_name += par_val;
+    }
+  }
+  config_file.close();
+
+  
   // Open the TMVA output file
-  TFile *tmva_file = new TFile("TMVA200.root");
+  TFile *tmva_file = new TFile("TMVA.root");
 
   
   // Open hists
   
-  TString var_hists_address = "dataset/Method_BDT/KBDT/";
+  TString var_hists_address = "dataset/Method_" + method_name + "/" + method_name + "/";
 
   // Signal hists  
   TH1 *h_NN_dR_bjet_lep0_S = (TH1F*)tmva_file->Get(var_hists_address+"NN_dR_jet_lep0__Signal");
@@ -108,13 +123,13 @@ void draw_tmva_plots()
   TH2 *h_NN_corr_mtrx_B = (TH2F*)tmva_file->Get("dataset/CorrelationMatrixB");
   
   // Other hists
-  TH1 *h_NN_rejBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_rejBvsS");
-  TH1 *h_NN_effBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_effBvsS");
-  TH1 *h_NN_trainingEffBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_trainingEffBvsS");
-  TH1 *h_NN_trainingRejBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_trainingRejBvsS");
-  TH1 *h_NN_classifier_output_S = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_S");
-  TH1 *h_NN_classifier_output_B = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_B");
-  TH1 *h_NN_trainRejBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_KBDT_trainingRejBvsS");
+  TH1 *h_NN_rejBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_" + method_name + "_rejBvsS");
+  TH1 *h_NN_effBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_" + method_name + "_effBvsS");
+  TH1 *h_NN_trainingEffBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_" + method_name + "_trainingEffBvsS");
+  TH1 *h_NN_trainingRejBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_" + method_name + "_trainingRejBvsS");
+  TH1 *h_NN_classifier_output_S = (TH1F*)tmva_file->Get(var_hists_address+"MVA_" + method_name + "_S");
+  TH1 *h_NN_classifier_output_B = (TH1F*)tmva_file->Get(var_hists_address+"MVA_" + method_name + "_B");
+  TH1 *h_NN_trainRejBvsS = (TH1F*)tmva_file->Get(var_hists_address+"MVA_" + method_name + "_trainingRejBvsS");
 
   // Draw Sig_Bkgd pairs
   int dR_bjet_lep0_draw = draw_hists(h_NN_dR_bjet_lep0_S, h_NN_dR_bjet_lep0_B, "#bf{#DeltaR(jet - lep0)}", "dR_jet_lep0");
@@ -133,7 +148,7 @@ void draw_tmva_plots()
   // Draw other hists
   int NN_effBvsS_draw = draw_hists(h_NN_rejBvsS, h_NN_effBvsS, "#bf{Signal eff.}", "eff-rej_BvsS", {"Bkgd rej.", "Bkgd eff."}, false);
   int NN_trainingEffBvsS = draw_hists(h_NN_trainingRejBvsS, h_NN_trainingEffBvsS, "#bf{Signal eff.}", "training_eff-rej_BvsS", {"Bkgd rej.", "Bkgd eff."}, false);
-  int NN_classifier_output_draw = draw_hists(h_NN_classifier_output_S, h_NN_classifier_output_B, "#bf{KBDT}", "classifier_output");
+  int NN_classifier_output_draw = draw_hists(h_NN_classifier_output_S, h_NN_classifier_output_B, "#bf{" + method_name + "}", "classifier_output");
   int NN_train_test_gejBvsS = draw_hists(h_NN_trainRejBvsS, h_NN_rejBvsS, "#bf{Signal eff.}", "train_test_RejBvsS", {"Training", "Testing"}, false);
 
 }

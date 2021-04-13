@@ -873,25 +873,6 @@ void prepare_hists_mc()
 		      h_min_dR_jet_bjet->Fill(min_dR_jet_bjet, weights);
 		      NN_min_dR_jet_bjet_v.push_back(min_dR_jet_bjet);
 
-		      // Save the total event weigth value for the given jet
-		      /*NN_tot_event_weight.push_back( weights );
-		      NN_event_number.push_back( event_number_combined );
-		      NN_met.push_back( met );
-		      NN_jet_pt.push_back( (*jet_pt)[jet_i] );
-		      NN_jet_eta.push_back( (*jet_eta)[jet_i] );
-		      NN_jet_phi.push_back( (*jet_phi)[jet_i] );
-		      NN_jet_e.push_back( (*jet_e)[jet_i] );
-		      NN_mu_pt.push_back( (*mu_pt)[0] );
-		      NN_mu_eta.push_back( (*mu_eta)[0] );
-		      NN_mu_phi.push_back( (*mu_phi)[0] );
-		      NN_mu_e.push_back( (*mu_e)[0] );
-		      NN_mu_charge.push_back( (*mu_charge)[0] );
-		      NN_el_pt.push_back( (*el_pt)[0] );
-		      NN_el_eta.push_back( (*el_eta)[0] );
-		      NN_el_phi.push_back( (*el_phi)[0] );
-		      NN_el_e.push_back( (*el_e)[0] );
-		      NN_el_charge.push_back( (*el_charge)[0] );*/
-
 		    } // [jet_i] - loop over jets
 		    
 		    event_number_combined++;
@@ -1156,6 +1137,11 @@ void prepare_hists_mc()
   NN_bkg_tree->Branch("NN_el_charge", &NN_el_charge_bkg, "NN_el_charge/F");
 
   for (int entry=0; entry<NN_tHOF_v.size(); entry++) {
+
+    //TEST
+    if (entry!=0) {
+      if (NN_jet_pt[entry] == NN_jet_pt[entry-1]) cout << "Error!!\n\tEntry : " << (entry-1) << ";\tpt = " << NN_jet_pt[entry-1] << ";\tDL1r = " << NN_jet_DL1r[entry-1] << "\n\tEntry : " << entry << ";\tpt = " << NN_jet_pt[entry] << ";\tDL1r = " << NN_jet_DL1r[entry] << endl << endl; 
+    }
 
     // Signal tree - b-tags from top 
     if (NN_tHOF_v[entry]==4) {
