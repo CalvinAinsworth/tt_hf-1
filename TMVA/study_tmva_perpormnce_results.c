@@ -11,7 +11,7 @@ void study_tmva_perpormnce_results()
 {
   // Get name of the TMVA method
   TString method_name = "";
-  ifstream config_file("tmva_config.txt", ifstream::binary);
+  ifstream config_file("tmva_config.txt", ios::binary);
   if (config_file.is_open()) {
     string str1;
     string delim = ": ";

@@ -14,7 +14,7 @@ void tmva_analysis()
   // Create TStrings for TMVA method options and name
   TString method_options = "!H:!V";
   TString method_name = "";
-  ifstream config_file("tmva_config.txt", ifstream::binary);
+  ifstream config_file("tmva_config.txt", ios::binary);
   if (config_file.is_open()) {
     string str1;
     string delim = ": ";
