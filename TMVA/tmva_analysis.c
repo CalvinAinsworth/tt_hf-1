@@ -40,7 +40,7 @@ void tmva_analysis()
   
   
   // Open the input file
-  TFile *input = TFile::Open("tt_jets_NN_input1.root");
+  TFile *input = TFile::Open("tt_jets_NN_input.root");
   cout << "==> Opened an input file" << endl;
   
 
