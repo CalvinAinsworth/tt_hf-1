@@ -1184,8 +1184,8 @@ void prepare_hists_mc()
       NN_m_jet_lep_min_bkg = NN_m_jet_lep_min_v[entry];
       NN_min_dR_jet_bjet_bkg = NN_min_dR_jet_bjet_v[entry];
       NN_tot_event_weight_bkg = NN_tot_event_weight[entry];
-      NN_event_number_sig = NN_event_number[entry];
-      NN_jet_DL1r_sig = NN_jet_DL1r[entry];
+      NN_event_number_bkg = NN_event_number[entry];
+      NN_jet_DL1r_bkg = NN_jet_DL1r[entry];
       NN_met_bkg = NN_met[entry];
       NN_jet_pt_bkg = NN_jet_pt[entry];
       NN_jet_eta_bkg = NN_jet_eta[entry];

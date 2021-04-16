@@ -3,6 +3,51 @@
 #include <TCanvas.h>
 #include <TGraph.h>
 
+// Colors: blue, green, magenta, cyan, red
+vector<Int_t> colors = {4, 417, 617, 433, 2};
+
+
+
+//////////////////////
+//   Draw TGraphs   //
+//////////////////////
+int draw_graphs(vector<TGraph*> gr, TString x_axis_title, TString y_axis_title, vector<TString> legend_entries, TString savename)
+{
+  // Create a canvas
+  TCanvas *c = new TCanvas("c", "c", 1600, 1200);
+  gStyle->SetOptStat(0);
+  gPad->SetGrid();
+  
+  // Create a legend
+  TLegend *legend = new TLegend(0.7, 0.6, 0.9, 0.8);
+
+  // Draw everything nicely
+  for (int i=0; i<gr.size(); i++) {
+    gr[i]->SetLineColor(colors[i]);
+    gr[i]->SetLineWidth(4);
+    
+    if (i==0) {
+      gr[i]->Draw("AC");
+      gr[i]->SetTitle("");
+      gr[i]->GetXaxis()->SetTitle(x_axis_title);
+      gr[i]->GetYaxis()->SetTitle(y_axis_title); }
+    else {
+      gr[i]->Draw("same"); }
+
+    legend->AddEntry(gr[i], legend_entries[i]);
+      
+  } // [i] - loop over graphs
+
+  legend->Draw("save");
+
+  // Save the plot
+  c->Print("Plots/" + savename + ".png");
+  
+  return 0;
+}
+
+
+
 
 ///////////////////
 //     MAIN      //
@@ -108,32 +153,13 @@ void study_tmva_perpormnce_results()
   // Create TGraphs with eff|purity wrk kbdt cut and then plot them
   TGraph *gr_eff    = new TGraph(classifier_cut.size(), &classifier_cut[0], &eff[0]);
   TGraph *gr_purity = new TGraph(classifier_cut.size(), &classifier_cut[0], &purity[0]);
+  TGraph *gr_eff_vs_purity = new TGraph(classifier_cut.size(), &purity[0], &eff[0]);
 
-  // Crate a canvas
-  TCanvas *c = new TCanvas("c", "c", 1600, 1200);
-  gStyle->SetOptStat(0);
-  gPad->SetGrid();
-  
-  // Draw nicely
-  gr_eff->SetLineColor(4);
-  gr_eff->SetLineWidth(4);
-  gr_eff->Draw("AC");
-  gr_eff->SetTitle("");
-  gr_eff->GetXaxis()->SetTitle(method_name);
-  gr_eff->GetYaxis()->SetTitle("Eff. | Purity");
-  gr_purity->SetLineColor(417);
-  gr_purity->SetLineWidth(4);
-  gr_purity->Draw("same");
+  vector<TGraph*> gr_eff_and_purity_vs_classifier = {gr_eff, gr_purity};
+  int gr_eff_and_purity_vs_classifier_draw = draw_graphs(gr_eff_and_purity_vs_classifier, method_name, "Eff. | Purity", {"Efficiency", "Purity"}, "eff_and_purity_vs_classifier");
 
-  // Create a legend
-  TLegend *legend = new TLegend(0.7, 0.6, 0.9, 0.8);
-  legend->AddEntry(gr_eff, "Efficiency");
-  legend->AddEntry(gr_purity, "Purity");
-  legend->Draw("same");
-
-  // Save the plot
-  c->Print("Plots/eff_purity_plot.png");
-  
+  vector<TGraph*> gr_eff_vs_purity_vec = {gr_eff_vs_purity};
+  int gr_eff_vs_purity_draw = draw_graphs(gr_eff_vs_purity_vec, "Purity", "Efficiency", {"Eff. vs. Purity"}, "eff_vs_purity");
   
 
 }
