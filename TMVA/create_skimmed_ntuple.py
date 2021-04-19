@@ -40,7 +40,8 @@ for tree_name in tree_names:
 
   # Run a loop over entries=jets
   for entry in range(0, nEntries):
-    
+    entry = int(entry)
+  
     if (entry%1000==0): 
       print("\t", entry, end="\r")
 
@@ -86,7 +87,7 @@ for tree_name in tree_names:
 
     lepinfo = [weight, met, el_pt, el_eta, el_phi, el_e, el_charge, mu_pt, mu_eta, mu_phi, mu_e, mu_charge]
 
-    if entry not in event_lepinfo:
+    if event_number not in event_lepinfo:
       event_lepinfo[event_number] = lepinfo
 
 # Close the tmva file
@@ -115,7 +116,7 @@ mu_phi_save    = array("f", [0.0])
 mu_e_save      = array("f", [0.0])
 mu_charge_save = array("f", [0.0])
 
-new_tree.Branch("tot_event_weight", weight_save,    "tot_event_weight'F")
+new_tree.Branch("tot_event_weight", weight_save,    "tot_event_weight/F")
 new_tree.Branch("met",              met_save,       "met/F")
 new_tree.Branch("el_pt",            el_pt_save,     "el_pt/F")
 new_tree.Branch("el_eta",           el_eta_save,    "el_eta/F")
@@ -151,6 +152,8 @@ new_tree.Branch("jet_e",                 jet_e_save)
 # Loop over key of array - event numbers
 for event_number in event_jet_jetinfo.keys():
 
+  event_number = int(event_number)
+
   topHOF_save.clear()
   jet_isbtagged_DL1r_77_save.clear()
   jet_DL1r_save.clear()
@@ -170,6 +173,7 @@ for event_number in event_jet_jetinfo.keys():
     jet_eta_save.push_back(event_jet_jetinfo[event_number][jet_n][5])
     jet_phi_save.push_back(event_jet_jetinfo[event_number][jet_n][6])
     jet_e_save.push_back(event_jet_jetinfo[event_number][jet_n][7])
+
 
   # Fill the "single" values
   weight_save[0]    = event_lepinfo[event_number][0]
