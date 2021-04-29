@@ -31,12 +31,15 @@ void analyze_events_with_classifier()
 
   
   // Set branches
-  vector<float> *topHadronOriginFlag, *jet_isbtagged_DL1r_77, *jet_DL1r, *classifier, *jet_pt, *jet_eta, *jet_phi, *jet_e;
-  topHadronOriginFlag = jet_isbtagged_DL1r_77 = jet_DL1r = classifier = jet_pt = jet_pt = jet_eta = jet_phi = jet_e = 0;
+  vector<int> *topHadronOriginFlag, *jet_isbtagged_DL1r_77, *jet_truthflav;
+  vector<float> *jet_DL1r, *classifier, *jet_pt, *jet_eta, *jet_phi, *jet_e;
+  topHadronOriginFlag = jet_isbtagged_DL1r_77 jet_truthflav;
+  jet_DL1r = classifier = jet_pt = jet_pt = jet_eta = jet_phi = jet_e = 0;
   float tot_event_weight, met, el_pt, el_eta, el_phi, el_e, el_charge, mu_pt, mu_eta, mu_phi, mu_e, mu_charge;
 
   in_tree->SetBranchAddress("topHadronOriginFlag", &topHadronOriginFlag);
   in_tree->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_isbtagged_DL1r_77);
+  in_tree->SetBranchAddress("jet_truthflav", &jet_truthflav);
   in_tree->SetBranchAddress("jet_DL1r", &jet_DL1r);
   in_tree->SetBranchAddress(method_name, &classifier);
   in_tree->SetBranchAddress("jet_pt", &jet_pt);
@@ -64,21 +67,23 @@ void analyze_events_with_classifier()
 
 
   // Counter for events where two b-tags are from top
-  float n_classifier = 0;
+  float n_tl = 0; // total number of non-b-jets from top
+  float n_nl = 0; // total number 
   float n_total = 0;
 
   // Loop over the events
   for (int entry=0; entry<nEntries; entry++) {
     
+    in_tree->GetEntry(entry);
+
     int n_b_from_top = 0;
     
     // Loop over jets
     for (jet_t=0; jet_i<jet_pt.size(); jet_i++) {
-      if ( (*jet_isbtagged_DL1r_77)[jet_i]==1 && (*classifier)[jet_i]>=0.1 ) n_b_from_top++;
+     
     } // [jet_i] - loop over jets
 
     // Increment counters of events
-    if (n_b_from_top==2) n_classifier += tot_event_weight;
     n_total += tot_event_weight;
     
   } // [entry] - loop over entries

@@ -42,7 +42,7 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
     // TEST 
     if (!h_vec[i]) cout << "Requested object TH_[" << i << "] wasn't found!" << endl;
     
-    double h_int = h_vec[i]->Integral(1, h_vec[i]->GetNbinsX());
+    double h_int = h_vec[i]->Integral(0, h_vec[i]->GetNbinsX()+1);
     double sf = 1/h_int;
     cout << "Hist: " << h_title[i] << " , Integral: " << h_int << endl;
     
@@ -74,7 +74,7 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
     legend->AddEntry(h_vec[i], h_title[i]); }
   legend->Draw("same");
   
-  c->Print("Plots/" + title + ".png");
+  c->Print("Plots/mc_studies/" + title + ".png");
   cout << "Drawn " + title + " !\n\n" << endl;
   
   return 0;

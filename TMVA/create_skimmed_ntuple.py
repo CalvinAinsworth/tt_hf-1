@@ -48,32 +48,33 @@ for tree_name in tree_names:
     tree.GetEntry(entry)
       
     # Declare single values
-    event_number          = getattr(tree, "NN_event_number")
+    event_number          = getattr(tree, "event_number")
     
-    weight                = getattr(tree, "NN_tot_event_weight")
-    met                   = getattr(tree, "NN_met")
-    el_pt                 = getattr(tree, "NN_el_pt")
-    el_eta                = getattr(tree, "NN_el_eta")
-    el_phi                = getattr(tree, "NN_el_phi")
-    el_e                  = getattr(tree, "NN_el_e")
-    el_charge             = getattr(tree, "NN_el_charge")
-    mu_pt                 = getattr(tree, "NN_mu_pt")
-    mu_eta                = getattr(tree, "NN_mu_eta")
-    mu_phi                = getattr(tree, "NN_mu_phi")
-    mu_e                  = getattr(tree, "NN_mu_e")
-    mu_charge             = getattr(tree, "NN_mu_charge")
+    weight                = getattr(tree, "tot_event_weight")
+    met                   = getattr(tree, "met")
+    el_pt                 = getattr(tree, "el_pt")
+    el_eta                = getattr(tree, "el_eta")
+    el_phi                = getattr(tree, "el_phi")
+    el_e                  = getattr(tree, "el_e")
+    el_charge             = getattr(tree, "el_charge")
+    mu_pt                 = getattr(tree, "mu_pt")
+    mu_eta                = getattr(tree, "mu_eta")
+    mu_phi                = getattr(tree, "mu_phi")
+    mu_e                  = getattr(tree, "mu_e")
+    mu_charge             = getattr(tree, "mu_charge")
 
     # Declate "vectors-to-be" values
     topHOF                = getattr(tree, "topHadronOriginFlag")
     jet_isbtagged_DL1r_77 = getattr(tree, "jet_isbtagged_DL1r_77")
-    jet_DL1r              = getattr(tree, "NN_jet_DL1r")
+    jet_truthflav         = getattr(tree, "jet_truthflav")
+    jet_DL1r              = getattr(tree, "jet_DL1r")
     classifier            = getattr(tree, method_name)
-    jet_pt                = getattr(tree, "NN_jet_pt")
-    jet_eta               = getattr(tree, "NN_jet_eta")
-    jet_phi               = getattr(tree, "NN_jet_phi")
-    jet_e                 = getattr(tree, "NN_jet_e")
+    jet_pt                = getattr(tree, "jet_pt")
+    jet_eta               = getattr(tree, "jet_eta")
+    jet_phi               = getattr(tree, "jet_phi")
+    jet_e                 = getattr(tree, "jet_e")
     
-    jetinfo = [topHOF, jet_isbtagged_DL1r_77, jet_DL1r, classifier, jet_pt, jet_eta, jet_phi, jet_e]
+    jetinfo = [topHOF, jet_isbtagged_DL1r_77, jet_truthflav, jet_DL1r, classifier, jet_pt, jet_eta, jet_phi, jet_e]
 
     if event_number in event_jet_jetinfo:
       jetn = len((event_jet_jetinfo[event_number]))
@@ -132,6 +133,7 @@ new_tree.Branch("mu_charge",        mu_charge_save, "mu_charge/F")
 # Create branches for "vector" values per event
 topHOF_save                = ROOT.vector("int")()
 jet_isbtagged_DL1r_77_save = ROOT.vector("int")()
+jet_truthflav_save         = ROOT.vector("int")()
 jet_DL1r_save              = ROOT.vector("float")()
 classifier_save            = ROOT.vector("float")()
 jet_pt_save                = ROOT.vector("float")()
@@ -141,6 +143,7 @@ jet_e_save                 = ROOT.vector("float")()
 
 new_tree.Branch("topHadronOriginFlag",   topHOF_save)
 new_tree.Branch("jet_isbtagged_DL1r_77", jet_isbtagged_DL1r_77_save)
+new_tree.Branch("jet_truthflav",         jet_truthflav_save)
 new_tree.Branch("jet_DL1r",              jet_DL1r_save)
 new_tree.Branch(method_name,             classifier_save)
 new_tree.Branch("jet_pt",                jet_pt_save)
@@ -156,6 +159,7 @@ for event_number in event_jet_jetinfo.keys():
 
   topHOF_save.clear()
   jet_isbtagged_DL1r_77_save.clear()
+  jet_truthflav_save.clear()
   jet_DL1r_save.clear()
   classifier_save.clear()
   jet_pt_save.clear()
@@ -167,12 +171,13 @@ for event_number in event_jet_jetinfo.keys():
   for jet_n in event_jet_jetinfo[event_number].keys():
     topHOF_save.push_back(int(event_jet_jetinfo[event_number][jet_n][0]))
     jet_isbtagged_DL1r_77_save.push_back(int(event_jet_jetinfo[event_number][jet_n][1]))
-    jet_DL1r_save.push_back(event_jet_jetinfo[event_number][jet_n][2])
-    classifier_save.push_back(event_jet_jetinfo[event_number][jet_n][3])
-    jet_pt_save.push_back(event_jet_jetinfo[event_number][jet_n][4])
-    jet_eta_save.push_back(event_jet_jetinfo[event_number][jet_n][5])
-    jet_phi_save.push_back(event_jet_jetinfo[event_number][jet_n][6])
-    jet_e_save.push_back(event_jet_jetinfo[event_number][jet_n][7])
+    jet_truthflav_save.push_back(int(event_jet_jetinfo[event_number][jet_n][2]))
+    jet_DL1r_save.push_back(event_jet_jetinfo[event_number][jet_n][3])
+    classifier_save.push_back(event_jet_jetinfo[event_number][jet_n][4])
+    jet_pt_save.push_back(event_jet_jetinfo[event_number][jet_n][5])
+    jet_eta_save.push_back(event_jet_jetinfo[event_number][jet_n][6])
+    jet_phi_save.push_back(event_jet_jetinfo[event_number][jet_n][7])
+    jet_e_save.push_back(event_jet_jetinfo[event_number][jet_n][8])
 
 
   # Fill the "single" values

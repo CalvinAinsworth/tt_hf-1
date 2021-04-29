@@ -45,52 +45,52 @@ void tmva_analysis()
   
 
   // Add variables
-  dataloader->AddVariable("NN_dR_jet_lep0", 'F');
-  dataloader->AddVariable("NN_dR_jet_lep1", 'F');
-  dataloader->AddVariable("NN_min_dR_jet_lep", 'F');
-  //dataloader->AddVariable("NN_m_jet_lep_min_dR", 'F');
-  dataloader->AddVariable("NN_m_jet_el", 'F');
-  dataloader->AddVariable("NN_m_jet_mu", 'F');
-  dataloader->AddVariable("NN_m_jet_lep_max", 'F');
-  //dataloader->AddVariable("NN_m_jet_lep_min", 'F');
-  dataloader->AddVariable("NN_min_dR_jet_bjet", 'F');
+  dataloader->AddVariable("dR_jet_lep0", 'F');
+  dataloader->AddVariable("dR_jet_lep1", 'F');
+  dataloader->AddVariable("min_dR_jet_lep", 'F');
+  //dataloader->AddVariable("m_jet_lep_min_dR", 'F');
+  dataloader->AddVariable("m_jet_el", 'F');
+  dataloader->AddVariable("m_jet_mu", 'F');
+  dataloader->AddVariable("m_jet_lep_max", 'F');
+  //dataloader->AddVariable("m_jet_lep_min", 'F');
+  dataloader->AddVariable("min_dR_jet_bjet", 'F');
   cout << "==> Added variables" << endl;
 
 
   // Add spectators
   dataloader->AddSpectator("topHadronOriginFlag", 'I');
   dataloader->AddSpectator("jet_isbtagged_DL1r_77", 'I');
-  dataloader->AddSpectator("NN_jet_DL1r", "F");
-  dataloader->AddSpectator("NN_event_number", "I");
-  dataloader->AddSpectator("NN_tot_event_weight", "F");
-  dataloader->AddSpectator("NN_met", "F");
-  dataloader->AddSpectator("NN_jet_pt", "F");
-  dataloader->AddSpectator("NN_jet_eta", "F");
-  dataloader->AddSpectator("NN_jet_phi", "F");
-  dataloader->AddSpectator("NN_jet_e", "F");
-  dataloader->AddSpectator("NN_mu_pt", "F");
-  dataloader->AddSpectator("NN_mu_eta", "F");
-  dataloader->AddSpectator("NN_mu_phi", "F");
-  dataloader->AddSpectator("NN_mu_e", "F");
-  dataloader->AddSpectator("NN_mu_charge", "F");
-  dataloader->AddSpectator("NN_el_pt", "F");
-  dataloader->AddSpectator("NN_el_eta", "F");
-  dataloader->AddSpectator("NN_el_phi", "F");
-  dataloader->AddSpectator("NN_el_e", "F");
-  dataloader->AddSpectator("NN_el_charge", "F");
-  
+  dataloader->AddSpectator("jet_truthflav", 'I');
+  dataloader->AddSpectator("jet_DL1r", "F");
+  dataloader->AddSpectator("event_number", "I");
+  dataloader->AddSpectator("tot_event_weight", "F");
+  dataloader->AddSpectator("met", "F");
+  dataloader->AddSpectator("jet_pt", "F");
+  dataloader->AddSpectator("jet_eta", "F");
+  dataloader->AddSpectator("jet_phi", "F");
+  dataloader->AddSpectator("jet_e", "F");
+  dataloader->AddSpectator("mu_pt", "F");
+  dataloader->AddSpectator("mu_eta", "F");
+  dataloader->AddSpectator("mu_phi", "F");
+  dataloader->AddSpectator("mu_e", "F");
+  dataloader->AddSpectator("mu_charge", "F");
+  dataloader->AddSpectator("el_pt", "F");
+  dataloader->AddSpectator("el_eta", "F");
+  dataloader->AddSpectator("el_phi", "F");
+  dataloader->AddSpectator("el_e", "F");
+  dataloader->AddSpectator("el_charge", "F");  
   cout << "==> Added spectators" << endl;
 
 
   // Add weights
-  dataloader->SetSignalWeightExpression("NN_tot_event_weight");
-  dataloader->SetBackgroundWeightExpression("NN_tot_event_weight");
+  dataloader->SetSignalWeightExpression("tot_event_weight");
+  dataloader->SetBackgroundWeightExpression("tot_event_weight");
   cout << "==> Added weights" << endl;
 
 
   // Initialize trees
-  dataloader->AddSignalTree( (TTree*)input->Get("NN_signal"), 1.0 );
-  dataloader->AddBackgroundTree( (TTree*)input->Get("NN_background"), 1.0);
+  dataloader->AddSignalTree( (TTree*)input->Get("signal"), 1.0 );
+  dataloader->AddBackgroundTree( (TTree*)input->Get("background"), 1.0);
   cout << "==> Loaded Signal and Bkgd trees" << endl;
   dataloader->PrepareTrainingAndTestTree("", "SplitMode=random:!V");
   cout << "==> Prepared the trees" << endl;
@@ -99,7 +99,6 @@ void tmva_analysis()
   // Book MVA method
   if (method_name == "BDT") factory->BookMethod(dataloader, TMVA::Types::kBDT, method_name, method_options);
   if (method_name == "MLP") factory->BookMethod(dataloader, TMVA::Types::kMLP, method_name, method_options);
-
   cout << "==> Booked a specific BDT method" << endl;
   
 

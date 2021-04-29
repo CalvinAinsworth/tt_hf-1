@@ -5,40 +5,51 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
 {
   cout << "Drawing " << title << endl;
 
+  // Create a canvas
   TCanvas *c = new TCanvas("c", "c", 1600, 1200);
   gStyle->SetOptStat(0);
 
+  
+  // Normalize if needed
+  double h_s_int = h_s->Integral("width");
+  double h_b_int = h_b->Integral("width");
   if (norm_to_1 == true) {
-    double h_s_int = h_s->Integral(0, h_s->GetNbinsX());
     h_s->Scale(1/h_s_int);
-    double h_b_int = h_b->Integral(0, h_b->GetNbinsX());
     h_b->Scale(1/h_b_int); }
 
-  h_s->SetLineColor(2);
-  h_s->SetLineWidth(4);
-  h_b->SetLineColor(4);
-  h_b->SetLineWidth(4);
 
-  TPad *tPad = new TPad("tPad", "tPad", 0.005, 0.4, 0.995, 0.995);
-  TPad *bPad = new TPad("bPad", "bPad", 0.005, 0.1, 0.995, 0.4);
+  // Define two TPads for distributions and ratio
+  TPad *tPad = new TPad("tPad", "tPad", 0, 0.3, 1, 1);
+  TPad *bPad = new TPad("bPad", "bPad", 0, 0,   1, 0.3);
   tPad->Draw();
   bPad->Draw("same");
+
 
   // Top pad: hists
   tPad->cd();
   tPad->SetGrid();
   tPad->SetRightMargin(0.05);
   tPad->SetLeftMargin(0.07);
-  tPad->SetBottomMargin(0);
+  tPad->SetBottomMargin(0.02);
   tPad->SetTopMargin(0.03);
 
+  h_s->SetLineColor(2);
+  h_s->SetLineWidth(4);
   h_s->Draw("hist");
   h_s->SetTitle("");
+  h_s->GetXaxis()->SetTitle("");
   h_s->GetXaxis()->SetLabelSize(0);
-  h_s->GetYaxis()->SetTitle("#bf{norm.}");
+  if (norm_to_1 == true) {
+    h_s->GetYaxis()->SetTitle("#bf{norm.}");
+    h_s->GetYaxis()->SetRangeUser(0, 0.2); }
+  else {
+    //gPad->SetLogY();
+    h_s->GetYaxis()->SetTitle("#bf{Jets}"); }
+  h_s->GetYaxis()->SetTitleOffset(0.9);
+  
+  h_b->SetLineColor(4);
+  h_b->SetLineWidth(4);
   h_b->Draw("same hist");
-
-  if (norm_to_1 == true) { h_s->GetYaxis()->SetRangeUser(0, 0.2); }
 
   TLegend *legend = new TLegend(0.7, 0.7, 0.9, 0.9);
   legend->AddEntry(h_s, legend_entries_titles[0]);
@@ -49,11 +60,11 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
 
   // Bottom pad: ratio 
   bPad->cd();
+  bPad->SetGrid();
   bPad->SetRightMargin(0.05);
   bPad->SetLeftMargin(0.07);
-  bPad->SetTopMargin(0);
-  bPad->SetBottomMargin(0.4);
-  bPad->SetGrid();
+  bPad->SetTopMargin(0.02);
+  bPad->SetBottomMargin(0.3);
   
   h_r->SetTitle("");
   h_r->SetLineColor(1);
@@ -61,8 +72,8 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
 
   h_r->GetXaxis()->SetLabelSize(0.10);
   h_r->GetXaxis()->SetTitle(title);
-  h_r->GetXaxis()->SetTitleOffset(1.3);
-  h_r->GetXaxis()->SetTitleSize(0.12);
+  h_r->GetXaxis()->SetTitleOffset(1.2);
+  h_r->GetXaxis()->SetTitleSize(0.1);
 
   h_r->GetYaxis()->SetLabelSize(0.05);
   h_r->GetYaxis()->SetTitle("#int^{max}_{bin}Sig  #bf{/} #sqrt{#int^{max}_{bin}Bkg}");
@@ -119,9 +130,9 @@ void optimize_classifier_cut()
  
   
   // Prepare hists
-  int n_bins = h_NN_classifier_output_S->GetNbinsX();
-  double sig_total = h_NN_classifier_output_S->Integral(0, n_bins+1);
-  double bkg_total = h_NN_classifier_output_B->Integral(0, n_bins+1);
+  int n_bins =  h_NN_classifier_output_S->GetNbinsX();
+  double sig_total = h_NN_classifier_output_S->Integral(0, h_NN_classifier_output_S->GetNbinsX()+1);
+  double bkg_total = h_NN_classifier_output_B->Integral(0, h_NN_classifier_output_B->GetNbinsX()+1);
  
 
   // Create a hist for ratio

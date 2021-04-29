@@ -5,22 +5,21 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, v
 {
   cout << "Drawing " << title << endl;
 
-  TCanvas *c = new TCanvas("c", "c", 1600, 1200);
-  
+  // Create a canvas
+  TCanvas *c = new TCanvas("c", "c", 1600, 1200);  
   gStyle->SetOptStat(0);
 
-  h_data->SetMarkerStyle(20);
-  h_data->SetMarkerColor(1);
-  h_mc->SetLineColor(4);
   
-  TPad *tPad = new TPad("tPad", "tPad", 0.005, 0.4, 0.995, 0.995);
-  TPad *bPad = new TPad("bPad", "bPad", 0.005, 0.1, 0.995, 0.4);
+  // Define two TPads for distributions and ratio
+  TPad *tPad = new TPad("tPad", "tPad", 0, 0.3, 1, 1);
+  TPad *bPad = new TPad("bPad", "bPad", 0, 0,   1, 0.3);
   tPad->Draw();
   bPad->Draw("same");
 
+
+  // Get integrals and normalize if needed
   double data_int = h_data->Integral(0, h_data->GetNbinsX()+1);
   double mc_int = h_mc->Integral(0, h_mc->GetNbinsX()+1);
-
   if (norm_to_1==true) {
     h_data->Scale(1/data_int);
     h_mc->Scale(1/mc_int); }
@@ -31,17 +30,23 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, v
   tPad->SetGrid();
   tPad->SetRightMargin(0.05);
   tPad->SetLeftMargin(0.07);
-  tPad->SetBottomMargin(0);
+  tPad->SetBottomMargin(0.02);
   tPad->SetTopMargin(0.03);
-  gPad->SetLogy();
   
   h_data->Draw("E1P");
+  h_data->SetMarkerStyle(20);
+  h_data->SetMarkerColor(1);
   h_data->SetMarkerSize(1.5);
-  h_data->SetLineWidth(0);
+  h_data->SetLineWidth(1);
   h_data->SetTitle("");
   h_data->GetXaxis()->SetLabelSize(0);
-  h_data->GetYaxis()->SetTitle("#bf{N Events}");
+  if (norm_to_1 == true) {
+    h_data->GetYaxis()->SetTitle("norm. to 1"); }
+  else {
+    gPad->SetLogy();
+    h_data->GetYaxis()->SetTitle("#bf{N Events}"); }
   h_mc->Draw("e2 hist same");
+  h_mc->SetLineColor(4);
   h_mc->SetLineWidth(4);
   h_mc->SetLineColor(2);
 
@@ -55,7 +60,7 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, v
   bPad->cd();
   bPad->SetRightMargin(0.05);
   bPad->SetLeftMargin(0.07);
-  bPad->SetTopMargin(0);
+  bPad->SetTopMargin(0.02);
   bPad->SetBottomMargin(0.4);
   bPad->SetGrid();
   TH1 *h_ratio = (TH1*)h_data->Clone();
@@ -76,7 +81,13 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, v
   h_ratio->GetYaxis()->SetRangeUser(0,2);
   h_ratio->GetYaxis()->SetNdivisions(8);
   h_ratio->Draw("E1");
-  
+
+  // Draw a line at R=1
+  TLine *line = new TLine(h_ratio->GetXaxis()->GetXmin(), 1, h_ratio->GetXaxis()->GetXmax(), 1);
+  line->SetLineColor(9);
+  line->SetLineWidth(3);
+  line->SetLineStyle(7);
+  line->Draw("same");
   
   // Save the plot and print yileds
   c->Print("Plots/data_mc_comparison/"+savename+".png");

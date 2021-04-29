@@ -14,10 +14,10 @@
 #include <sstream>
 #include <vector>
 
-#include "KLFitter/DetectorAtlas_8TeV.h"
-#include "KLFitter/Fitter.h"
-#include "KLFitter/LikelihoodTopDilepton.h"
-#include "KLFitter/Permutations.h"
+//#include "KLFitter/DetectorAtlas_8TeV.h"
+//#include "KLFitter/Fitter.h"
+//#include "KLFitter/LikelihoodTopDilepton.h"
+//#include "KLFitter/Permutations.h"
 
 using namespace std;
 
@@ -64,25 +64,6 @@ vector<TString> get_list_of_files(TString dirname, vector<TString> container = {
     }
   }
   return container;
-}
-
-
-
-// #####################
-// ## Compute delta R ##
-// #####################
-double dR(float phi_1st, float eta_1st, float phi_2nd, float eta_2nd)
-{
-  double dR_val = 0;
-  
-  double dPhi = phi_1st - phi_2nd;
-  double dEta = eta_1st - eta_2nd;
-  
-  if (dPhi > TMath::Pi()) dPhi = 2*TMath::Pi() - dPhi;
-
-  dR_val = sqrt( pow(dPhi,2) + pow(dEta,2) );
-  
-  return dR_val;
 }
 
 
@@ -195,20 +176,20 @@ void prepare_hists_mc()
   
 
   // Initialize KLFitter
-  KLFitter::Fitter fitter{};
+  //KLFitter::Fitter fitter{};
   
-  KLFitter::DetectorAtlas_8TeV detector{"/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/AnalysisTop/KLFitterTFs/mc15c/akt4_EMtopo_PP6"};
-  fitter.SetDetector(&detector);
+  //KLFitter::DetectorAtlas_8TeV detector{"/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/AnalysisTop/KLFitterTFs/mc15c/akt4_EMtopo_PP6"};
+  //fitter.SetDetector(&detector);
 
-  KLFitter::LikelihoodTopDilepton likelihood{};
-  likelihood.PhysicsConstants()->SetMassTop(172.5);
-  likelihood.SetBTagging(KLFitter::LikelihoodBase::BtaggingMethod::kNotag);
-  likelihood.SetFlagTopMassFixed(true);
-  fitter.SetLikelihood(&likelihood);
+  //KLFitter::LikelihoodTopDilepton likelihood{};
+  //likelihood.PhysicsConstants()->SetMassTop(172.5);
+  //likelihood.SetBTagging(KLFitter::LikelihoodBase::BtaggingMethod::kNotag);
+  //likelihood.SetFlagTopMassFixed(true);
+  //fitter.SetLikelihood(&likelihood);
   
 
   // Create vars for NN
-  vector<int> NN_tHOF_v, NN_jet_DL1r_77_v;
+  vector<int> NN_topHOF_v, NN_jet_DL1r_77_v, NN_jet_truthflav;
   vector<float> NN_dR_jet_lep0_v, NN_dR_jet_lep1_v, NN_min_dR_jet_lep_v;
   vector<float> NN_m_jet_lep_min_dR_v, NN_m_jet_el_v, NN_m_jet_mu_v;
   vector<float> NN_m_jet_lep_max_v, NN_m_jet_lep_min_v;
@@ -225,25 +206,23 @@ void prepare_hists_mc()
   // Loop over directories with ntuples collections
   for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++)
     {
-      // Announce current directory
+      // Select only directiories from the list of files and directories
       TSystemFile dir(dir_paths[dir_counter], dir_paths[dir_counter]);
       if (!(dir.IsDirectory())) continue; 
       cout << "\n\n\n" << dir_paths[dir_counter] << endl;
       
       
-      // Check for the content: data/mc? which campaign?
+      // Analyze directiry's name: data/mc, which campaign?
       vector<TString> dir_path_components = split(dir_paths[dir_counter], '/');
-      int last_element_index = dir_path_components.size();
-      vector<TString> dir_name_components = split(dir_path_components[last_element_index-1], '_');
+      int last_element_index = dir_path_components.size()-1;
       bool is_data = false;
       bool is_mc16a = false;
       bool is_mc16d = false;
       bool is_mc16e = false;
-      for (int i=0; i<dir_name_components.size(); i++) {
-	  if (dir_name_components[i] == "data") is_data = true;
-          if (dir_name_components[i] == "mc16a") is_mc16a = true;
-          if (dir_name_components[i] == "mc16d") is_mc16d = true;
-          if (dir_name_components[i] == "mc16e") is_mc16e = true; }
+      if (dir_path_components[last_element_index] == "data") is_data = true;
+      if (dir_path_components[last_element_index] == "mc16a") is_mc16a = true;
+      if (dir_path_components[last_element_index] == "mc16d") is_mc16d = true;
+      if (dir_path_components[last_element_index] == "mc16e") is_mc16e = true;
       
       
       // We work with MC only
@@ -261,683 +240,658 @@ void prepare_hists_mc()
       // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
       vector<TString> paths_to_jobs = get_list_of_files(dir_paths[dir_counter]);
       
-
-      // Loop over jobs/DIDs
-      for (int job_number=0; job_number<paths_to_jobs.size(); job_number++)
-	{
+      
+      // Loop over DIDs (directories)
+      for (int job_number=0; job_number<paths_to_jobs.size(); job_number++) {
+	
+	// Get info about the job/DID from its name
+	vector<TString> path_to_jobs_components = split(paths_to_jobs[job_number], '/');
+	TString job_name = path_to_jobs_components[path_to_jobs_components.size() - 1];
+	vector<TString> job_name_components = split(job_name, '.');
+	TString job_DID = job_name_components[2];
+	vector<TString> campaign_info = split(job_name_components[5], '_');
+	
+	
+	// Select only jobs/physics_processes of our interest: 
+	// (1) regular (not alternamtive) samples
+	// (2) tt+any, ttbb, ttb, ttc
+	if (campaign_info[1]!="s3126") continue; // (1)
+	if (job_DID!="410472" && job_DID!="411076" && job_DID!="411077" && job_DID!="411078") { continue; } // (2)
+	else { cout << "\n\nDID: " << job_DID << endl; }
+	
+	
+	// Run over the inclusive sample only - uncommebt the "if" statement line
+	bool only_410472 = false;
+	//if (job_DID=="410472") { only_410472=true; } else { continue; }
+	
+	
+	// Make a list of paths to ntuples of the given job/DID
+	vector<TString> paths_to_ntuples = get_list_of_files(paths_to_jobs[job_number]);
+	
+	
+	// Loop over ntuples of one DID
+	for (int ntuple_number=0; ntuple_number<paths_to_ntuples.size(); ntuple_number++) {  
 	  
-	  // Get info about the job/DID from its name
-	  vector<TString> path_to_jobs_components = split(paths_to_jobs[job_number], '/');
-	  TString job_name = path_to_jobs_components[path_to_jobs_components.size() - 1];
-	  vector<TString> job_name_components = split(job_name, '.');
-	  TString job_DID = job_name_components[2];
-	  vector<TString> campaign_info = split(job_name_components[5], '_');
+	  // Open ntuple
+	  cout << paths_to_ntuples[ntuple_number] << endl;
+	  TFile *ntuple = new TFile (paths_to_ntuples[ntuple_number]);
+	  TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
 	  
 	  
-	  // Select only jobs/physics_processes of our interest: 
-	  // (1) regular (not alternamtive) samples
-	  // (2) tt+any, ttbb, ttb, ttc
-	  if (campaign_info[1]!="s3126") continue;
-	  if (job_DID!="410472" && job_DID!="411076" && job_DID!="411077" && job_DID!="411078") { continue; }
-	  else { cout << "\n\nDID: " << job_DID << endl; }
-
+	  // Set all the needed branches
+	  vector<Float_t> *jet_pt, *jet_DL1r, *jet_eta, *jet_phi, *jet_e;
+	  vector<Float_t> *el_pt, *el_eta, *el_cl_eta, *el_phi, *el_charge, *el_e;
+	  vector<Float_t> *mu_pt, *mu_eta, *mu_phi, *mu_charge, *mu_e;
+	  vector<int> *topHadronOriginFlag, *jet_truthflav;
+	  vector<char> *jet_DL1r_77;
+	  jet_pt = jet_DL1r = jet_eta = jet_phi = jet_e = 0;
+	  el_pt = el_eta = el_cl_eta = el_phi = el_charge = el_e = 0;
+	  mu_pt = mu_eta = mu_phi = mu_charge = mu_e = 0;
+	  topHadronOriginFlag = jet_truthflav = 0;
+	  jet_DL1r_77 = 0;
+	  Float_t met, met_phi;
+	  tree_nominal->SetBranchAddress("jet_pt", &jet_pt);
+	  tree_nominal->SetBranchAddress("jet_eta", &jet_eta);
+	  tree_nominal->SetBranchAddress("jet_phi", &jet_phi);
+	  tree_nominal->SetBranchAddress("jet_e", &jet_e);
+	  tree_nominal->SetBranchAddress("jet_DL1r", &jet_DL1r);
+	  tree_nominal->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_DL1r_77);
+	  tree_nominal->SetBranchAddress("jet_truthflav", &jet_truthflav);
+	  tree_nominal->SetBranchAddress("el_pt", &el_pt);
+	  tree_nominal->SetBranchAddress("el_eta", &el_eta);
+	  tree_nominal->SetBranchAddress("el_cl_eta", &el_cl_eta);
+	  tree_nominal->SetBranchAddress("el_phi", &el_phi);
+	  tree_nominal->SetBranchAddress("el_charge", &el_charge);
+	  tree_nominal->SetBranchAddress("el_e", &el_e);
+	  tree_nominal->SetBranchAddress("mu_pt", &mu_pt);
+	  tree_nominal->SetBranchAddress("mu_eta", &mu_eta);
+	  tree_nominal->SetBranchAddress("mu_phi", &mu_phi);
+	  tree_nominal->SetBranchAddress("mu_charge", &mu_charge);
+	  tree_nominal->SetBranchAddress("mu_e", &mu_e);
+	  tree_nominal->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &topHadronOriginFlag); // https://gitlab.cern.ch/TTJ/Ntuple/-/blob/master/TTJNtuple/TTJNtuple/EventSaver.h#L55 
+	  tree_nominal->SetBranchAddress("met_met", &met);
+	  tree_nominal->SetBranchAddress("met_phi", &met_phi);
 	  
-	  // Testing option: keep only tt+all if true
-	  bool only_410472 = false;
-	  //if (job_DID=="410472") { only_410472=true; } else { continue; }
 	  
-
-	  // Make a list of paths to ntuples of the given job/DID
-	  vector<TString> paths_to_ntuples = get_list_of_files(paths_to_jobs[job_number]);
-
-
-	  // Loop over ntuples of one job/DID
-	  for (int ntuple_number=0; ntuple_number<paths_to_ntuples.size(); ntuple_number++)
-	    {  
+	  // Weights
+	  float w_mc, w_pu, w_leptonSF, w_DL1r_77, w_jvt;
+	  UInt_t runNumber;
+	  tree_nominal->SetBranchAddress("weight_mc", &w_mc);
+	  tree_nominal->SetBranchAddress("weight_pileup", &w_pu);
+	  tree_nominal->SetBranchAddress("weight_leptonSF", &w_leptonSF);
+	  tree_nominal->SetBranchAddress("weight_bTagSF_DL1r_77", &w_DL1r_77);
+	  tree_nominal->SetBranchAddress("weight_jvt", &w_jvt);
+	  tree_nominal->SetBranchAddress("runNumber", &runNumber);
+	  
+	  
+	  // Top flavor filter flag
+	  int topHFFF;
+	  tree_nominal->SetBranchAddress("topHeavyFlavorFilterFlag", &topHFFF);
+	  
+	  
+	  // Ignore the "ReadStreamerInfo, class:string, illegal uid=-2" erro
+	  
+	  
+	  // Loop over entries
+	  Int_t nEntries = tree_nominal->GetEntries();
+	  cout << "\tEntries = " << nEntries << endl;
+	  for (int entry=0; entry<nEntries; entry++)  {
+	    // Show events counter
+	    if (entry%1000==0) { cout << "\t" << entry << "\r"; cout.flush(); }
+	    tree_nominal->GetEntry(entry);
+	    
+	    
+	    // Compute weights
+	    double weight_lumi = 1;
+	    double sumWeights = 1;
+	    double campaign_lumi = 1;
+	    double campaign_xsection = 1;
+	    double campaign_genFiltEff = 1;
+	    double campaign_xsection_x_genFiltEff = 1;
+	    double kFactor = 1;
+	    double total_lumi = 3.21956 + 32.9881 + 44.3074 + 58.4501;
+	    
+	    if (runNumber==284500) {
+	      campaign_lumi = 3.21956 + 32.9881;
+	      if (job_DID=="411076") {
+		sumWeights = 3.33006*pow(10, 9);
+		campaign_xsection_x_genFiltEff = 0.6740;
+		kFactor = 1.1397; }
+	      if (job_DID=="411077") {
+		sumWeights = 3.61088*pow(10, 9);
+		campaign_xsection_x_genFiltEff = 3.582;
+		kFactor = 1.1398; }
+	      if (job_DID=="411078") {
+		sumWeights = 3.61598*pow(10, 9);
+		campaign_xsection_x_genFiltEff = 3.034;
+		kFactor = 1.1397; }
+	      if (job_DID=="410472") {
+		sumWeights = 5.82869*pow(10, 10);
+		campaign_xsection_x_genFiltEff = 76.95;
+		kFactor = 1.13975636159; } }
+	    if (runNumber==300000) {
+	      campaign_lumi = 44.3074;
+	      if (job_DID=="411076") {
+		sumWeights = 4.21891*pow(10, 9);
+		campaign_xsection_x_genFiltEff = 0.6740;
+		kFactor = 1.1397; }
+	      if (job_DID=="411077") {
+		sumWeights = 4.49595*pow(10, 9);
+		campaign_xsection_x_genFiltEff = 3.582;
+		kFactor = 1.1398; }
+	      if (job_DID=="411078") {
+		sumWeights = 4.49400*pow(10, 9);
+		campaign_xsection_x_genFiltEff = 3.034;
+		kFactor = 1.1397; }
+	      if (job_DID=="410472") {
+		sumWeights = 7.26510*pow(10, 10);
+		campaign_xsection_x_genFiltEff = 76.95;
+		kFactor = 1.13975636159; } }
+	    if (runNumber==310000) {
+	      campaign_lumi = 58.4501;
+	      if (job_DID=="411076") {
+		sumWeights = 5.47811*pow(10, 9);
+		campaign_xsection_x_genFiltEff = 0.6740;
+		kFactor = 1.1397; }
+	      if (job_DID=="411077") {
+		sumWeights = 5.94763*pow(10, 9);
+		campaign_xsection_x_genFiltEff = 3.582;
+		kFactor = 1.1398; }
+	      if (job_DID=="411078") {
+		sumWeights = 5.94190*pow(10, 9);
+		campaign_xsection_x_genFiltEff = 3.034;
+		kFactor = 1.1397; }
+	      if (job_DID=="410472") {
+		sumWeights = 1.01641*pow(10, 11);
+		campaign_xsection_x_genFiltEff = 76.95;
+		kFactor = 1.13975636159; } }
+	    
+	    // Actual computation:
+	    weight_lumi = campaign_lumi * pow(10,3) * campaign_xsection_x_genFiltEff * kFactor / sumWeights;
+	    double weights = w_mc * w_pu * w_leptonSF * w_DL1r_77 * w_jvt * weight_lumi;
+	    
+	    
+	    // Initiate cuts names
+	    bool emu_cut = false;
+	    bool OS_cut = false;
+	    bool jets_n_cut = false;
+	    bool btags_n2_cut = false;
+	    bool btags_n3_cut = false;
+	    bool topHFFF_cut = false;
+	    
+	    
+	    // Define cuts themselves
+	    if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
+	    if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
+	    
+	    int jets_n = (*jet_pt).size();
+	    if (jets_n >=3) jets_n_cut = true;
+	    
+	    int btags_n = 0;
+	    for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_DL1r_77)[i]==1) btags_n++; }
+	    if (btags_n >=2) btags_n2_cut = true;
+	    if (btags_n ==3) btags_n3_cut = true;
+            
+	    if ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) topHFFF_cut = true;
+	    
+	    
+	    
+	    // TLorentzVectors for leptons and jets
+	    TLorentzVector el_lvec;
+	    TLorentzVector mu_lvec;
+	    vector<TLorentzVector> jets_lvec;
+	    el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
+	    mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
+	    for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
+	      TLorentzVector lvec;
+	      lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
+	      jets_lvec.push_back(lvec); }
+	    
+	    
+	    // ///
+	    // 3b, emu, OS channel: Draw min_dR
+	    // ///
+	    if (emu_cut*OS_cut*btags_n3_cut*topHFFF_cut*jets_n_cut == true) {
 	      
-	      // Open ntuple
-	      cout << paths_to_ntuples[ntuple_number] << endl;
-	      TFile *ntuple = new TFile (paths_to_ntuples[ntuple_number]);
-	      TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
+	      // Define min_dR as some lagre value to begin with
+	      double min_dR1_top = 999999.; // leading lepton
+	      double min_dR2_top = 999999.; // subleading lepton
+	      double min_dR1_not_top = 999999.; // leading lepton
+	      double min_dR2_not_top = 999999.; // subleading lepton
 	      
-
-	      // Set all the needed branches
-	      vector<Float_t> *jet_pt, *jet_DL1r, *jet_eta, *jet_phi, *jet_e;
-	      vector<Float_t> *el_pt, *el_eta, *el_cl_eta, *el_phi, *el_charge, *el_e;
-	      vector<Float_t> *mu_pt, *mu_eta, *mu_phi, *mu_charge, *mu_e;
-	      vector<int> *topHadronOriginFlag, *jet_truthflav;
-	      vector<char> *jet_DL1r_77;
-	      jet_pt = jet_DL1r = jet_eta = jet_phi = jet_e = 0;
-	      el_pt = el_eta = el_cl_eta = el_phi = el_charge = el_e = 0;
-	      mu_pt = mu_eta = mu_phi = mu_charge = mu_e = 0;
-	      topHadronOriginFlag = jet_truthflav = 0;
-	      jet_DL1r_77 = 0;
-	      Float_t met, met_phi;
-	      tree_nominal->SetBranchAddress("jet_pt", &jet_pt);
-              tree_nominal->SetBranchAddress("jet_eta", &jet_eta);
-              tree_nominal->SetBranchAddress("jet_phi", &jet_phi);
-	      tree_nominal->SetBranchAddress("jet_e", &jet_e);
-              tree_nominal->SetBranchAddress("jet_DL1r", &jet_DL1r);
-	      tree_nominal->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_DL1r_77);
-              tree_nominal->SetBranchAddress("jet_truthflav", &jet_truthflav);
-	      tree_nominal->SetBranchAddress("el_pt", &el_pt);
-              tree_nominal->SetBranchAddress("el_eta", &el_eta);
-	      tree_nominal->SetBranchAddress("el_cl_eta", &el_cl_eta);
-              tree_nominal->SetBranchAddress("el_phi", &el_phi);
-              tree_nominal->SetBranchAddress("el_charge", &el_charge);
-	      tree_nominal->SetBranchAddress("el_e", &el_e);
-              tree_nominal->SetBranchAddress("mu_pt", &mu_pt);
-              tree_nominal->SetBranchAddress("mu_eta", &mu_eta);
-              tree_nominal->SetBranchAddress("mu_phi", &mu_phi);
-              tree_nominal->SetBranchAddress("mu_charge", &mu_charge);
-	      tree_nominal->SetBranchAddress("mu_e", &mu_e);
-              tree_nominal->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &topHadronOriginFlag); // https://gitlab.cern.ch/TTJ/Ntuple/-/blob/master/TTJNtuple/TTJNtuple/EventSaver.h#L55 
-	      tree_nominal->SetBranchAddress("met_met", &met);
-	      tree_nominal->SetBranchAddress("met_phi", &met_phi);
 	      
-
-	      // Weights
-	      float w_mc, w_pu, w_leptonSF, w_DL1r_77, w_jvt;
-              UInt_t runNumber;
-              tree_nominal->SetBranchAddress("weight_mc", &w_mc);
-              tree_nominal->SetBranchAddress("weight_pileup", &w_pu);
-              tree_nominal->SetBranchAddress("weight_leptonSF", &w_leptonSF);
-              tree_nominal->SetBranchAddress("weight_bTagSF_DL1r_77", &w_DL1r_77);
-              tree_nominal->SetBranchAddress("weight_jvt", &w_jvt);
-              tree_nominal->SetBranchAddress("runNumber", &runNumber);
-
-
-	      // Top flavor filter flag
-	      int topHFFF;
-              tree_nominal->SetBranchAddress("topHeavyFlavorFilterFlag", &topHFFF);
-
-
-	      // Ignore the "ReadStreamerInfo, class:string, illegal uid=-2" erro
-
-
-	      // Loop over entries
-	      Int_t nEntries = tree_nominal->GetEntries();
-	      cout << "\tEntries = " << nEntries << endl;
-	      for (int entry=0; entry<nEntries; entry++)
-		{
-		  // Show events counter
-		  if (entry%1000==0) { cout << "\t" << entry << "\r"; cout.flush(); }
-		  tree_nominal->GetEntry(entry);
+	      // Loop over all jets, and select only b-tagged in the loop
+	      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
+		if ( (*jet_truthflav)[jet_i]==5) {
 		  
-
-		  // Compute weights
-		  double weight_lumi = 1;
-                  double sumWeights = 1;
-                  double campaign_lumi = 1;
-                  double campaign_xsection = 1;
-                  double campaign_genFiltEff = 1;
-		  double campaign_xsection_x_genFiltEff = 1;
-                  double kFactor = 1;
-                  double total_lumi = 3.21956 + 32.9881 + 44.3074 + 58.4501;
+		  // Define initial dR's
+		  double dR1 = 0;
+		  double dR2 = 0;
 		  
-		  if (runNumber==284500) {
-		    campaign_lumi = 3.21956 + 32.9881;
-		    if (job_DID=="411076") {
-		      sumWeights = 3.33006*pow(10, 9);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.008814;
-		      campaign_xsection_x_genFiltEff = 0.6740;
-		      kFactor = 1.1397; }
-		    if (job_DID=="411077") {
-		      sumWeights = 3.61088*pow(10, 9);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.046655;
-		      campaign_xsection_x_genFiltEff = 3.582;
-		      kFactor = 1.1398; }
-		    if (job_DID=="411078") {
-		      sumWeights = 3.61598*pow(10, 9);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.039503;
-		      campaign_xsection_x_genFiltEff = 3.034;
-		      kFactor = 1.1397; }
-		    if (job_DID=="410472") {
-		      sumWeights = 5.82869*pow(10, 10);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.10547;
-		      campaign_xsection_x_genFiltEff = 76.95;
-		      kFactor = 1.13975636159; } }
-		  if (runNumber==300000) {
-		    campaign_lumi = 44.3074;
-		    if (job_DID=="411076") {
-		      sumWeights = 4.21891*pow(10, 9);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.008814;
-		      campaign_xsection_x_genFiltEff = 0.6740;
-		      kFactor = 1.1397; }
-		    if (job_DID=="411077") {
-		      sumWeights = 4.49595*pow(10, 9);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.046655;
-		      campaign_xsection_x_genFiltEff = 3.582;
-		      kFactor = 1.1398; }
-		    if (job_DID=="411078") {
-		      sumWeights = 4.49400*pow(10, 9);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.039503;
-		      campaign_xsection_x_genFiltEff = 3.034;
-		      kFactor = 1.1397; }
-		    if (job_DID=="410472") {
-		      sumWeights = 7.26510*pow(10, 10);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.10547;
-		      campaign_xsection_x_genFiltEff = 76.95;
-		      kFactor = 1.13975636159; } }
-		  if (runNumber==310000) {
-		    campaign_lumi = 58.4501;
-		    if (job_DID=="411076") {
-		      sumWeights = 5.47811*pow(10, 9);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.008814;
-		      campaign_xsection_x_genFiltEff = 0.6740;
-		      kFactor = 1.1397; }
-		    if (job_DID=="411077") {
-		      sumWeights = 5.94763*pow(10, 9);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.046655;
-		      campaign_xsection_x_genFiltEff = 3.582;
-		      kFactor = 1.1398; }
-		    if (job_DID=="411078") {
-		      sumWeights = 5.94190*pow(10, 9);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.039503;
-		      campaign_xsection_x_genFiltEff = 3.034;
-		      kFactor = 1.1397; }
-		    if (job_DID=="410472") {
-		      sumWeights = 1.01641*pow(10, 11);
-		      campaign_xsection = 0.72977;
-		      campaign_genFiltEff = 0.10547;
-		      campaign_xsection_x_genFiltEff = 76.95;
-		      kFactor = 1.13975636159; } }
+		  // Assign dR1 to the leading lep and dR2 to the subleading 
+		  if ((*mu_pt)[0]>(*el_pt)[0]) {
+		    dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]);
+		    dR2 = el_lvec.DeltaR(jets_lvec[jet_i]); }
+		  else {
+		    dR1 = el_lvec.DeltaR(jets_lvec[jet_i]);
+		    dR2 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
 		  
-		  // Actual computation:
-		  weight_lumi = campaign_lumi * pow(10,3) * campaign_xsection_x_genFiltEff * kFactor / sumWeights;
-		  //weight_lumi = campaign_lumi * campaign_xsection * pow(10,6) * campaign_genFiltEff * kFactor / sumWeights;
-		  double weights = w_mc * w_pu * w_leptonSF * w_DL1r_77 * w_jvt * weight_lumi;
-
+		  // Sort wrt origin
+		  if ((*topHadronOriginFlag)[jet_i]==4) { 
+		    min_dR1_top = min(min_dR1_top, dR1); 
+		    min_dR2_top = min(min_dR2_top, dR2); }
+		  else {
+		    min_dR1_not_top = min(min_dR1_not_top, dR1); 
+		    min_dR2_not_top = min(min_dR2_not_top, dR2); }
 		  
-		  // Initiate cuts names
-		  bool emu_cut = false;
-                  bool OS_cut = false;
-                  bool jets_n_cut = false;
-		  bool btags_n2_cut = false;
-		  bool btags_n3_cut = false;
-                  bool bjets_n2_cut = false;
-                  bool bjets_n3_cut = false;
-                  bool topHFFF_cut = false;
-		  
-
-		  // Define cuts themselves
-		  if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
-		  if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
-		  
-		  int bjets_n = 0;
-		  for (int i=0; i<(*jet_pt).size(); i++) { if ( int((*jet_truthflav)[i]==1) ) bjets_n++; }
-		  if (bjets_n==3) bjets_n3_cut = true;
-                  if (bjets_n>=2) bjets_n2_cut = true;
-                  
-		  int jets_n = (*jet_pt).size();
-                  if (jets_n >=3) jets_n_cut = true;
-		  
-		  int btags_n = 0;
-		  for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_DL1r_77)[i]==1) btags_n++; }
-		  if (btags_n >=2) btags_n2_cut = true;
-		  if (btags_n ==3) btags_n3_cut = true;
-                  
-		  if ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) topHFFF_cut = true;
-
-
-		  
-		  // TLorentzVectors for leptons and jets
-		  TLorentzVector el_lvec;
-		  TLorentzVector mu_lvec;
-		  vector<TLorentzVector> jets_lvec;
-		  el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
-		  mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
-		  for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
-		    TLorentzVector lvec;
-		    lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
-		    jets_lvec.push_back(lvec); }
-
-
-		  // ///
-		  // 3b, emu, OS channel: Draw min_dR
-		  // ///
-		  if (emu_cut*OS_cut*btags_n3_cut*topHFFF_cut*jets_n_cut == true)
-		    {
-		      
-		      // Define min_dR as some lagre value to begin with
-                      double min_dR1_top = 999999.; // leading lepton
-                      double min_dR2_top = 999999.; // subleading lepton
-                      double min_dR1_not_top = 999999.; // leading lepton
-                      double min_dR2_not_top = 999999.; // subleading lepton
-		      
-		      
-		      // Loop over all jets, and select only b-tagged in the loop
-		      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
-			if ( (*jet_truthflav)[jet_i]==5) {
-			      
-			    // Define initial dR's
-			    double dR1 = 0;
-			    double dR2 = 0;
-			    
-			    // Assign dR1 to the leading lep and dR2 to the subleading 
-			    if ((*mu_pt)[0]>(*el_pt)[0]) {
-			      dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]);
-			      dR2 = el_lvec.DeltaR(jets_lvec[jet_i]); }
-			    else {
-			      dR1 = el_lvec.DeltaR(jets_lvec[jet_i]);
-			      dR2 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
-			    
-			    // Sort wrt origin
-			    if ((*topHadronOriginFlag)[jet_i]==4) { 
-			      min_dR1_top = min(min_dR1_top, dR1); 
-			      min_dR2_top = min(min_dR2_top, dR2); }
-			    else {
-			      min_dR1_not_top = min(min_dR1_not_top, dR1); 
-			      min_dR2_not_top = min(min_dR2_not_top, dR2); }
-			  
-			  }  // selection of b-jets from all jets
-			
-		      } // [jet_i] - loop over jets
-		      
-		      
-		      // Fill min_dR histograms
-		      h_minDeltaR_lep0_bjets_from_top->Fill(min_dR1_top, weights);
-		      h_minDeltaR_lep0_bjets_not_from_top->Fill(min_dR1_not_top, weights);
-		      h_minDeltaR_lep1_bjets_from_top->Fill(min_dR2_top, weights);
-		      h_minDeltaR_lep1_bjets_not_from_top->Fill(min_dR2_not_top, weights);
-		      
-		    } // 3b, emu, OS cuts
-		  
-		  
-
-
-		  // ///
-		  // 2+b (tags), emu, OS
-		  // ///
-		  if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
-
-		    
-		    // MET hists:
-		    h_met->Fill(met*0.001, weights);
-		    h_met_phi->Fill(met_phi, weights);
-		    
-		    
-		    // jet pt hists:
-		    for (int i=0; i<3; i++) { h_jet_pt[i]->Fill((*jet_pt)[i]*0.001, weights); }
-		    
-
-		    // jets_n hist:
-		    h_jets_n->Fill((*jet_pt).size(), weights);
-		    h_bjets_n->Fill(btags_n, weights);
-		    
-
-		    // leptons hists:
-		    if ( (*el_pt)[0] > (*mu_pt)[0] ) {
-		      h_lep0_pt->Fill((*el_pt)[0]*0.001, weights);
-		      h_lep1_pt->Fill((*mu_pt)[0]*0.001, weights);
-		      h_lep0_eta->Fill((*el_eta)[0], weights);
-		      h_lep1_eta->Fill((*mu_eta)[0], weights);
-		      h_lep0_phi->Fill((*el_phi)[0], weights);
-		      h_lep1_phi->Fill((*mu_phi)[0], weights); }
-		    else {
-		      h_lep0_pt->Fill((*mu_pt)[0]*0.001, weights);
-		      h_lep1_pt->Fill((*el_pt)[0]*0.001, weights);
-		      h_lep0_eta->Fill((*mu_eta)[0], weights);
-		      h_lep1_eta->Fill((*el_eta)[0], weights);
-		      h_lep0_phi->Fill((*mu_phi)[0], weights);
-		      h_lep1_phi->Fill((*el_phi)[0], weights); }
-		    h_lep_pt->Fill((*el_pt)[0]*0.001, weights);
-		    h_lep_pt->Fill((*mu_pt)[0]*0.001, weights);
-		    h_lep_eta->Fill((*el_eta)[0], weights);
-		    h_lep_eta->Fill((*mu_eta)[0], weights);
-		    h_lep_phi->Fill((*el_phi)[0], weights);
-		    h_lep_phi->Fill((*mu_phi)[0], weights);
-		  
-		    
-		    // dR(lep0, lep1) hist:
-		    h_dR_lep0_lep1->Fill(el_lvec.DeltaR(mu_lvec));
-		    
-		    
-		    // dR_min lep0/1 btags
-		    double min_dR0_top = 999999.; // leading lepton
-		    double min_dR1_top = 999999.; // subleading lepton
-		    double min_dR0_not_top = 999999.; // leading lepton
-		    double min_dR1_not_top = 999999.; // subleading lepton
-		    
-		    for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
-
-		      if ((*jet_DL1r_77)[jet_i]==1) {
-
-			double dR0 = 0;
-			double dR1 = 0;
-
-			if ((*mu_pt)[0]>(*el_pt)[0]) {
-			  dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
-			  dR1 = el_lvec.DeltaR(jets_lvec[jet_i]); }
-			else {
-			  dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
-			  dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
-		      
-			if ((*topHadronOriginFlag)[jet_i]==4) {
-			  min_dR0_top = min(min_dR0_top, dR0); 
-			  min_dR1_top = min(min_dR1_top, dR1);}
-			else {
-			  min_dR0_not_top = min(min_dR0_not_top, dR0); 
-			  min_dR1_not_top = min(min_dR1_not_top, dR0); }
-			
-		      } // [if] DL1r tag 
-		    } // [jet_i] - loop over jets
-		    
-		    h_minDeltaR_lep0_btags_from_top->Fill(min_dR0_top, weights);
-		    h_minDeltaR_lep0_btags_not_from_top->Fill(min_dR0_not_top, weights);
-		    h_minDeltaR_lep1_btags_from_top->Fill(min_dR1_top, weights);
-		    h_minDeltaR_lep1_btags_not_from_top->Fill(min_dR1_not_top, weights);
-
-
-	            // ///
-		    // Discriminative variables study for NN
-		    // ///
-		    
-		    // dR
-		    double min_dR_b_from_top_to_b = 999999.;
-		    double min_dR_b_not_from_top_to_b = 999999.;
-		    double min_dR_not_b_to_b = 999999.;
-		    double min_dR_b_from_top_to_jet = 999999.;
-		    double min_dR_b_not_from_top_to_jet = 999999.;
-		    double min_dR_not_b_to_jet = 999999.;
-		    double min_dR_b_from_top_to_lep = 999999.;
-		    double min_dR_b_not_from_top_to_lep = 999999.;
-		    double min_dR_not_b_to_lep = 999999.;
-		    
-		    for (int i=0; i<(*jet_pt).size(); i++) {
-
-		      for (int j=0; j<(*jet_pt).size(); j++) {
-			if (i==j) continue;
-
-			// dR_min                                                                                                                 
-			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4 && (*jet_DL1r_77)[j]==1) {
-			  double dR_b_from_top_to_b = jets_lvec[i].DeltaR(jets_lvec[j]);
-			  if (dR_b_from_top_to_b < min_dR_b_from_top_to_b) min_dR_b_from_top_to_b = dR_b_from_top_to_b; }
-
-			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
-			  double dR_b_not_from_top_to_b = jets_lvec[i].DeltaR(jets_lvec[j]);
-			  if (dR_b_not_from_top_to_b < min_dR_b_not_from_top_to_b) min_dR_b_not_from_top_to_b = dR_b_not_from_top_to_b; }
-			
-			if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
-			  double dR_not_b_to_b = jets_lvec[i].DeltaR(jets_lvec[j]);
-			  if (dR_not_b_to_b < min_dR_not_b_to_b) min_dR_not_b_to_b = dR_not_b_to_b; }
-
-			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4 && (*jet_DL1r_77)[j]!=1) {
-			  double dR_b_from_top_to_jet = jets_lvec[i].DeltaR(jets_lvec[j]);
-			  if (dR_b_from_top_to_jet < min_dR_b_from_top_to_jet) min_dR_b_from_top_to_jet = dR_b_from_top_to_jet; }
-
-			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]!=1) {
-			  double dR_b_not_from_top_to_jet = jets_lvec[i].DeltaR(jets_lvec[j]);
-			  if (dR_b_not_from_top_to_jet < min_dR_b_not_from_top_to_jet) min_dR_b_not_from_top_to_jet = dR_b_not_from_top_to_jet; }
-
-			if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]!=1) {
-			  double dR_not_b_to_jet = jets_lvec[i].DeltaR(jets_lvec[j]);
-			  if (dR_not_b_to_jet < min_dR_not_b_to_jet) min_dR_not_b_to_jet = dR_not_b_to_jet; }
-		      } // loop over jet[j]
-
-		      if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4) {
-			double dR_b_from_top_to_el = jets_lvec[i].DeltaR(el_lvec);
-			double dR_b_from_top_to_mu = jets_lvec[i].DeltaR(mu_lvec);
-			double dR_b_from_top_to_lep = min(dR_b_from_top_to_el, dR_b_from_top_to_mu);
-			if (dR_b_from_top_to_lep < min_dR_b_from_top_to_lep) min_dR_b_from_top_to_lep = dR_b_from_top_to_lep; }
-
-		      if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
-			double dR_b_not_from_top_to_el = jets_lvec[i].DeltaR(el_lvec);
-			double dR_b_not_from_top_to_mu = jets_lvec[i].DeltaR(mu_lvec);
-			double dR_b_not_from_top_to_lep = min(dR_b_not_from_top_to_el, dR_b_not_from_top_to_mu);
-			if (dR_b_not_from_top_to_lep < min_dR_b_not_from_top_to_lep) min_dR_b_not_from_top_to_lep = dR_b_not_from_top_to_lep; }
-
-		      if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
-			double dR_not_b_to_el = jets_lvec[i].DeltaR(el_lvec);
-			double dR_not_b_to_mu = jets_lvec[i].DeltaR(mu_lvec);;
-			double dR_not_b_to_lep = min(dR_not_b_to_el, dR_not_b_to_mu);
-			if (dR_not_b_to_lep < min_dR_not_b_to_lep) min_dR_not_b_to_lep = dR_not_b_to_lep; }
-
-		    } // loop over jet[i]
-
-		    h_minDeltaR_b_from_top_to_b->Fill(min_dR_b_from_top_to_b, weights);
-		    h_minDeltaR_b_not_from_top_to_b->Fill(min_dR_b_not_from_top_to_b, weights);
-		    h_minDeltaR_not_b_to_b->Fill(min_dR_not_b_to_b, weights);
-		    h_minDeltaR_b_from_top_to_jet->Fill(min_dR_b_from_top_to_jet, weights);
-		    h_minDeltaR_b_not_from_top_to_jet->Fill(min_dR_b_not_from_top_to_jet, weights);
-		    h_minDeltaR_not_b_to_jet->Fill(min_dR_not_b_to_jet, weights);
-		    h_minDeltaR_b_from_top_to_lep->Fill(min_dR_b_from_top_to_lep, weights);
-		    h_minDeltaR_b_not_from_top_to_lep->Fill(min_dR_b_not_from_top_to_lep, weights);
-		    h_minDeltaR_not_b_to_lep->Fill(min_dR_not_b_to_lep, weights);
-
-		    
-		    // Invariant Masses
-		    double min_inv_mass_lep_bjet_from_top = 999999;
-		    double max_inv_mass_lep_bjet_from_top = 0;
-		    double min_inv_mass_lep_bjet_not_from_top = 999999;
-		    double max_inv_mass_lep_bjet_not_from_top = 0;
-		    double min_inv_mass_lep_other_jet = 999999;
-		    double max_inv_mass_lep_other_jet = 0;
-		    
-		    for (int jet_i=0; jet_i<jet_pt->size(); jet_i++) {
-		      
-		      // bjets and the closest leptons 
-		      if ((*jet_DL1r_77)[jet_i]==1) {
-			if ((*topHadronOriginFlag)[jet_i]==4) {
-			  double dr_j_el = jets_lvec[jet_i].DeltaR(el_lvec);
-			  double dr_j_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
-			  double inv_mass_j_lep = 0;
-			  if (dr_j_el <= dr_j_mu) { inv_mass_j_lep = (jets_lvec[jet_i] + el_lvec).M(); }
-			  else { inv_mass_j_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
-			  if (inv_mass_j_lep != 0) h_inv_mass_lep_bjet_from_top_min_dR->Fill(inv_mass_j_lep, weights); }
-			else {
-			  double dr_j_el = jets_lvec[jet_i].DeltaR(el_lvec);
-			  double dr_j_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
-			  double inv_mass_j_lep = 0;
-			  if (dr_j_el <= dr_j_mu) { inv_mass_j_lep = (jets_lvec[jet_i] + el_lvec).M(); }
-			  else { inv_mass_j_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
-			  if (inv_mass_j_lep != 0) h_inv_mass_lep_bjet_not_from_top_min_dR->Fill(inv_mass_j_lep, weights); } } // [else], [jet_i] closing 
-		      
-		      // bjets and leptons - min and max invarinat masses
-		      if ((*jet_DL1r_77)[jet_i]==1) {
-			if ((*topHadronOriginFlag)[jet_i]==4) {
-			  double min_inv_mass_lep_bjet_from_top_tmp = min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-			  double max_inv_mass_lep_bjet_from_top_tmp = max( (jets_lvec[jet_i] + mu_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-			  min_inv_mass_lep_bjet_from_top = min(min_inv_mass_lep_bjet_from_top_tmp, min_inv_mass_lep_bjet_from_top);
-			  max_inv_mass_lep_bjet_from_top = max(max_inv_mass_lep_bjet_from_top_tmp, max_inv_mass_lep_bjet_from_top_tmp); }
-			else {
-			  double min_inv_mass_lep_bjet_not_from_top_tmp = min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-			  double max_inv_mass_lep_bjet_not_from_top_tmp = max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-			  min_inv_mass_lep_bjet_not_from_top = min(min_inv_mass_lep_bjet_not_from_top_tmp, min_inv_mass_lep_bjet_not_from_top);
-			  max_inv_mass_lep_bjet_not_from_top = max(max_inv_mass_lep_bjet_not_from_top_tmp, max_inv_mass_lep_bjet_not_from_top); } }
-		      
-		      // other than bjets and leptons - min and max invariant masses 
-		      else {
-			double min_inv_mass_lep_other_jet_tmp = min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-			double max_inv_mass_lep_other_jet_tmp = max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-			min_inv_mass_lep_other_jet = min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-			max_inv_mass_lep_other_jet = max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() ); }
-		    } // [jet_i] loop
-		    
-		      // Fill the min/max invariant mass hists 
-		    if (min_inv_mass_lep_bjet_from_top!=999999) h_min_inv_mass_lep_bjet_from_top->Fill(min_inv_mass_lep_bjet_from_top, weights);
-		    if (max_inv_mass_lep_bjet_from_top!=0) h_max_inv_mass_lep_bjet_from_top->Fill(max_inv_mass_lep_bjet_from_top, weights);
-		    if (min_inv_mass_lep_bjet_not_from_top!=999999) h_min_inv_mass_lep_bjet_not_from_top->Fill(min_inv_mass_lep_bjet_not_from_top, weights);
-		    if (max_inv_mass_lep_bjet_not_from_top!=0) h_max_inv_mass_lep_bjet_not_from_top->Fill(max_inv_mass_lep_bjet_not_from_top, weights);
-		    if (min_inv_mass_lep_other_jet!=999999) h_min_inv_mass_lep_other_jet->Fill(min_inv_mass_lep_other_jet, weights);
-		    if (max_inv_mass_lep_other_jet!=0) h_max_inv_mass_lep_other_jet->Fill(max_inv_mass_lep_other_jet, weights);
-		    
-		      
-
-
-		    // ///
-		    // NN variables for NN trees
-		    // ///
-		    
-		    double min_dR0 = 999999.;
-		    double min_dR1 = 999999.;
-		    
-		    for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
-		      
-		      NN_tHOF_v.push_back((*topHadronOriginFlag)[jet_i]);
-		      NN_jet_DL1r_77_v.push_back((*jet_DL1r_77)[jet_i]); 
-		      NN_jet_DL1r.push_back((*jet_DL1r)[jet_i]);
-		      NN_tot_event_weight.push_back( weights );
-                      NN_event_number.push_back( event_number_combined );
-                      NN_met.push_back( met );
-                      NN_jet_pt.push_back( (*jet_pt)[jet_i] );
-                      NN_jet_eta.push_back( (*jet_eta)[jet_i] );
-                      NN_jet_phi.push_back( (*jet_phi)[jet_i] );
-                      NN_jet_e.push_back( (*jet_e)[jet_i] );
-                      NN_mu_pt.push_back( (*mu_pt)[0] );
-                      NN_mu_eta.push_back( (*mu_eta)[0] );
-                      NN_mu_phi.push_back( (*mu_phi)[0] );
-                      NN_mu_e.push_back( (*mu_e)[0] );
-                      NN_mu_charge.push_back( (*mu_charge)[0] );
-                      NN_el_pt.push_back( (*el_pt)[0] );
-                      NN_el_eta.push_back( (*el_eta)[0] );
-                      NN_el_phi.push_back( (*el_phi)[0] );
-                      NN_el_e.push_back( (*el_e)[0] );
-                      NN_el_charge.push_back( (*el_charge)[0] );
-		      
-		      
-		      // Compute min_dR jet-lep0/1
-		      double dR0 = 0;
-		      double dR1 = 0;
-		      
-		      if ((*mu_pt)[0]>(*el_pt)[0]) {
-			dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
-			dR1 = el_lvec.DeltaR(jets_lvec[jet_i]); }
-		      else {
-			dR0 = el_lvec.DeltaR(jets_lvec[jet_i]);
-			dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
-		      
-		      if ((*jet_DL1r_77)[jet_i]==1) {
-			h_dR_bjet_lep0->Fill(dR0, weights);
-			h_dR_bjet_lep1->Fill(dR1, weights);
-			h_min_dR_bjet_lep->Fill( min(dR0, dR1), weights ); }
-			
-		      NN_dR_jet_lep0_v.push_back(dR0);
-		      NN_dR_jet_lep1_v.push_back(dR1);
-		      NN_min_dR_jet_lep_v.push_back( min(dR0, dR1) );
-		      
-		      // Compute inv masses for jet-lep pairs
-		      
-		      // jet and the closest lepton
-		      double m_jet_lep = 0;
-		      double dr_jet_el = jets_lvec[jet_i].DeltaR(el_lvec);
-		      double dr_jet_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
-		      if (dr_jet_el <= dr_jet_mu) { m_jet_lep = (jets_lvec[jet_i] + el_lvec).M(); }
-		      else { m_jet_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
-		      if (m_jet_lep!=0 && (*jet_DL1r_77)[jet_i]==1) h_m_bjet_lep_min_dR->Fill(m_jet_lep, weights);
-		      NN_m_jet_lep_min_dR_v.push_back(m_jet_lep); 
-		      
-		      // jet and el/mu
-		      if ( (*jet_DL1r_77)[jet_i]==1 ) {
-			h_m_bjet_el->Fill( (jets_lvec[jet_i] + el_lvec).M() , weights);
-			h_m_bjet_mu->Fill( (jets_lvec[jet_i] + mu_lvec).M() , weights); }
-		      NN_m_jet_el_v.push_back( (jets_lvec[jet_i] + el_lvec).M() );
-		      NN_m_jet_mu_v.push_back( (jets_lvec[jet_i] + mu_lvec).M() );
-		      
-		      // jet and lepton to min/max inv mass
-		      double m_max_jet_lep = max((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
-		      double m_min_jet_lep = min((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
-		      if ( (*jet_DL1r_77)[jet_i]==1 ) {
-			h_m_bjet_lep_max->Fill(m_max_jet_lep, weights);
-			h_m_bjet_lep_min->Fill(m_min_jet_lep, weights); }
-		      NN_m_jet_lep_max_v.push_back(m_max_jet_lep);
-		      NN_m_jet_lep_min_v.push_back(m_min_jet_lep);
-		      
-		      
-		      // Compute min inv mass for jet-bjet pairs
-		      double min_dR_jet_bjet = 999999.;
-		      for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
-			if (jet_i==jet_j) continue;
-			if ( (*jet_DL1r_77)[jet_j]==1) {
-			  double dR_jet_bjet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
-			  min_dR_jet_bjet = min(min_dR_jet_bjet, dR_jet_bjet); 
-			} // if - DL1r tagged jet_j
-		      } // [jet_j] - loop over jets
-		      
-		      h_min_dR_jet_bjet->Fill(min_dR_jet_bjet, weights);
-		      NN_min_dR_jet_bjet_v.push_back(min_dR_jet_bjet);
-		      
-		    } // [jet_i] - loop over jets
-		    
-		    event_number_combined++;
-		    
-		    // Sort the events wrt jet pT
-		    //sort (jet_pt->begin(), jet_pt->end(), greater<int>());
-		    
-
-
-		    // topHFFF overlap removal studies
-		    if (job_DID=="411076") { h_bjets_n_411076->Fill(btags_n, weights); h_topHFFF_411076->Fill(topHFFF, weights); }
-		    if (job_DID=="411077") { h_bjets_n_411077->Fill(btags_n, weights); h_topHFFF_411077->Fill(topHFFF, weights); }
-		    if (job_DID=="411078") { h_bjets_n_411078->Fill(btags_n, weights); h_topHFFF_411078->Fill(topHFFF, weights); }
-		    if (job_DID=="410472") { h_bjets_n_410472->Fill(btags_n, weights); h_topHFFF_410472->Fill(topHFFF, weights); }
-		    
-		  } // 2+b (tags) selection
-
-		  
-
-
-		  
-		  // 2+b (jets), emu, OS channel
-		  if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
-		      
-
-		      // KLFitter invariant mass calculations:
-		      //KLFitter::Particles particles{};
-                      //likelihood.SetLeptonType(KLFitter::LikelihoodTopDilepton::kElectron, KLFitter::LikelihoodTopDilepton::kMuon);
-		      // Add leptons
-                      //particles.AddParticle(el_lvec, (*el_cl_eta)[0], (*el_charge)[0], KLFitter::Particles::kElectron);
-		      //particles.AddParticle(mu_lvec, mu_lvec.Eta(), (*mu_charge)[0], KLFitter::Particles::kMuon);
-                      // Add two leading pT jets
-		      //for (int jet_i=0; jet_i<3; jet_i++) { particles.AddParticle(jet_lvec, jet_lvec.Eta(), KLFitter::Particles::kParton, "", jet_i); }
-		      //fitter.SetParticles(&particles);
-		      // Add MET
-		      //fitter.SetET_miss_XY_SumET(met*0.001*cos(met_phi), met*0.001*sin(met_phi), met*0.001);
-
-		      
-		      // Loop over permutations
-		      //int n_perm = fitter.Permutations()->NPermutations();
-		      //for (int perm_i=0; perm_i < n_perm; perm_i++) {
-		      //fitter.Fit(perm_i);
-		      //auto permutedParticles = fitter.Likelihood()->PParticlesPermuted();
-		      //double llh = fitter.Likelihood()->LogLikelihood(fitter.Likelihood()->GetBestFitParameters()); }
-		      
-		      
-		      // Sort jets wrt DL1r tag weights
-		      sort (jet_DL1r->begin(), jet_DL1r->end(), greater<int>());
-
-
-		      // Fill DL1r tag weight histos for the first three tags, also sort wrt topHFFF
-		      h_tag0_DL1r[topHFFF]->Fill((*jet_DL1r)[0], weights);
-                      h_tag1_DL1r[topHFFF]->Fill((*jet_DL1r)[1], weights);
-                      h_tag2_DL1r[topHFFF]->Fill((*jet_DL1r)[2], weights);
-
-		    } // 2+b, emu, OS cuts 
-		  
-		} // [entry] - loop over entries
+		}  // selection of b-jets from all jets
+		
+	      } // [jet_i] - loop over jets
 	      
-	      // Close ntuple after we're done with it
-	      ntuple->Close();
-	          
-	    } // [ntuple_number] - loop over ntuples of a particular job
+	      
+	      // Fill min_dR histograms
+	      h_minDeltaR_lep0_bjets_from_top->Fill(min_dR1_top, weights);
+	      h_minDeltaR_lep0_bjets_not_from_top->Fill(min_dR1_not_top, weights);
+	      h_minDeltaR_lep1_bjets_from_top->Fill(min_dR2_top, weights);
+	      h_minDeltaR_lep1_bjets_not_from_top->Fill(min_dR2_not_top, weights);
+	      
+	    } // 3b, emu, OS cuts
+	    
+	    
+	    
+	    
+	    // ///
+	    // 2+b (tags), emu, OS
+	    // ///
+	    if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
+	      
+	      
+	      // MET hists:
+	      h_met->Fill(met*0.001, weights);
+	      h_met_phi->Fill(met_phi, weights);
+	      
+	      
+	      // jet pt hists:
+	      for (int i=0; i<3; i++) { h_jet_pt[i]->Fill((*jet_pt)[i]*0.001, weights); }
+	      
+	      
+	      // jets_n hist:
+	      h_jets_n->Fill((*jet_pt).size(), weights);
+	      h_bjets_n->Fill(btags_n, weights);
+	      
+	      
+	      // leptons hists:
+	      if ( (*el_pt)[0] > (*mu_pt)[0] ) {
+		h_lep0_pt->Fill((*el_pt)[0]*0.001, weights);
+		h_lep1_pt->Fill((*mu_pt)[0]*0.001, weights);
+		h_lep0_eta->Fill((*el_eta)[0], weights);
+		h_lep1_eta->Fill((*mu_eta)[0], weights);
+		h_lep0_phi->Fill((*el_phi)[0], weights);
+		h_lep1_phi->Fill((*mu_phi)[0], weights); }
+	      else {
+		h_lep0_pt->Fill((*mu_pt)[0]*0.001, weights);
+		h_lep1_pt->Fill((*el_pt)[0]*0.001, weights);
+		h_lep0_eta->Fill((*mu_eta)[0], weights);
+		h_lep1_eta->Fill((*el_eta)[0], weights);
+		h_lep0_phi->Fill((*mu_phi)[0], weights);
+		h_lep1_phi->Fill((*el_phi)[0], weights); }
+	      h_lep_pt->Fill((*el_pt)[0]*0.001, weights);
+	      h_lep_pt->Fill((*mu_pt)[0]*0.001, weights);
+	      h_lep_eta->Fill((*el_eta)[0], weights);
+	      h_lep_eta->Fill((*mu_eta)[0], weights);
+	      h_lep_phi->Fill((*el_phi)[0], weights);
+	      h_lep_phi->Fill((*mu_phi)[0], weights);
+	      
+	      
+	      // dR(lep0, lep1) hist:
+	      h_dR_lep0_lep1->Fill(el_lvec.DeltaR(mu_lvec));
+	      
+	      
+	      // dR_min lep0/1 btags
+	      double min_dR0_top = 999999.; // leading lepton
+	      double min_dR1_top = 999999.; // subleading lepton
+	      double min_dR0_not_top = 999999.; // leading lepton
+	      double min_dR1_not_top = 999999.; // subleading lepton
+	      
+	      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
+		
+		if ((*jet_DL1r_77)[jet_i]==1) {
+		  
+		  double dR0 = 0;
+		  double dR1 = 0;
+		  
+		  if ((*mu_pt)[0]>(*el_pt)[0]) {
+		    dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
+		    dR1 = el_lvec.DeltaR(jets_lvec[jet_i]); }
+		  else {
+		    dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
+		    dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
+		  
+		  if ((*topHadronOriginFlag)[jet_i]==4) {
+		    min_dR0_top = min(min_dR0_top, dR0); 
+		    min_dR1_top = min(min_dR1_top, dR1);}
+		  else {
+		    min_dR0_not_top = min(min_dR0_not_top, dR0); 
+		    min_dR1_not_top = min(min_dR1_not_top, dR0); }
+		  
+		} // [if] DL1r tag 
+	      } // [jet_i] - loop over jets
+	      
+	      h_minDeltaR_lep0_btags_from_top->Fill(min_dR0_top, weights);
+	      h_minDeltaR_lep0_btags_not_from_top->Fill(min_dR0_not_top, weights);
+	      h_minDeltaR_lep1_btags_from_top->Fill(min_dR1_top, weights);
+	      h_minDeltaR_lep1_btags_not_from_top->Fill(min_dR1_not_top, weights);
+	      
+	      
+	      // ///
+	      // Discriminative variables study for NN
+	      // ///
+	      
+	      // dR
+	      double min_dR_b_from_top_to_b = 999999.;
+	      double min_dR_b_not_from_top_to_b = 999999.;
+	      double min_dR_not_b_to_b = 999999.;
+	      double min_dR_b_from_top_to_jet = 999999.;
+	      double min_dR_b_not_from_top_to_jet = 999999.;
+	      double min_dR_not_b_to_jet = 999999.;
+	      double min_dR_b_from_top_to_lep = 999999.;
+	      double min_dR_b_not_from_top_to_lep = 999999.;
+	      double min_dR_not_b_to_lep = 999999.;
+	      
+	      for (int i=0; i<(*jet_pt).size(); i++) {
+		
+		for (int j=0; j<(*jet_pt).size(); j++) {
+		  if (i==j) continue;
+		  
+		  // dR_min                                                                                                                 
+		  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4 && (*jet_DL1r_77)[j]==1) {
+		    double dR_b_from_top_to_b = jets_lvec[i].DeltaR(jets_lvec[j]);
+		    if (dR_b_from_top_to_b < min_dR_b_from_top_to_b) min_dR_b_from_top_to_b = dR_b_from_top_to_b; }
+		  
+		  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
+		    double dR_b_not_from_top_to_b = jets_lvec[i].DeltaR(jets_lvec[j]);
+		    if (dR_b_not_from_top_to_b < min_dR_b_not_from_top_to_b) min_dR_b_not_from_top_to_b = dR_b_not_from_top_to_b; }
+		  
+		  if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
+		    double dR_not_b_to_b = jets_lvec[i].DeltaR(jets_lvec[j]);
+		    if (dR_not_b_to_b < min_dR_not_b_to_b) min_dR_not_b_to_b = dR_not_b_to_b; }
+		  
+		  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4 && (*jet_DL1r_77)[j]!=1) {
+		    double dR_b_from_top_to_jet = jets_lvec[i].DeltaR(jets_lvec[j]);
+		    if (dR_b_from_top_to_jet < min_dR_b_from_top_to_jet) min_dR_b_from_top_to_jet = dR_b_from_top_to_jet; }
+		  
+		  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]!=1) {
+		    double dR_b_not_from_top_to_jet = jets_lvec[i].DeltaR(jets_lvec[j]);
+		    if (dR_b_not_from_top_to_jet < min_dR_b_not_from_top_to_jet) min_dR_b_not_from_top_to_jet = dR_b_not_from_top_to_jet; }
+		  
+		  if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]!=1) {
+		    double dR_not_b_to_jet = jets_lvec[i].DeltaR(jets_lvec[j]);
+		    if (dR_not_b_to_jet < min_dR_not_b_to_jet) min_dR_not_b_to_jet = dR_not_b_to_jet; }
+		} // loop over jet[j]
+		
+		if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4) {
+		  double dR_b_from_top_to_el = jets_lvec[i].DeltaR(el_lvec);
+		  double dR_b_from_top_to_mu = jets_lvec[i].DeltaR(mu_lvec);
+		  double dR_b_from_top_to_lep = min(dR_b_from_top_to_el, dR_b_from_top_to_mu);
+		  if (dR_b_from_top_to_lep < min_dR_b_from_top_to_lep) min_dR_b_from_top_to_lep = dR_b_from_top_to_lep; }
+		
+		if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
+		  double dR_b_not_from_top_to_el = jets_lvec[i].DeltaR(el_lvec);
+		  double dR_b_not_from_top_to_mu = jets_lvec[i].DeltaR(mu_lvec);
+		  double dR_b_not_from_top_to_lep = min(dR_b_not_from_top_to_el, dR_b_not_from_top_to_mu);
+		  if (dR_b_not_from_top_to_lep < min_dR_b_not_from_top_to_lep) min_dR_b_not_from_top_to_lep = dR_b_not_from_top_to_lep; }
+		
+		if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
+		  double dR_not_b_to_el = jets_lvec[i].DeltaR(el_lvec);
+		  double dR_not_b_to_mu = jets_lvec[i].DeltaR(mu_lvec);;
+		  double dR_not_b_to_lep = min(dR_not_b_to_el, dR_not_b_to_mu);
+		  if (dR_not_b_to_lep < min_dR_not_b_to_lep) min_dR_not_b_to_lep = dR_not_b_to_lep; }
+		
+	      } // loop over jet[i]
+	      
+	      h_minDeltaR_b_from_top_to_b->Fill(min_dR_b_from_top_to_b, weights);
+	      h_minDeltaR_b_not_from_top_to_b->Fill(min_dR_b_not_from_top_to_b, weights);
+	      h_minDeltaR_not_b_to_b->Fill(min_dR_not_b_to_b, weights);
+	      h_minDeltaR_b_from_top_to_jet->Fill(min_dR_b_from_top_to_jet, weights);
+	      h_minDeltaR_b_not_from_top_to_jet->Fill(min_dR_b_not_from_top_to_jet, weights);
+	      h_minDeltaR_not_b_to_jet->Fill(min_dR_not_b_to_jet, weights);
+	      h_minDeltaR_b_from_top_to_lep->Fill(min_dR_b_from_top_to_lep, weights);
+	      h_minDeltaR_b_not_from_top_to_lep->Fill(min_dR_b_not_from_top_to_lep, weights);
+	      h_minDeltaR_not_b_to_lep->Fill(min_dR_not_b_to_lep, weights);
+	      
+	      
+	      // Invariant Masses
+	      double min_inv_mass_lep_bjet_from_top = 999999;
+	      double max_inv_mass_lep_bjet_from_top = 0;
+	      double min_inv_mass_lep_bjet_not_from_top = 999999;
+	      double max_inv_mass_lep_bjet_not_from_top = 0;
+	      double min_inv_mass_lep_other_jet = 999999;
+	      double max_inv_mass_lep_other_jet = 0;
+	      
+	      for (int jet_i=0; jet_i<jet_pt->size(); jet_i++) {
+		
+		// bjets and the closest leptons 
+		if ((*jet_DL1r_77)[jet_i]==1) {
+		  if ((*topHadronOriginFlag)[jet_i]==4) {
+		    double dr_j_el = jets_lvec[jet_i].DeltaR(el_lvec);
+		    double dr_j_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
+		    double inv_mass_j_lep = 0;
+		    if (dr_j_el <= dr_j_mu) { inv_mass_j_lep = (jets_lvec[jet_i] + el_lvec).M(); }
+		    else { inv_mass_j_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
+		    if (inv_mass_j_lep != 0) h_inv_mass_lep_bjet_from_top_min_dR->Fill(inv_mass_j_lep, weights); }
+		  else {
+		    double dr_j_el = jets_lvec[jet_i].DeltaR(el_lvec);
+		    double dr_j_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
+		    double inv_mass_j_lep = 0;
+		    if (dr_j_el <= dr_j_mu) { inv_mass_j_lep = (jets_lvec[jet_i] + el_lvec).M(); }
+		    else { inv_mass_j_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
+		    if (inv_mass_j_lep != 0) h_inv_mass_lep_bjet_not_from_top_min_dR->Fill(inv_mass_j_lep, weights); } } // [else], [jet_i] closing 
+		
+		// bjets and leptons - min and max invarinat masses
+		if ((*jet_DL1r_77)[jet_i]==1) {
+		  if ((*topHadronOriginFlag)[jet_i]==4) {
+		    double min_inv_mass_lep_bjet_from_top_tmp = min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		    double max_inv_mass_lep_bjet_from_top_tmp = max( (jets_lvec[jet_i] + mu_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		    min_inv_mass_lep_bjet_from_top = min(min_inv_mass_lep_bjet_from_top_tmp, min_inv_mass_lep_bjet_from_top);
+		    max_inv_mass_lep_bjet_from_top = max(max_inv_mass_lep_bjet_from_top_tmp, max_inv_mass_lep_bjet_from_top_tmp); }
+		  else {
+		    double min_inv_mass_lep_bjet_not_from_top_tmp = min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		    double max_inv_mass_lep_bjet_not_from_top_tmp = max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		    min_inv_mass_lep_bjet_not_from_top = min(min_inv_mass_lep_bjet_not_from_top_tmp, min_inv_mass_lep_bjet_not_from_top);
+		    max_inv_mass_lep_bjet_not_from_top = max(max_inv_mass_lep_bjet_not_from_top_tmp, max_inv_mass_lep_bjet_not_from_top); } }
+		
+		// other than bjets and leptons - min and max invariant masses 
+		else {
+		  double min_inv_mass_lep_other_jet_tmp = min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		  double max_inv_mass_lep_other_jet_tmp = max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		  min_inv_mass_lep_other_jet = min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		  max_inv_mass_lep_other_jet = max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() ); }
+	      } // [jet_i] loop
+	      
+	      // Fill the min/max invariant mass hists 
+	      if (min_inv_mass_lep_bjet_from_top!=999999) h_min_inv_mass_lep_bjet_from_top->Fill(min_inv_mass_lep_bjet_from_top, weights);
+	      if (max_inv_mass_lep_bjet_from_top!=0) h_max_inv_mass_lep_bjet_from_top->Fill(max_inv_mass_lep_bjet_from_top, weights);
+	      if (min_inv_mass_lep_bjet_not_from_top!=999999) h_min_inv_mass_lep_bjet_not_from_top->Fill(min_inv_mass_lep_bjet_not_from_top, weights);
+	      if (max_inv_mass_lep_bjet_not_from_top!=0) h_max_inv_mass_lep_bjet_not_from_top->Fill(max_inv_mass_lep_bjet_not_from_top, weights);
+	      if (min_inv_mass_lep_other_jet!=999999) h_min_inv_mass_lep_other_jet->Fill(min_inv_mass_lep_other_jet, weights);
+	      if (max_inv_mass_lep_other_jet!=0) h_max_inv_mass_lep_other_jet->Fill(max_inv_mass_lep_other_jet, weights);
+	      
+	      
+	      
+	      
+	      // ///
+	      // NN variables for NN trees
+	      // ///
+	      
+	      double min_dR0 = 999999.;
+	      double min_dR1 = 999999.;
+	      
+	      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
+		
+		NN_topHOF_v.push_back((*topHadronOriginFlag)[jet_i]);
+		NN_jet_DL1r_77_v.push_back((*jet_DL1r_77)[jet_i]); 
+		NN_jet_truthflav.push_back((*jet_truthflav)[jet_i]);
+		NN_jet_DL1r.push_back((*jet_DL1r)[jet_i]);
+		NN_tot_event_weight.push_back( weights );
+		NN_event_number.push_back( event_number_combined );
+		NN_met.push_back( met );
+		NN_jet_pt.push_back( (*jet_pt)[jet_i] );
+		NN_jet_eta.push_back( (*jet_eta)[jet_i] );
+		NN_jet_phi.push_back( (*jet_phi)[jet_i] );
+		NN_jet_e.push_back( (*jet_e)[jet_i] );
+		NN_mu_pt.push_back( (*mu_pt)[0] );
+		NN_mu_eta.push_back( (*mu_eta)[0] );
+		NN_mu_phi.push_back( (*mu_phi)[0] );
+		NN_mu_e.push_back( (*mu_e)[0] );
+		NN_mu_charge.push_back( (*mu_charge)[0] );
+		NN_el_pt.push_back( (*el_pt)[0] );
+		NN_el_eta.push_back( (*el_eta)[0] );
+		NN_el_phi.push_back( (*el_phi)[0] );
+		NN_el_e.push_back( (*el_e)[0] );
+		NN_el_charge.push_back( (*el_charge)[0] );
+		
+		
+		// Compute min_dR jet-lep0/1
+		double dR0 = 0;
+		double dR1 = 0;
+		
+		if ((*mu_pt)[0]>(*el_pt)[0]) {
+		  dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
+		  dR1 = el_lvec.DeltaR(jets_lvec[jet_i]); }
+		else {
+		  dR0 = el_lvec.DeltaR(jets_lvec[jet_i]);
+		  dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
+		
+		if ((*jet_DL1r_77)[jet_i]==1) {
+		  h_dR_bjet_lep0->Fill(dR0, weights);
+		  h_dR_bjet_lep1->Fill(dR1, weights);
+		  h_min_dR_bjet_lep->Fill( min(dR0, dR1), weights ); }
+		
+		NN_dR_jet_lep0_v.push_back(dR0);
+		NN_dR_jet_lep1_v.push_back(dR1);
+		NN_min_dR_jet_lep_v.push_back( min(dR0, dR1) );
+		
+		// Compute inv masses for jet-lep pairs
+		
+		// jet and the closest lepton
+		double m_jet_lep = 0;
+		double dr_jet_el = jets_lvec[jet_i].DeltaR(el_lvec);
+		double dr_jet_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
+		if (dr_jet_el <= dr_jet_mu) { m_jet_lep = (jets_lvec[jet_i] + el_lvec).M(); }
+		else { m_jet_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
+		if (m_jet_lep!=0 && (*jet_DL1r_77)[jet_i]==1) h_m_bjet_lep_min_dR->Fill(m_jet_lep, weights);
+		NN_m_jet_lep_min_dR_v.push_back(m_jet_lep); 
+		
+		// jet and el/mu
+		if ( (*jet_DL1r_77)[jet_i]==1 ) {
+		  h_m_bjet_el->Fill( (jets_lvec[jet_i] + el_lvec).M() , weights);
+		  h_m_bjet_mu->Fill( (jets_lvec[jet_i] + mu_lvec).M() , weights); }
+		NN_m_jet_el_v.push_back( (jets_lvec[jet_i] + el_lvec).M() );
+		NN_m_jet_mu_v.push_back( (jets_lvec[jet_i] + mu_lvec).M() );
+		
+		// jet and lepton to min/max inv mass
+		double m_max_jet_lep = max((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
+		double m_min_jet_lep = min((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
+		if ( (*jet_DL1r_77)[jet_i]==1 ) {
+		  h_m_bjet_lep_max->Fill(m_max_jet_lep, weights);
+		  h_m_bjet_lep_min->Fill(m_min_jet_lep, weights); }
+		NN_m_jet_lep_max_v.push_back(m_max_jet_lep);
+		NN_m_jet_lep_min_v.push_back(m_min_jet_lep);
+		
+		
+		// Compute min inv mass for jet-bjet pairs
+		double min_dR_jet_bjet = 999999.;
+		for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
+		  if (jet_i==jet_j) continue;
+		  if ( (*jet_DL1r_77)[jet_j]==1) {
+		    double dR_jet_bjet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
+		    min_dR_jet_bjet = min(min_dR_jet_bjet, dR_jet_bjet); 
+		  } // if - DL1r tagged jet_j
+		} // [jet_j] - loop over jets
+		
+		h_min_dR_jet_bjet->Fill(min_dR_jet_bjet, weights);
+		NN_min_dR_jet_bjet_v.push_back(min_dR_jet_bjet);
+		
+	      } // [jet_i] - loop over jets
+	      
+	      event_number_combined++;
+	      
+	      // Sort the events wrt jet pT
+	      //sort (jet_pt->begin(), jet_pt->end(), greater<int>());
+	      
+	      
+	      
+	      // topHFFF overlap removal studies
+	      if (job_DID=="411076") { h_bjets_n_411076->Fill(btags_n, weights); h_topHFFF_411076->Fill(topHFFF, weights); }
+	      if (job_DID=="411077") { h_bjets_n_411077->Fill(btags_n, weights); h_topHFFF_411077->Fill(topHFFF, weights); }
+	      if (job_DID=="411078") { h_bjets_n_411078->Fill(btags_n, weights); h_topHFFF_411078->Fill(topHFFF, weights); }
+	      if (job_DID=="410472") { h_bjets_n_410472->Fill(btags_n, weights); h_topHFFF_410472->Fill(topHFFF, weights); }
+	      
+	    } // 2+b (tags) selection
+	    
+	    
+	    
+	    
+	    
+	    // 2+b (jets), emu, OS channel
+	    if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
+	      
+	      
+	      // KLFitter invariant mass calculations:
+	      //KLFitter::Particles particles{};
+	      //likelihood.SetLeptonType(KLFitter::LikelihoodTopDilepton::kElectron, KLFitter::LikelihoodTopDilepton::kMuon);
+	      // Add leptons
+	      //particles.AddParticle(el_lvec, (*el_cl_eta)[0], (*el_charge)[0], KLFitter::Particles::kElectron);
+	      //particles.AddParticle(mu_lvec, mu_lvec.Eta(), (*mu_charge)[0], KLFitter::Particles::kMuon);
+	      // Add two leading pT jets
+	      //for (int jet_i=0; jet_i<3; jet_i++) { particles.AddParticle(jet_lvec, jet_lvec.Eta(), KLFitter::Particles::kParton, "", jet_i); }
+	      //fitter.SetParticles(&particles);
+	      // Add MET
+	      //fitter.SetET_miss_XY_SumET(met*0.001*cos(met_phi), met*0.001*sin(met_phi), met*0.001);
+	      
+	      
+	      // Loop over permutations
+	      //int n_perm = fitter.Permutations()->NPermutations();
+	      //for (int perm_i=0; perm_i < n_perm; perm_i++) {
+	      //fitter.Fit(perm_i);
+	      //auto permutedParticles = fitter.Likelihood()->PParticlesPermuted();
+	      //double llh = fitter.Likelihood()->LogLikelihood(fitter.Likelihood()->GetBestFitParameters()); }
+	      
+	      
+	      // Sort jets wrt DL1r tag weights
+	      /*if (entry < 20) {
+		cout << "Original order of jets: " << endl;
+		for (int jet_i=0; jet_i<(*jet_DL1r).size(); jet_i++) {
+		cout << "Jet[" << jet_i << "]:\tpT = " << (*jet_pt)[jet_i] << ",\tDL1r = " << (*jet_DL1r)[jet_i] << endl; } }
+		sort (jet_DL1r->begin(), jet_DL1r->end(), greater<int>());
+		if (entry < 20) {
+		cout << "Sorted wrt DL1r tag weight:" << endl;
+		for (int jet_i=0; jet_i<(*jet_DL1r).size(); jet_i++) {
+		cout << "Jet[" << jet_i << "]:\tpT = " << (*jet_pt)[jet_i] << ",\tDL1r = " << (*jet_DL1r)[jet_i] << endl; } 
+		cout << endl << endl; } */
+	      
+	      
+	      
+	      // Fill DL1r tag weight histos for the first three tags, also sort wrt topHFFF
+	      h_tag0_DL1r[topHFFF]->Fill((*jet_DL1r)[0], weights);
+	      h_tag1_DL1r[topHFFF]->Fill((*jet_DL1r)[1], weights);
+	      h_tag2_DL1r[topHFFF]->Fill((*jet_DL1r)[2], weights);
+	      
+	    } // 2+b, emu, OS cuts 
+	    
+	  } // [entry] - loop over entries
 	  
-	} // [job_number] - loop over jobs (pieces) of a collection.
+	  // Close ntuple after we're done with it
+	  ntuple->Close();
+	  
+	} // [ntuple_number] - loop over ntuples of a particular job
+	
+      } // [job_number] - loop over jobs (pieces) of a collection.
       
     } // [dir_counter] - loop over directories names with jobs folders: mc16a, mc16d, mc16e, data
-
-
-
+  
+  
+  
   // Save histograms
   
   TFile *hists_file = new TFile("hists_mc.root", "RECREATE");
@@ -1040,11 +994,11 @@ void prepare_hists_mc()
   // Fill NN ROOT file
   // Wee need a signal and a background trees separately with no overlap in events
   TFile *NN_tfile = new TFile("TMVA/tt_jets_NN_input.root", "RECREATE");
-  TTree *NN_sig_tree = new TTree("NN_signal", "NN_inputS");
-  TTree *NN_bkg_tree = new TTree("NN_background", "NN_inputB");
+  TTree *NN_sig_tree = new TTree("signal", "inputS");
+  TTree *NN_bkg_tree = new TTree("background", "inputB");
  
   // Signal tree variables
-  int NN_tHOF_sig, NN_jet_DL1r_77_sig;
+  int NN_topHOF_sig, NN_jet_DL1r_77_sig, NN_jet_truthflav_sig;
   float NN_dR_jet_lep0_sig, NN_dR_jet_lep1_sig, NN_min_dR_jet_lep_sig;
   float NN_m_jet_lep_min_dR_sig, NN_m_jet_el_sig, NN_m_jet_mu_sig;
   float NN_m_jet_lep_max_sig, NN_m_jet_lep_min_sig;
@@ -1057,7 +1011,7 @@ void prepare_hists_mc()
   float NN_el_pt_sig, NN_el_eta_sig, NN_el_phi_sig, NN_el_e_sig, NN_el_charge_sig;
 
   // Background tree variables
-  int NN_tHOF_bkg, NN_jet_DL1r_77_bkg;
+  int NN_topHOF_bkg, NN_jet_DL1r_77_bkg, NN_jet_truthflav_bkg;
   float NN_dR_jet_lep0_bkg, NN_dR_jet_lep1_bkg, NN_min_dR_jet_lep_bkg;
   float NN_m_jet_lep_min_dR_bkg, NN_m_jet_el_bkg, NN_m_jet_mu_bkg;
   float NN_m_jet_lep_max_bkg, NN_m_jet_lep_min_bkg;
@@ -1070,76 +1024,82 @@ void prepare_hists_mc()
   float NN_el_pt_bkg, NN_el_eta_bkg, NN_el_phi_bkg, NN_el_e_bkg, NN_el_charge_bkg;
   
   // Signal tree set branches 
-  NN_sig_tree->Branch("topHadronOriginFlag", &NN_tHOF_sig, "topHadronOriginFlag/I");
+  NN_sig_tree->Branch("topHadronOriginFlag", &NN_topHOF_sig, "topHadronOriginFlag/I");
   NN_sig_tree->Branch("jet_isbtagged_DL1r_77", &NN_jet_DL1r_77_sig, "jet_isbtagged_DL1r_77/I");
-  NN_sig_tree->Branch("NN_dR_jet_lep0", &NN_dR_jet_lep0_sig, "NN_dR_jet_lep0/F");
-  NN_sig_tree->Branch("NN_dR_jet_lep1", &NN_dR_jet_lep1_sig, "NN_dR_jet_lep1/F");
-  NN_sig_tree->Branch("NN_min_dR_jet_lep", &NN_min_dR_jet_lep_sig, "NN_min_dR_jet_lep/F");
-  NN_sig_tree->Branch("NN_m_jet_lep_min_dR", &NN_m_jet_lep_min_dR_sig, "NN_m_jet_lep_min_dR/F");
-  NN_sig_tree->Branch("NN_m_jet_el", &NN_m_jet_el_sig, "NN_m_jet_el/F");
-  NN_sig_tree->Branch("NN_m_jet_mu", &NN_m_jet_mu_sig, "NN_m_jet_mu/F");
-  NN_sig_tree->Branch("NN_m_jet_lep_max", &NN_m_jet_lep_max_sig, "NN_m_jet_lep_max/F");
-  NN_sig_tree->Branch("NN_m_jet_lep_min", &NN_m_jet_lep_min_sig, "NN_m_jet_lep_min/F");
-  NN_sig_tree->Branch("NN_min_dR_jet_bjet", &NN_min_dR_jet_bjet_sig, "NN_min_dR_jet_bjet/F");
-  NN_sig_tree->Branch("NN_tot_event_weight", &NN_tot_event_weight_sig, "NN_tot_event_weight/F");
-  NN_sig_tree->Branch("NN_event_number", &NN_event_number_sig, "NN_event_number/I");
-  NN_sig_tree->Branch("NN_jet_DL1r", &NN_jet_DL1r_sig, "NN_jet_DL1r/F");
-  NN_sig_tree->Branch("NN_met", &NN_met_sig, "NN_met/F");
-  NN_sig_tree->Branch("NN_jet_pt", &NN_jet_pt_sig, "NN_jet_pt/F");
-  NN_sig_tree->Branch("NN_jet_eta", &NN_jet_eta_sig, "NN_jet_eta/F");
-  NN_sig_tree->Branch("NN_jet_phi", &NN_jet_phi_sig, "NN_jet_phi/F");
-  NN_sig_tree->Branch("NN_jet_e", &NN_jet_e_sig, "NN_jet_e/F");
-  NN_sig_tree->Branch("NN_mu_pt", &NN_mu_pt_sig, "NN_mu_pt/F");
-  NN_sig_tree->Branch("NN_mu_eta", &NN_mu_eta_sig, "NN_mu_eta/F");
-  NN_sig_tree->Branch("NN_mu_phi", &NN_mu_phi_sig, "NN_mu_phi/F");
-  NN_sig_tree->Branch("NN_mu_e", &NN_mu_e_sig, "NN_mu_e/F");
-  NN_sig_tree->Branch("NN_mu_charge", &NN_mu_charge_sig, "NN_mu_charge/F");
-  NN_sig_tree->Branch("NN_el_pt", &NN_el_pt_sig, "NN_el_pt/F");
-  NN_sig_tree->Branch("NN_el_eta", &NN_el_eta_sig, "NN_el_eta/F");
-  NN_sig_tree->Branch("NN_el_phi", &NN_el_phi_sig, "NN_el_phi/F");
-  NN_sig_tree->Branch("NN_el_e", &NN_el_e_sig, "NN_el_e/F");
-  NN_sig_tree->Branch("NN_el_charge", &NN_el_charge_sig, "NN_el_charge/F");
+  NN_sig_tree->Branch("jet_truthflav", &NN_jet_truthflav_sig, "jet_truthflav/I");
+  NN_sig_tree->Branch("dR_jet_lep0", &NN_dR_jet_lep0_sig, "dR_jet_lep0/F");
+  NN_sig_tree->Branch("dR_jet_lep1", &NN_dR_jet_lep1_sig, "dR_jet_lep1/F");
+  NN_sig_tree->Branch("min_dR_jet_lep", &NN_min_dR_jet_lep_sig, "min_dR_jet_lep/F");
+  NN_sig_tree->Branch("m_jet_lep_min_dR", &NN_m_jet_lep_min_dR_sig, "m_jet_lep_min_dR/F");
+  NN_sig_tree->Branch("m_jet_el", &NN_m_jet_el_sig, "m_jet_el/F");
+  NN_sig_tree->Branch("m_jet_mu", &NN_m_jet_mu_sig, "m_jet_mu/F");
+  NN_sig_tree->Branch("m_jet_lep_max", &NN_m_jet_lep_max_sig, "m_jet_lep_max/F");
+  NN_sig_tree->Branch("m_jet_lep_min", &NN_m_jet_lep_min_sig, "m_jet_lep_min/F");
+  NN_sig_tree->Branch("min_dR_jet_bjet", &NN_min_dR_jet_bjet_sig, "min_dR_jet_bjet/F");
+  NN_sig_tree->Branch("tot_event_weight", &NN_tot_event_weight_sig, "tot_event_weight/F");
+  NN_sig_tree->Branch("event_number", &NN_event_number_sig, "event_number/I");
+  NN_sig_tree->Branch("jet_DL1r", &NN_jet_DL1r_sig, "jet_DL1r/F");
+  NN_sig_tree->Branch("met", &NN_met_sig, "met/F");
+  NN_sig_tree->Branch("jet_pt", &NN_jet_pt_sig, "jet_pt/F");
+  NN_sig_tree->Branch("jet_eta", &NN_jet_eta_sig, "jet_eta/F");
+  NN_sig_tree->Branch("jet_phi", &NN_jet_phi_sig, "jet_phi/F");
+  NN_sig_tree->Branch("jet_e", &NN_jet_e_sig, "jet_e/F");
+  NN_sig_tree->Branch("mu_pt", &NN_mu_pt_sig, "mu_pt/F");
+  NN_sig_tree->Branch("mu_eta", &NN_mu_eta_sig, "mu_eta/F");
+  NN_sig_tree->Branch("mu_phi", &NN_mu_phi_sig, "mu_phi/F");
+  NN_sig_tree->Branch("mu_e", &NN_mu_e_sig, "mu_e/F");
+  NN_sig_tree->Branch("mu_charge", &NN_mu_charge_sig, "mu_charge/F");
+  NN_sig_tree->Branch("el_pt", &NN_el_pt_sig, "el_pt/F");
+  NN_sig_tree->Branch("el_eta", &NN_el_eta_sig, "el_eta/F");
+  NN_sig_tree->Branch("el_phi", &NN_el_phi_sig, "el_phi/F");
+  NN_sig_tree->Branch("el_e", &NN_el_e_sig, "el_e/F");
+  NN_sig_tree->Branch("el_charge", &NN_el_charge_sig, "el_charge/F");
   
   // Background tree set branches
-  NN_bkg_tree->Branch("topHadronOriginFlag", &NN_tHOF_bkg, "topHadronOriginFlag/I");
+  NN_bkg_tree->Branch("topHadronOriginFlag", &NN_topHOF_bkg, "topHadronOriginFlag/I");
   NN_bkg_tree->Branch("jet_isbtagged_DL1r_77", &NN_jet_DL1r_77_bkg, "jet_isbtagged_DL1r_77/I");
-  NN_bkg_tree->Branch("NN_dR_jet_lep0", &NN_dR_jet_lep0_bkg, "NN_dR_jet_lep0/F");
-  NN_bkg_tree->Branch("NN_dR_jet_lep1", &NN_dR_jet_lep1_bkg, "NN_dR_jet_lep1/F");
-  NN_bkg_tree->Branch("NN_min_dR_jet_lep", &NN_min_dR_jet_lep_bkg, "NN_min_dR_jet_lep/F");
-  NN_bkg_tree->Branch("NN_m_jet_lep_min_dR", &NN_m_jet_lep_min_dR_bkg, "NN_m_jet_lep_min_dR/F");
-  NN_bkg_tree->Branch("NN_m_jet_el", &NN_m_jet_el_bkg, "NN_m_jet_el/F");
-  NN_bkg_tree->Branch("NN_m_jet_mu", &NN_m_jet_mu_bkg, "NN_m_jet_mu/F");
-  NN_bkg_tree->Branch("NN_m_jet_lep_max", &NN_m_jet_lep_max_bkg, "NN_m_jet_lep_max/F");
-  NN_bkg_tree->Branch("NN_m_jet_lep_min", &NN_m_jet_lep_min_bkg, "NN_m_jet_lep_min/F");
-  NN_bkg_tree->Branch("NN_min_dR_jet_bjet", &NN_min_dR_jet_bjet_bkg, "NN_min_dR_jet_bjet/F");
-  NN_bkg_tree->Branch("NN_tot_event_weight", &NN_tot_event_weight_bkg, "NN_tot_event_weight/F");
-  NN_bkg_tree->Branch("NN_event_number", &NN_event_number_bkg, "NN_event_number/I");
-  NN_bkg_tree->Branch("NN_jet_DL1r", &NN_jet_DL1r_bkg, "NN_jet_DL1r/F");
-  NN_bkg_tree->Branch("NN_met", &NN_met_bkg, "NN_met/F");
-  NN_bkg_tree->Branch("NN_jet_pt", &NN_jet_pt_bkg, "NN_jet_pt/F");
-  NN_bkg_tree->Branch("NN_jet_eta", &NN_jet_eta_bkg, "NN_jet_eta/F");
-  NN_bkg_tree->Branch("NN_jet_phi", &NN_jet_phi_bkg, "NN_jet_phi/F");
-  NN_bkg_tree->Branch("NN_jet_e", &NN_jet_e_bkg, "NN_jet_e/F");
-  NN_bkg_tree->Branch("NN_mu_pt", &NN_mu_pt_bkg, "NN_mu_pt/F");
-  NN_bkg_tree->Branch("NN_mu_eta", &NN_mu_eta_bkg, "NN_mu_eta/F");
-  NN_bkg_tree->Branch("NN_mu_phi", &NN_mu_phi_bkg, "NN_mu_phi/F");
-  NN_bkg_tree->Branch("NN_mu_e", &NN_mu_e_bkg, "NN_mu_e/F");
-  NN_bkg_tree->Branch("NN_mu_charge", &NN_mu_charge_bkg, "NN_mu_charge/F");
-  NN_bkg_tree->Branch("NN_el_pt", &NN_el_pt_bkg, "NN_el_pt/F");
-  NN_bkg_tree->Branch("NN_el_eta", &NN_el_eta_bkg, "NN_el_eta/F");
-  NN_bkg_tree->Branch("NN_el_phi", &NN_el_phi_bkg, "NN_el_phi/F");
-  NN_bkg_tree->Branch("NN_el_e", &NN_el_e_bkg, "NN_el_e/F");
-  NN_bkg_tree->Branch("NN_el_charge", &NN_el_charge_bkg, "NN_el_charge/F");
+  NN_bkg_tree->Branch("jet_truthflav", &NN_jet_truthflav_bkg, "jet_truthflav/I");
+  NN_bkg_tree->Branch("dR_jet_lep0", &NN_dR_jet_lep0_bkg, "dR_jet_lep0/F");
+  NN_bkg_tree->Branch("dR_jet_lep1", &NN_dR_jet_lep1_bkg, "dR_jet_lep1/F");
+  NN_bkg_tree->Branch("min_dR_jet_lep", &NN_min_dR_jet_lep_bkg, "min_dR_jet_lep/F");
+  NN_bkg_tree->Branch("m_jet_lep_min_dR", &NN_m_jet_lep_min_dR_bkg, "m_jet_lep_min_dR/F");
+  NN_bkg_tree->Branch("m_jet_el", &NN_m_jet_el_bkg, "m_jet_el/F");
+  NN_bkg_tree->Branch("m_jet_mu", &NN_m_jet_mu_bkg, "m_jet_mu/F");
+  NN_bkg_tree->Branch("m_jet_lep_max", &NN_m_jet_lep_max_bkg, "m_jet_lep_max/F");
+  NN_bkg_tree->Branch("m_jet_lep_min", &NN_m_jet_lep_min_bkg, "m_jet_lep_min/F");
+  NN_bkg_tree->Branch("min_dR_jet_bjet", &NN_min_dR_jet_bjet_bkg, "min_dR_jet_bjet/F");
+  NN_bkg_tree->Branch("tot_event_weight", &NN_tot_event_weight_bkg, "tot_event_weight/F");
+  NN_bkg_tree->Branch("event_number", &NN_event_number_bkg, "event_number/I");
+  NN_bkg_tree->Branch("jet_DL1r", &NN_jet_DL1r_bkg, "jet_DL1r/F");
+  NN_bkg_tree->Branch("met", &NN_met_bkg, "met/F");
+  NN_bkg_tree->Branch("jet_pt", &NN_jet_pt_bkg, "jet_pt/F");
+  NN_bkg_tree->Branch("jet_eta", &NN_jet_eta_bkg, "jet_eta/F");
+  NN_bkg_tree->Branch("jet_phi", &NN_jet_phi_bkg, "jet_phi/F");
+  NN_bkg_tree->Branch("jet_e", &NN_jet_e_bkg, "jet_e/F");
+  NN_bkg_tree->Branch("mu_pt", &NN_mu_pt_bkg, "mu_pt/F");
+  NN_bkg_tree->Branch("mu_eta", &NN_mu_eta_bkg, "mu_eta/F");
+  NN_bkg_tree->Branch("mu_phi", &NN_mu_phi_bkg, "mu_phi/F");
+  NN_bkg_tree->Branch("mu_e", &NN_mu_e_bkg, "mu_e/F");
+  NN_bkg_tree->Branch("mu_charge", &NN_mu_charge_bkg, "mu_charge/F");
+  NN_bkg_tree->Branch("el_pt", &NN_el_pt_bkg, "el_pt/F");
+  NN_bkg_tree->Branch("el_eta", &NN_el_eta_bkg, "el_eta/F");
+  NN_bkg_tree->Branch("el_phi", &NN_el_phi_bkg, "el_phi/F");
+  NN_bkg_tree->Branch("el_e", &NN_el_e_bkg, "el_e/F");
+  NN_bkg_tree->Branch("el_charge", &NN_el_charge_bkg, "el_charge/F");
 
   cout << "\n\n\n" << endl;
 
-  for (int entry=0; entry<NN_tHOF_v.size(); entry++) {
+  for (int entry=0; entry<NN_topHOF_v.size(); entry++) {
+
+    // Show events counter                                                                             
+    if (entry%1000==0) { cout << "\t" << entry << "\r"; cout.flush(); }
     
     // Signal tree - b-tags from top 
-    if (NN_tHOF_v[entry]!=4) {
+    if (NN_topHOF_v[entry]!=4) {
       
-      NN_tHOF_sig = NN_tHOF_v[entry];
+      NN_topHOF_sig = NN_topHOF_v[entry];
       NN_jet_DL1r_77_sig = NN_jet_DL1r_77_v[entry];
+      NN_jet_truthflav_sig = NN_jet_truthflav[entry];
       NN_dR_jet_lep0_sig = NN_dR_jet_lep0_v[entry];
       NN_dR_jet_lep1_sig = NN_dR_jet_lep1_v[entry];
       NN_min_dR_jet_lep_sig = NN_min_dR_jet_lep_v[entry];
@@ -1172,8 +1132,9 @@ void prepare_hists_mc()
 
     // Background tree - b-tags not from top
     else {
-      NN_tHOF_bkg = NN_tHOF_v[entry];
+      NN_topHOF_bkg = NN_topHOF_v[entry];
       NN_jet_DL1r_77_bkg = NN_jet_DL1r_77_v[entry];
+      NN_jet_truthflav_bkg = NN_jet_truthflav[entry];
       NN_dR_jet_lep0_bkg = NN_dR_jet_lep0_v[entry];
       NN_dR_jet_lep1_bkg = NN_dR_jet_lep1_v[entry];
       NN_min_dR_jet_lep_bkg = NN_min_dR_jet_lep_v[entry];
@@ -1205,8 +1166,8 @@ void prepare_hists_mc()
       NN_bkg_tree->Fill(); }
   }
 
-  NN_sig_tree->Write("NN_signal", TTree::kOverwrite);
-  NN_bkg_tree->Write("NN_background", TTree::kOverwrite);
+  NN_sig_tree->Write("signal", TTree::kOverwrite);
+  NN_bkg_tree->Write("background", TTree::kOverwrite);
   NN_tfile->Close();
   
 }
