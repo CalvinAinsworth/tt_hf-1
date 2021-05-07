@@ -80,19 +80,13 @@ void prepare_hists_mc()
   
   // Declare histograms
   
-  // dR_min between bjets and leptons, 3b channel
-  TH1 *h_minDeltaR_lep0_bjets_from_top = new TH1F("minDeltaR_lep1_bjets_fromTop", "minDeltaR_lep1_bjets_fromTop", 20, 0, 5);
-  TH1 *h_minDeltaR_lep0_bjets_not_from_top = new TH1F("minDeltaR_lep1_bjets_notFromTop", "minDeltaR_lep1_bjets_notFromTop", 20, 0, 5);
-  TH1 *h_minDeltaR_lep1_bjets_from_top = new TH1F("minDeltaR_lep2_bjets_fromTop", "minDeltaR_lep2_bjets_fromTop", 20, 0, 5);
-  TH1 *h_minDeltaR_lep1_bjets_not_from_top = new TH1F("minDeltaR_lep2_bjets_notFromTop", "minDeltaR_lep2_bjets_notFromTop", 20, 0, 5);
-  
-  // dR_min between btags and leptons, 2b channel
+  // dR_min between btags and leptons - sig/bkg discrimination
   TH1 *h_minDeltaR_lep0_btags_from_top = new TH1F("h_minDeltaR_lep0_btags_from_top", "h_minDeltaR_lep0_btags_from_top", 20, 0, 5);
   TH1 *h_minDeltaR_lep0_btags_not_from_top = new TH1F("h_minDeltaR_lep0_btags_not_from_top", "h_minDeltaR_lep0_btags_not_from_top", 20, 0, 5);;
   TH1 *h_minDeltaR_lep1_btags_from_top = new TH1F("h_minDeltaR_lep1_btags_from_top", "h_minDeltaR_lep1_btags_from_top", 20, 0, 5);
   TH1 *h_minDeltaR_lep1_btags_not_from_top = new TH1F("h_minDeltaR_lep1_btags_not_from_top", "h_minDeltaR_lep1_btags_not_from_top", 20, 0, 5);
   
-  // dR_min, 2b channel 
+  // dR_min - sig/bkg discrimination
   TH1 *h_minDeltaR_b_from_top_to_b = new TH1F("h_minDeltaR_b_from_top_to_b", "h_minDeltaR_b_from_top_to_b", 20, 0, 5);
   TH1 *h_minDeltaR_b_not_from_top_to_b = new TH1F("h_minDeltaR_b_not_from_top_to_b", "h_minDeltaR_b_not_from_top_to_b", 20, 0, 5);
   TH1 *h_minDeltaR_not_b_to_b = new TH1F("h_minDeltaR_not_b_to_b", "h_minDeltaR_not_b_to_b", 20, 0, 5);
@@ -102,46 +96,18 @@ void prepare_hists_mc()
   TH1 *h_minDeltaR_b_from_top_to_lep = new TH1F("h_minDeltaR_b_from_top_to_lep", "h_minDeltaR_b_from_top_to_lep", 20, 0, 5);
   TH1 *h_minDeltaR_b_not_from_top_to_lep = new TH1F("h_minDeltaR_b_not_from_top_to_lep", "h_minDeltaR_b_not_from_top_to_lep", 20, 0, 5);
   TH1 *h_minDeltaR_not_b_to_lep = new TH1F("h_minDeltaR_not_b_to_lep", "h_minDeltaR_not_b_to_lep", 20, 0, 5);
+
+  // jets parameters - sig/bkg discrimination
+  TH1 *h_all_jets_not_from_top_pt = new TH1F("all_jets_not_from_top_pt", "all_jets_not_from_top_pt", 50, 0, 1000);
+  TH1 *h_all_jets_from_top_pt = new TH1F("all_jets_from_top_pt", "all_jets_from_top_pt", 50, 0, 1000);
+  TH1 *h_all_jets_not_from_top_eta = new TH1F("all_jets_not_from_top_eta", "all_jets_not_from_top_eta", 40, -4, 4);
+  TH1 *h_all_jets_from_top_eta = new TH1F("all_jets_from_top_eta", "all_jets_from_top_eta", 40, -4, 4);
   
-  // pT of the three leading jets, 2b channel
-  TH1 *h_jet_pt[3];
-  for (int i=0; i<3; i++) {
-      TString title = "jet_pt_" + to_string(i);
-      h_jet_pt[i] = new TH1F(title, title, 10, 0, 400); }
- 
-  // the first three DL1r tag distributions for 2b1l / 4b / 3b / 2b1c, 2b channel
-  TH1 *h_tag0_DL1r[4];
-  TH1 *h_tag1_DL1r[4];
-  TH1 *h_tag2_DL1r[4];
-  for (int i=0; i<4; i++) {
-      TString h_title0 = "h_tag0_DL1r_TopHFFF" + to_string(i);
-      TString h_title1 = "h_tag1_DL1r_TopHFFF" + to_string(i);
-      TString h_title2 = "h_tag2_DL1r_TopHFFF" + to_string(i);
-      h_tag0_DL1r[i] = new TH1F(h_title0, h_title0, 30, -15, 15);
-      h_tag1_DL1r[i] = new TH1F(h_title1, h_title1, 30, -15, 15);
-      h_tag2_DL1r[i] = new TH1F(h_title2, h_title2, 30, -15, 15); }
-
-  // MET, 2b channel
-  TH1 *h_met = new TH1F("h_met", "h_met", 20, 0, 1000);
-  TH1 *h_met_phi = new TH1F("h_met_phi", "h_met_phi", 40, -4, 4);
-
-  // jets_n, 2b channel
+  // jets_n - data/mc
   TH1 *h_jets_n = new TH1F("h_jets_n", "h_jets_n", 6, 2, 8);
   TH1 *h_bjets_n = new TH1F("h_bjets_n", "h_bjets_n", 6, 2, 8);
   
-  // leptons, 2b channel
-  TH1 *h_lep0_pt = new TH1F("h_lep0_pt", "h_lep0_pt", 20, 0, 1000);
-  TH1 *h_lep1_pt = new TH1F("h_lep1_pt", "h_lep1_pt", 20, 0, 1000);
-  TH1 *h_lep_pt = new TH1F("h_lep_pt", "h_lep_pt", 20, 0, 1000);
-  TH1 *h_lep0_eta = new TH1F("h_lep0_eta", "h_let0_eta", 20, -5, 5);
-  TH1 *h_lep1_eta = new TH1F("h_lep1_eta", "h_lep1_eta", 20, -5, 5);
-  TH1 *h_lep_eta = new TH1F("h_lep_eta", "h_lep_eta", 20, -5, 5);
-  TH1 *h_lep0_phi = new TH1F("h_lep0_phi", "h_lep0_phi", 40, -4, 4);
-  TH1 *h_lep1_phi = new TH1F("h_lep1_phi", "h_lep1_phi", 40, -4, 4);
-  TH1 *h_lep_phi = new TH1F("h_lep_phi", "h_lep_phi", 40, -4, 4);
-  TH1 *h_dR_lep0_lep1 = new TH1F("h_dR_lep0_lep1", "h_dR_lep0_lep1", 20, 0, 5);
-  
-  // Invariant mass, 2b channel
+  // Invariant mass - sig/bkg discrimination
   TH1 *h_inv_mass_lep_bjet_from_top_min_dR = new TH1F("h_inv_mass_lep_bjet_from_top_min_dR", "h_inv_mass_lep_bjet_from_top_min_dR", 1000, 0, 1000);
   TH1 *h_inv_mass_lep_bjet_not_from_top_min_dR = new TH1F("h_inv_mass_lep_bjet_not_from_top_min_dR", "h_inv_mass_lep_bjet_not_from_top_min_dR", 1000, 0, 1000);
   TH1 *h_inv_mass_lep_btag_from_top_min_dR = new TH1F("h_inv_mass_lep_btag_from_top_min_dR", "h_inv_mass_lep_btag_from_top_min_dR", 1000, 0, 1000);
@@ -153,7 +119,7 @@ void prepare_hists_mc()
   TH1 *h_min_inv_mass_lep_other_jet = new TH1F("h_min_inv_mass_lep_other_jet", "h_min_inv_mass_lep_other_jet", 1000, 0, 1000);
   TH1 *h_max_inv_mass_lep_other_jet = new TH1F("h_max_inv_mass_lep_other_jet", "h_max_inv_mass_lep_other_jet", 1000, 0, 1000);
   
-  // NN variables hists
+  // MVA variables hists - data/mc
   TH1 *h_m_bjet_lep_min_dR = new TH1F("h_m_bjet_lep_min_dR", "h_m_bjet_lep_min_dR", 120, 0, 700);
   TH1 *h_m_bjet_lep_min = new TH1F("h_m_bjet_lep_min", "h_m_bjet_lep_min", 120, 0, 700);
   TH1 *h_m_bjet_lep_max = new TH1F("h_m_bjet_lep_max", "h_m_bjet_lep_max", 120, 0, 700);
@@ -164,16 +130,10 @@ void prepare_hists_mc()
   TH1 *h_min_dR_bjet_lep = new TH1F("h_min_dR_bjet_lep", "h_min_dR_bjet_lep", 20, 0, 5);
   TH1 *h_min_dR_jet_bjet = new TH1F("h_min_dR_jet_bjet", "h_min_dR_jet_bjet", 20, 0, 5);
 
-  // Study topHFF overlap removal
-  TH1 *h_bjets_n_410472 = new TH1F("bjets_n_410472", "bjets_n_410472", 6, 2, 8);
-  TH1 *h_bjets_n_411076 = new TH1F("bjets_n_411076", "bjets_n_411076", 6, 2, 8);
-  TH1 *h_bjets_n_411077 = new TH1F("bjets_n_411077", "bjets_n_411077", 6, 2, 8);
-  TH1 *h_bjets_n_411078 = new TH1F("bjets_n_411078", "bjets_n_411078", 6, 2, 8);
-  TH1 *h_topHFFF_410472 = new TH1F("topHFFF_410472", "topHFFF_410472", 5, 0, 5);
-  TH1 *h_topHFFF_411076 = new TH1F("topHFFF_411076", "topHFFF_411076", 5, 0 ,5);
-  TH1 *h_topHFFF_411077 = new TH1F("topHFFF_411077", "topHFFF_411077", 5, 0 ,5);
-  TH1 *h_topHFFF_411078 = new TH1F("topHFFF_411078", "topHFFF_411078", 5, 0 ,5);
-  
+  // jets parameters - data/mc
+  TH1 *h_all_jets_pt = new TH1F("all_jets_pt", "all_jets_pt", 50, 0, 1000);
+  TH1 *h_all_jets_eta = new TH1F("all_jets_eta", "all_jets_eta", 40, -4, 4);
+
 
   // Initialize KLFitter
   //KLFitter::Fitter fitter{};
@@ -188,7 +148,7 @@ void prepare_hists_mc()
   //fitter.SetLikelihood(&likelihood);
   
 
-  // Create vars for NN
+  // Create vars for MVA
   vector<int> NN_topHOF_v, NN_jet_DL1r_77_v, NN_jet_truthflav;
   vector<float> NN_dR_jet_lep0_v, NN_dR_jet_lep1_v, NN_min_dR_jet_lep_v;
   vector<float> NN_m_jet_lep_min_dR_v, NN_m_jet_el_v, NN_m_jet_mu_v;
@@ -448,56 +408,6 @@ void prepare_hists_mc()
 	      jets_lvec.push_back(lvec); }
 	    
 	    
-	    // ///
-	    // 3b, emu, OS channel: Draw min_dR
-	    // ///
-	    if (emu_cut*OS_cut*btags_n3_cut*topHFFF_cut*jets_n_cut == true) {
-	      
-	      // Define min_dR as some lagre value to begin with
-	      double min_dR1_top = 999999.; // leading lepton
-	      double min_dR2_top = 999999.; // subleading lepton
-	      double min_dR1_not_top = 999999.; // leading lepton
-	      double min_dR2_not_top = 999999.; // subleading lepton
-	      
-	      
-	      // Loop over all jets, and select only b-tagged in the loop
-	      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
-		if ( (*jet_truthflav)[jet_i]==5) {
-		  
-		  // Define initial dR's
-		  double dR1 = 0;
-		  double dR2 = 0;
-		  
-		  // Assign dR1 to the leading lep and dR2 to the subleading 
-		  if ((*mu_pt)[0]>(*el_pt)[0]) {
-		    dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]);
-		    dR2 = el_lvec.DeltaR(jets_lvec[jet_i]); }
-		  else {
-		    dR1 = el_lvec.DeltaR(jets_lvec[jet_i]);
-		    dR2 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
-		  
-		  // Sort wrt origin
-		  if ((*topHadronOriginFlag)[jet_i]==4) { 
-		    min_dR1_top = min(min_dR1_top, dR1); 
-		    min_dR2_top = min(min_dR2_top, dR2); }
-		  else {
-		    min_dR1_not_top = min(min_dR1_not_top, dR1); 
-		    min_dR2_not_top = min(min_dR2_not_top, dR2); }
-		  
-		}  // selection of b-jets from all jets
-		
-	      } // [jet_i] - loop over jets
-	      
-	      
-	      // Fill min_dR histograms
-	      h_minDeltaR_lep0_bjets_from_top->Fill(min_dR1_top, weights);
-	      h_minDeltaR_lep0_bjets_not_from_top->Fill(min_dR1_not_top, weights);
-	      h_minDeltaR_lep1_bjets_from_top->Fill(min_dR2_top, weights);
-	      h_minDeltaR_lep1_bjets_not_from_top->Fill(min_dR2_not_top, weights);
-	      
-	    } // 3b, emu, OS cuts
-	    
-	    
 	    
 	    
 	    // ///
@@ -505,49 +415,28 @@ void prepare_hists_mc()
 	    // ///
 	    if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
 	      
+	      // jets parameters - data/mc
+	      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
+		h_all_jets_pt->Fill((*jet_pt)[jet_i]*0.001, weights);
+		h_all_jets_eta->Fill((*jet_eta)[jet_i], weights); }
+
 	      
-	      // MET hists:
-	      h_met->Fill(met*0.001, weights);
-	      h_met_phi->Fill(met_phi, weights);
+	      // jets parameters - sig/bkg discrimination
+	      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++){ 
+		if ( (*topHadronOriginFlag)[jet_i]==4 ) {
+		  h_all_jets_from_top_pt->Fill((*jet_pt)[jet_i]*0.001, weights);
+		  h_all_jets_from_top_eta->Fill((*jet_eta)[jet_i], weights); }
+		else {
+		  h_all_jets_not_from_top_pt->Fill((*jet_pt)[jet_i]*0.001, weights);
+		  h_all_jets_not_from_top_eta->Fill((*jet_eta)[jet_i], weights); } }
 	      
-	      
-	      // jet pt hists:
-	      for (int i=0; i<3; i++) { h_jet_pt[i]->Fill((*jet_pt)[i]*0.001, weights); }
-	      
-	      
-	      // jets_n hist:
+ 
+	      // jets_n - data/mc
 	      h_jets_n->Fill((*jet_pt).size(), weights);
 	      h_bjets_n->Fill(btags_n, weights);
 	      
 	      
-	      // leptons hists:
-	      if ( (*el_pt)[0] > (*mu_pt)[0] ) {
-		h_lep0_pt->Fill((*el_pt)[0]*0.001, weights);
-		h_lep1_pt->Fill((*mu_pt)[0]*0.001, weights);
-		h_lep0_eta->Fill((*el_eta)[0], weights);
-		h_lep1_eta->Fill((*mu_eta)[0], weights);
-		h_lep0_phi->Fill((*el_phi)[0], weights);
-		h_lep1_phi->Fill((*mu_phi)[0], weights); }
-	      else {
-		h_lep0_pt->Fill((*mu_pt)[0]*0.001, weights);
-		h_lep1_pt->Fill((*el_pt)[0]*0.001, weights);
-		h_lep0_eta->Fill((*mu_eta)[0], weights);
-		h_lep1_eta->Fill((*el_eta)[0], weights);
-		h_lep0_phi->Fill((*mu_phi)[0], weights);
-		h_lep1_phi->Fill((*el_phi)[0], weights); }
-	      h_lep_pt->Fill((*el_pt)[0]*0.001, weights);
-	      h_lep_pt->Fill((*mu_pt)[0]*0.001, weights);
-	      h_lep_eta->Fill((*el_eta)[0], weights);
-	      h_lep_eta->Fill((*mu_eta)[0], weights);
-	      h_lep_phi->Fill((*el_phi)[0], weights);
-	      h_lep_phi->Fill((*mu_phi)[0], weights);
-	      
-	      
-	      // dR(lep0, lep1) hist:
-	      h_dR_lep0_lep1->Fill(el_lvec.DeltaR(mu_lvec));
-	      
-	      
-	      // dR_min lep0/1 btags
+	      // dR_min lep0/1 btags - sig/bkg discriminantion
 	      double min_dR0_top = 999999.; // leading lepton
 	      double min_dR1_top = 999999.; // subleading lepton
 	      double min_dR0_not_top = 999999.; // leading lepton
@@ -583,11 +472,7 @@ void prepare_hists_mc()
 	      h_minDeltaR_lep1_btags_not_from_top->Fill(min_dR1_not_top, weights);
 	      
 	      
-	      // ///
-	      // Discriminative variables study for NN
-	      // ///
-	      
-	      // dR
+	      // dR_min for MVA - sig/bkg discrimination
 	      double min_dR_b_from_top_to_b = 999999.;
 	      double min_dR_b_not_from_top_to_b = 999999.;
 	      double min_dR_not_b_to_b = 999999.;
@@ -649,18 +534,18 @@ void prepare_hists_mc()
 		
 	      } // loop over jet[i]
 	      
-	      h_minDeltaR_b_from_top_to_b->Fill(min_dR_b_from_top_to_b, weights);
-	      h_minDeltaR_b_not_from_top_to_b->Fill(min_dR_b_not_from_top_to_b, weights);
-	      h_minDeltaR_not_b_to_b->Fill(min_dR_not_b_to_b, weights);
-	      h_minDeltaR_b_from_top_to_jet->Fill(min_dR_b_from_top_to_jet, weights);
-	      h_minDeltaR_b_not_from_top_to_jet->Fill(min_dR_b_not_from_top_to_jet, weights);
-	      h_minDeltaR_not_b_to_jet->Fill(min_dR_not_b_to_jet, weights);
-	      h_minDeltaR_b_from_top_to_lep->Fill(min_dR_b_from_top_to_lep, weights);
-	      h_minDeltaR_b_not_from_top_to_lep->Fill(min_dR_b_not_from_top_to_lep, weights);
-	      h_minDeltaR_not_b_to_lep->Fill(min_dR_not_b_to_lep, weights);
+	      if (min_dR_b_from_top_to_b!=999999) h_minDeltaR_b_from_top_to_b->Fill(min_dR_b_from_top_to_b, weights);
+	      if (min_dR_b_not_from_top_to_b!=999999) h_minDeltaR_b_not_from_top_to_b->Fill(min_dR_b_not_from_top_to_b, weights);
+	      if (min_dR_not_b_to_b!=999999) h_minDeltaR_not_b_to_b->Fill(min_dR_not_b_to_b, weights);
+	      if (min_dR_b_from_top_to_jet!=999999) h_minDeltaR_b_from_top_to_jet->Fill(min_dR_b_from_top_to_jet, weights);
+	      if (min_dR_b_not_from_top_to_jet!=999999) h_minDeltaR_b_not_from_top_to_jet->Fill(min_dR_b_not_from_top_to_jet, weights);
+	      if (min_dR_not_b_to_jet!=999999) h_minDeltaR_not_b_to_jet->Fill(min_dR_not_b_to_jet, weights);
+	      if (min_dR_b_from_top_to_lep!=999999) h_minDeltaR_b_from_top_to_lep->Fill(min_dR_b_from_top_to_lep, weights);
+	      if (min_dR_b_not_from_top_to_lep!=999999) h_minDeltaR_b_not_from_top_to_lep->Fill(min_dR_b_not_from_top_to_lep, weights);
+	      if (min_dR_not_b_to_lep!=999999) h_minDeltaR_not_b_to_lep->Fill(min_dR_not_b_to_lep, weights);
 	      
 	      
-	      // Invariant Masses
+	      // Invariant Masses - sig/bkg discrimination
 	      double min_inv_mass_lep_bjet_from_top = 999999;
 	      double max_inv_mass_lep_bjet_from_top = 0;
 	      double min_inv_mass_lep_bjet_not_from_top = 999999;
@@ -720,7 +605,7 @@ void prepare_hists_mc()
 	      
 	      
 	      // ///
-	      // NN variables for NN trees
+	      // MVA variables for MVA trees
 	      // ///
 	      
 	      double min_dR0 = 999999.;
@@ -816,16 +701,6 @@ void prepare_hists_mc()
 	      
 	      event_number_combined++;
 	      
-	      // Sort the events wrt jet pT
-	      //sort (jet_pt->begin(), jet_pt->end(), greater<int>());
-	      
-	      
-	      
-	      // topHFFF overlap removal studies
-	      if (job_DID=="411076") { h_bjets_n_411076->Fill(btags_n, weights); h_topHFFF_411076->Fill(topHFFF, weights); }
-	      if (job_DID=="411077") { h_bjets_n_411077->Fill(btags_n, weights); h_topHFFF_411077->Fill(topHFFF, weights); }
-	      if (job_DID=="411078") { h_bjets_n_411078->Fill(btags_n, weights); h_topHFFF_411078->Fill(topHFFF, weights); }
-	      if (job_DID=="410472") { h_bjets_n_410472->Fill(btags_n, weights); h_topHFFF_410472->Fill(topHFFF, weights); }
 	      
 	    } // 2+b (tags) selection
 	    
@@ -870,13 +745,6 @@ void prepare_hists_mc()
 		cout << "Jet[" << jet_i << "]:\tpT = " << (*jet_pt)[jet_i] << ",\tDL1r = " << (*jet_DL1r)[jet_i] << endl; } 
 		cout << endl << endl; } */
 	      
-	      
-	      
-	      // Fill DL1r tag weight histos for the first three tags, also sort wrt topHFFF
-	      h_tag0_DL1r[topHFFF]->Fill((*jet_DL1r)[0], weights);
-	      h_tag1_DL1r[topHFFF]->Fill((*jet_DL1r)[1], weights);
-	      h_tag2_DL1r[topHFFF]->Fill((*jet_DL1r)[2], weights);
-	      
 	    } // 2+b, emu, OS cuts 
 	    
 	  } // [entry] - loop over entries
@@ -896,19 +764,13 @@ void prepare_hists_mc()
   
   TFile *hists_file = new TFile("hists_mc.root", "RECREATE");
 
-  // dR_min between bjets and leptons, 3b channel  
-  h_minDeltaR_lep0_bjets_from_top->Write("3b_emu_OS_min_dR_lep0_b_from_top");
-  h_minDeltaR_lep1_bjets_from_top->Write("3b_emu_OS_min_dR_lep1_b_from_top");
-  h_minDeltaR_lep0_bjets_not_from_top->Write("3b_emu_OS_min_dR_lep0_b_not_from_top");
-  h_minDeltaR_lep1_bjets_not_from_top->Write("3b_emu_OS_min_dR_lep1_b_not_from_top");
-
-  // dR_min between btags and leptons, 2b channel
+  // dR_min between btags and leptons - sig/bkg discrimination
   h_minDeltaR_lep0_btags_from_top->Write("2b_emu_OS_min_dR_lep0_b_from_top");
   h_minDeltaR_lep1_btags_from_top->Write("2b_emu_OS_min_dR_lep1_b_from_top");
   h_minDeltaR_lep0_btags_not_from_top->Write("2b_emu_OS_min_dR_lep0_b_not_from_top");
   h_minDeltaR_lep1_btags_not_from_top->Write("2b_emu_OS_min_dR_lep1_b_not_from_top");
 
-  // dR_min, 2b channel
+  // dR_min - sig/bkg discrimination
   h_minDeltaR_b_from_top_to_b->Write("2b_emu_OS_h_minDeltaR_b_from_top_to_b");
   h_minDeltaR_b_not_from_top_to_b->Write("2b_emu_OS_h_minDeltaR_b_not_from_top_to_b");
   h_minDeltaR_not_b_to_b->Write("2b_emu_OS_h_minDeltaR_not_b_to_b");
@@ -919,44 +781,17 @@ void prepare_hists_mc()
   h_minDeltaR_b_not_from_top_to_lep->Write("2b_emu_OS_h_minDeltaR_b_not_from_top_to_lep");
   h_minDeltaR_not_b_to_lep->Write("2b_emu_OS_h_minDeltaR_not_b_to_lep");
 
-  // pT of the three leading jets, 2b channel 
-  for (int i=0; i<3; i++) { 
-    TString title = "2b_emu_OS_jet_pt_" + to_string(i);
-    h_jet_pt[i]->Write(title); }
-  
+  // jets parameters - sig/bkg discrimination
+  h_all_jets_not_from_top_pt->Write("2b_emu_OS_all_jets_not_from_top_pt");
+  h_all_jets_from_top_pt->Write("2b_emu_OS_all_jets_from_top_pt");
+  h_all_jets_not_from_top_eta->Write("2b_emu_OS_all_jets_not_from_top_eta");
+  h_all_jets_from_top_eta->Write("2b_emu_OS_all_jets_from_top_eta");
 
-  // the first three DL1r tag distributions for 2b1l / 4b / 3b / 2b1c, 2b channel
-  for (int topHFFF_i=0; topHFFF_i<4; topHFFF_i++) {
-    TString process = "";
-    if (topHFFF_i==0) process = "2b1l";
-    if (topHFFF_i==1) process = "4b";
-    if (topHFFF_i==2) process = "3b";
-    if (topHFFF_i==3) process = "2b1c";
-    h_tag0_DL1r[topHFFF_i]->Write("DL1r_templates_"+process+"_1st_tag");
-    h_tag1_DL1r[topHFFF_i]->Write("DL1r_templates_"+process+"_2nd_tag");
-    h_tag2_DL1r[topHFFF_i]->Write("DL1r_templates_"+process+"_3rd_tag"); }
-
-  // MET, 2b channel
-  h_met->Write("2b_emu_OS_met");
-  h_met_phi->Write("2b_emu_OS_met_phi");
-  
-  // jets_n, 2b channel
+  // jets_n - data/mc
   h_jets_n->Write("2b_emu_OS_jets_n");
   h_bjets_n->Write("2b_emu_OS_bjets_n");
   
-  // leptons, 2b channel 
-  h_lep0_pt->Write("2b_emu_OS_lep0_pt");
-  h_lep1_pt->Write("2b_emu_OS_lep1_pt");
-  h_lep_pt->Write("2b_emu_OS_lep_pt");
-  h_lep0_eta->Write("2b_emu_OS_lep0_eta");
-  h_lep1_eta->Write("2b_emu_OS_lep1_eta");
-  h_lep_eta->Write("2b_emu_OS_lep_eta");
-  h_lep0_phi->Write("2b_emu_OS_lep0_phi");
-  h_lep1_phi->Write("2b_emu_OS_lep1_phi");
-  h_lep_phi->Write("2b_emu_OS_lep_phi");
-  h_dR_lep0_lep1->Write("2b_emu_OS_dR_lep0_lep1");
-  
-  // Invariant mass
+  // Invariant mass - sig/bkg discrimination
   h_inv_mass_lep_bjet_from_top_min_dR->Write("2b_emu_OS_h_inv_mass_lep_bjet_from_top_min_dR");
   h_inv_mass_lep_bjet_not_from_top_min_dR->Write("2b_emu_OS_h_inv_mass_lep_bjet_not_from_top_min_dR");
   h_min_inv_mass_lep_bjet_from_top->Write("2b_emu_OS_h_min_inv_mass_lep_bjet_from_top");
@@ -966,7 +801,7 @@ void prepare_hists_mc()
   h_min_inv_mass_lep_other_jet->Write("2b_emu_OS_h_min_inv_mass_lep_other_jet");
   h_max_inv_mass_lep_other_jet->Write("2b_emu_OS_h_max_inv_mass_lep_other_jet");
 
-  // NN variables hists 
+  // MVA variables hists - data/mc
   h_m_bjet_lep_min_dR->Write("NN__2b_emu_OS_m_bjet_lep_min_dR");
   h_m_bjet_lep_min->Write("NN__2b_emu_OS_m_bjet_lep_min");
   h_m_bjet_lep_max->Write("NN__2b_emu_OS_m_bjet_lep_max");
@@ -977,15 +812,9 @@ void prepare_hists_mc()
   h_min_dR_bjet_lep->Write("NN__2b_emu_OS_min_dR_bjet_lep");
   h_min_dR_jet_bjet->Write("NN__2b_emu_OS_min_dR_jet_bjet");
 
-  // topHFFF overlap removal study
-  h_bjets_n_411076->Write("topHFFF_study_2b_emu_OS_bjets_n_411076");
-  h_bjets_n_411077->Write("topHFFF_study_2b_emu_OS_bjets_n_411077");
-  h_bjets_n_411078->Write("topHFFF_study_2b_emu_OS_bjets_n_411078");
-  h_bjets_n_410472->Write("topHFFF_study_2b_emu_OS_bjets_n_410472");
-  h_topHFFF_411076->Write("topHFFF_study_2b_emu_OS_topHFFF_411076");
-  h_topHFFF_411077->Write("topHFFF_study_2b_emu_OS_topHFFF_411077");
-  h_topHFFF_411078->Write("topHFFF_study_2b_emu_OS_topHFFF_411078");
-  h_topHFFF_410472->Write("topHFFF_study_2b_emu_OS_topHFFF_410472");
+  // jets variables - data/mc
+  h_all_jets_pt->Write("2b_emu_OS_all_jets_pt");
+  h_all_jets_eta->Write("2b_emu_OS_all_jets_eta");
 
   // Close the hists file
   hists_file->Close();

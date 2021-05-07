@@ -107,72 +107,50 @@ void draw_data_mc()
   TFile *mc_hists_file = new TFile("hists_mc.root");
   TH1 *h_mc_jets_n = (TH1*)mc_hists_file->Get("2b_emu_OS_jets_n");
   TH1 *h_mc_bjets_n = (TH1*)mc_hists_file->Get("2b_emu_OS_bjets_n");
-  TH1 *h_met_mc = (TH1*)mc_hists_file->Get("2b_emu_OS_met");
-  TH1 *h_jet_pt_mc[3];
-  for (int i=0; i<3; i++) {
-    TString title = "2b_emu_OS_jet_pt_" + to_string(i);
-    h_jet_pt_mc[i] = (TH1*)mc_hists_file->Get(title); }
-  TH1 *h_mc_NN__2b_emu_OS_m_bjet_lep_min_dR = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min_dR");
-  TH1 *h_mc_NN__2b_emu_OS_m_bjet_lep_min = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min");
-  TH1 *h_mc_NN__2b_emu_OS_m_bjet_lep_max = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_max");
-  TH1 *h_mc_NN__2b_emu_OS_m_bjet_el = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_el");
-  TH1 *h_mc_NN__2b_emu_OS_m_bjet_mu = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_mu");
-  TH1 *h_mc_NN__2b_emu_OS_dR_bjet_lep0 = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep0");
-  TH1 *h_mc_NN__2b_emu_OS_dR_bjet_lep1 = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep1");
-  TH1 *h_mc_NN__2b_emu_OS_min_dR_bjet_lep = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_min_dR_bjet_lep");
-  TH1 *h_mc_NN__2b_emu_OS_min_dR_jet_bjet = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_min_dR_jet_bjet");
-  
+  TH1 *h_mc_NN__m_bjet_lep_min_dR = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min_dR");
+  TH1 *h_mc_NN__m_bjet_lep_min = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min");
+  TH1 *h_mc_NN__m_bjet_lep_max = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_max");
+  TH1 *h_mc_NN__m_bjet_el = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_el");
+  TH1 *h_mc_NN__m_bjet_mu = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_mu");
+  TH1 *h_mc_NN__dR_bjet_lep0 = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep0");
+  TH1 *h_mc_NN__dR_bjet_lep1 = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep1");
+  TH1 *h_mc_NN__min_dR_bjet_lep = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_min_dR_bjet_lep");
+  TH1 *h_mc_NN__min_dR_jet_bjet = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_min_dR_jet_bjet");
+  TH1 *h_mc_NN__all_jets_pt = (TH1*)mc_hists_file->Get("2b_emu_OS_all_jets_pt");
+  TH1 *h_mc_NN__all_jets_eta = (TH1*)mc_hists_file->Get("2b_emu_OS_all_jets_eta");
+
 
   // Get data hists
   TFile *data_hists_file = new TFile("hists_data.root");
   TH1 *h_data_jets_n = (TH1*)data_hists_file->Get("2b_emu_OS_jets_n");
   TH1 *h_data_bjets_n = (TH1*)data_hists_file->Get("2b_emu_OS_bjets_n");
-  TH1 *h_met_data = (TH1*)data_hists_file->Get("2b_emu_OS_met");
-  TH1 *h_jet_pt_data[3];
-  for (int i=0; i<3; i++) {
-    TString title = "2b_emu_OS_jet_pt_" + to_string(i);
-    h_jet_pt_data[i] = (TH1*)data_hists_file->Get(title); }
-  TH1 *h_data_NN__2b_emu_OS_m_bjet_lep_min_dR = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min_dR");
-  TH1 *h_data_NN__2b_emu_OS_m_bjet_lep_min = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min");
-  TH1 *h_data_NN__2b_emu_OS_m_bjet_lep_max = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_max");
-  TH1 *h_data_NN__2b_emu_OS_m_bjet_el = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_el");
-  TH1 *h_data_NN__2b_emu_OS_m_bjet_mu = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_mu");
-  TH1 *h_data_NN__2b_emu_OS_dR_bjet_lep0 = (TH1*)data_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep0");
-  TH1 *h_data_NN__2b_emu_OS_dR_bjet_lep1 = (TH1*)data_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep1");
-  TH1 *h_data_NN__2b_emu_OS_min_dR_bjet_lep = (TH1*)data_hists_file->Get("NN__2b_emu_OS_min_dR_bjet_lep");
-  TH1 *h_data_NN__2b_emu_OS_min_dR_jet_bjet = (TH1*)data_hists_file->Get("NN__2b_emu_OS_min_dR_jet_bjet");
-
+  TH1 *h_data_NN__m_bjet_lep_min_dR = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min_dR");
+  TH1 *h_data_NN__m_bjet_lep_min = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min");
+  TH1 *h_data_NN__m_bjet_lep_max = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_max");
+  TH1 *h_data_NN__m_bjet_el = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_el");
+  TH1 *h_data_NN__m_bjet_mu = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_mu");
+  TH1 *h_data_NN__dR_bjet_lep0 = (TH1*)data_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep0");
+  TH1 *h_data_NN__dR_bjet_lep1 = (TH1*)data_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep1");
+  TH1 *h_data_NN__min_dR_bjet_lep = (TH1*)data_hists_file->Get("NN__2b_emu_OS_min_dR_bjet_lep");
+  TH1 *h_data_NN__min_dR_jet_bjet = (TH1*)data_hists_file->Get("NN__2b_emu_OS_min_dR_jet_bjet");
+  TH1 *h_data_NN__all_jets_pt = (TH1*)data_hists_file->Get("2b_emu_OS_all_jets_pt");
+  TH1 *h_data_NN__all_jets_eta = (TH1*)data_hists_file->Get("2b_emu_OS_all_jets_eta");
+  
   
   // Draw different hists
   
-  int draw_met = draw_data_mc_plot(h_met_data, h_met_mc, "#bf{E_{T}^{miss}, GeV}", "2b_emu_OS_met");
-  
-  for (int i=0; i<3; i++) {
-    TString title = "#bf{p_{T}^{jet-" + to_string(i) + "}, GeV}";
-    TString savename = "2b_emu_OS_jet_pt_" + to_string(i);
-    int draw_jet_pt_0 = draw_data_mc_plot(h_jet_pt_data[i], h_jet_pt_mc[i], title, savename); }
-  
-  int draw_jets_n = draw_data_mc_plot(h_data_jets_n, h_mc_jets_n, "#bf{N_{jets}}", "2b_emu_OS_jets_n");
-  int draw_bjets_n = draw_data_mc_plot(h_data_bjets_n, h_mc_bjets_n, "#bf{N_{bjets}}", "2b_emu_OS_bjets_n");
-  
-
-  int draw_NN__2b_emu_OS_m_bjet_lep_min_dR = draw_data_mc_plot(h_data_NN__2b_emu_OS_m_bjet_lep_min_dR, h_mc_NN__2b_emu_OS_m_bjet_lep_min_dR, "#bf{m_{inv}^{min dR}(bjet, lep)}", "2b_emu_OS_m_bjet_lep_min_dR");
-  int draw_NN__2b_emu_OS_m_bjet_lep_min = draw_data_mc_plot(h_data_NN__2b_emu_OS_m_bjet_lep_min, h_mc_NN__2b_emu_OS_m_bjet_lep_min, "#bf{m_{inv}^{min}(bjet, lep)}", "2b_emu_OS_m_bjet_lep_min");
-  int draw_NN__2b_emu_OS_m_bjet_lep_max = draw_data_mc_plot(h_data_NN__2b_emu_OS_m_bjet_lep_max, h_mc_NN__2b_emu_OS_m_bjet_lep_max, "#bf{m_{inv}^{max}(bjet, lep)}", "2b_emu_OS_m_bjet_lep_max");
-  int draw_NN__2b_emu_OS_m_bjet_el = draw_data_mc_plot(h_data_NN__2b_emu_OS_m_bjet_el, h_mc_NN__2b_emu_OS_m_bjet_el, "#bf{m_{inv}(bjet, el)}", "2b_emu_OS_m_bjet_el");
-  int draw_NN__2b_emu_OS_m_bjet_mu = draw_data_mc_plot(h_data_NN__2b_emu_OS_m_bjet_mu, h_mc_NN__2b_emu_OS_m_bjet_mu, "#bf{m_{inv}(bjet, mu)}", "2b_emu_OS_m_bjet_mu");
-  int draw_NN__2b_emu_OS_dR_bjet_lep0 = draw_data_mc_plot(h_data_NN__2b_emu_OS_dR_bjet_lep0, h_mc_NN__2b_emu_OS_dR_bjet_lep0, "#bf{dR(bjet, lep0)}", "2b_emu_OS_dR_bjet_lep0");
-  int draw_NN__2b_emu_OS_dR_bjet_lep1 = draw_data_mc_plot(h_data_NN__2b_emu_OS_dR_bjet_lep1, h_mc_NN__2b_emu_OS_dR_bjet_lep1, "#bf{dR(bjet, lep1)}", "2b_emu_OS_dR_bjet_lep1");
-  int draw_NN__2b_emu_OS_min_dR_bjet_lep = draw_data_mc_plot(h_data_NN__2b_emu_OS_min_dR_bjet_lep, h_mc_NN__2b_emu_OS_min_dR_bjet_lep, "#bf{dR_{min}(bjet-fix, lep)}", "2b_emu_OS_min_dR_bjet_lep");
-  int draw_NN__2b_emu_OS_min_dR_jet_bjet = draw_data_mc_plot(h_data_NN__2b_emu_OS_min_dR_jet_bjet, h_mc_NN__2b_emu_OS_min_dR_jet_bjet, "#bf{dR_{min}(jet-fix, bjet)}", "2b_emu_OS_min_dR_jet_bjet");
+  int draw_NN__m_bjet_lep_min_dR = draw_data_mc_plot(h_data_NN__m_bjet_lep_min_dR, h_mc_NN__m_bjet_lep_min_dR, "#bf{m_{inv}^{min dR}(bjet, lep)}", "2b_emu_OS_m_bjet_lep_min_dR");
+  int draw_NN__m_bjet_lep_min = draw_data_mc_plot(h_data_NN__m_bjet_lep_min, h_mc_NN__m_bjet_lep_min, "#bf{m_{inv}^{min}(bjet, lep)}", "2b_emu_OS_m_bjet_lep_min");
+  int draw_NN__m_bjet_lep_max = draw_data_mc_plot(h_data_NN__m_bjet_lep_max, h_mc_NN__m_bjet_lep_max, "#bf{m_{inv}^{max}(bjet, lep)}", "2b_emu_OS_m_bjet_lep_max");
+  int draw_NN__m_bjet_el = draw_data_mc_plot(h_data_NN__m_bjet_el, h_mc_NN__m_bjet_el, "#bf{m_{inv}(bjet, el)}", "2b_emu_OS_m_bjet_el");
+  int draw_NN__m_bjet_mu = draw_data_mc_plot(h_data_NN__m_bjet_mu, h_mc_NN__m_bjet_mu, "#bf{m_{inv}(bjet, mu)}", "2b_emu_OS_m_bjet_mu");
+  int draw_NN__dR_bjet_lep0 = draw_data_mc_plot(h_data_NN__dR_bjet_lep0, h_mc_NN__dR_bjet_lep0, "#bf{dR(bjet, lep0)}", "2b_emu_OS_dR_bjet_lep0");
+  int draw_NN__dR_bjet_lep1 = draw_data_mc_plot(h_data_NN__dR_bjet_lep1, h_mc_NN__dR_bjet_lep1, "#bf{dR(bjet, lep1)}", "2b_emu_OS_dR_bjet_lep1");
+  int draw_NN__min_dR_bjet_lep = draw_data_mc_plot(h_data_NN__min_dR_bjet_lep, h_mc_NN__min_dR_bjet_lep, "#bf{dR_{min}(the bjet, lep)}", "2b_emu_OS_min_dR_bjet_lep");
+  int draw_NN__min_dR_jet_bjet = draw_data_mc_plot(h_data_NN__min_dR_jet_bjet, h_mc_NN__min_dR_jet_bjet, "#bf{dR_{min}(the jet, bjet)}", "2b_emu_OS_min_dR_jet_bjet");
+  int draw_NN__all_jets_pt = draw_data_mc_plot(h_data_NN__all_jets_pt, h_mc_NN__all_jets_pt, "#bf{p_{T}^{jets}}", "2b_emu_OS_all_jets_pt");
+  int draw_NN__all_jets_eta = draw_data_mc_plot(h_mc_NN__all_jets_eta, h_data_NN__all_jets_eta, "#bf{jets #eta}", "2b_emu_OS_all_jets_eta");
 
 
-
-  // Study discrepancy in the invariant mass hists
-  TH1 *h_mc_m_bjet_el_plus_mu = (TH1F*)h_mc_NN__2b_emu_OS_m_bjet_el->Clone();
-  h_mc_m_bjet_el_plus_mu->Add(h_mc_NN__2b_emu_OS_m_bjet_mu);
-  TH1 *h_mc_m_bjet_min_plus_max = (TH1F*)h_mc_NN__2b_emu_OS_m_bjet_lep_min->Clone();
-  h_mc_m_bjet_min_plus_max->Add(h_mc_NN__2b_emu_OS_m_bjet_lep_max);
-  int draw_m_comparison = draw_data_mc_plot(h_mc_m_bjet_el_plus_mu, h_mc_m_bjet_min_plus_max, "#bf{m_{bjet, lep}}", "invariant_mass_study_0", {"m(bejt, el) + m(bejt, mu)", "m_{min}(bjet, lep) + m_{max}(bejt, lep)"}, true);
 
 }

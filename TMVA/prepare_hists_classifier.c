@@ -161,7 +161,8 @@ void prepare_hists_classifier()
   double step = (x_max - x_min)/n_steps;
   vector<float> classifier_cuts = {};
   for (double i=x_min; i<=x_max; i += step) classifier_cuts.push_back(i);
-
+  tmva_file->Close();
+  
 
   // Declare hists
   TH1 *h_dl1r_tag_weight_sig[n_steps];

@@ -88,7 +88,8 @@ void study_tmva_perpormnce_results()
 
   // Get number of entries
   Int_t nEntries = test_tree->GetEntries();
-
+  cout << "Total number of entries: " << nEntries << endl;
+  
 
   // Set an array of Classifier cuts to test and an array to store efficiency
   vector<double> classifier_cut = {}; // list of cuts to analyze

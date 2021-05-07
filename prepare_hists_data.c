@@ -75,19 +75,11 @@ void prepare_hists_data()
   TString path_to_ntuples =  "/eos/atlas/atlascerngroupdisk/phys-top/ttjets/v4/data/";
   vector<TString> dir_paths = get_list_of_files(path_to_ntuples);
   
-  // MET
-  TH1 *h_met = new TH1F("h_met", "h_met", 20, 0, 1000);
-  TH1 *h_met_phi = new TH1F("h_met_phi", "h_met_phi", 40, -4, 4);
-  TH1 *h_jet_pt[3];
-  for (int i =0; i<3; i++) {
-      TString h_title = "jet_pt_" + to_string(i);
-      h_jet_pt[i] = new TH1F(h_title, h_title, 10, 0, 400); }
-  
-  // jets
+  // jets_n - data/mc
   TH1 *h_jets_n = new TH1F("h_jets_n", "h_jets_n", 6, 2, 8);
   TH1 *h_bjets_n = new TH1F("h_bjets_n", "h_bjets_n", 6, 2, 8);
 
-  // NN variables
+  // MVA variables - data/mc
   TH1 *h_m_bjet_lep_min_dR = new TH1F("h_m_bjet_lep_min_dR", "h_m_bjet_lep_min_dR", 120, 0, 700);
   TH1 *h_m_bjet_lep_min = new TH1F("h_m_bjet_lep_min", "h_m_bjet_lep_min", 120, 0, 700);
   TH1 *h_m_bjet_lep_max = new TH1F("h_m_bjet_lep_max", "h_m_bjet_lep_max", 120, 0, 700);
@@ -98,6 +90,10 @@ void prepare_hists_data()
   TH1 *h_min_dR_bjet_lep = new TH1F("h_min_dR_bjet_lep", "h_min_dR_bjet_lep", 20, 0, 5);
   TH1 *h_min_dR_jet_bjet = new TH1F("h_min_dR_jet_bjet", "h_min_dR_jet_bjet", 20, 0, 5);
   
+  // jets parameters - data/mc
+  TH1 *h_all_jets_pt = new TH1F("all_jets_pt", "all_jets_pt", 50, 0, 1000);
+  TH1 *h_all_jets_eta = new TH1F("all_jets_eta", "all_jets_eta", 40, -4, 4);
+
   
   // Loop over directories with ntuples collections
   for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++) {
@@ -209,25 +205,24 @@ void prepare_hists_data()
 	
 	int jets_n = (*jet_pt).size();
 	if (jets_n >= 3) jets_n_cut = true;
+
 	
-	
+	// ///
 	// 2+b, emu, OS channel
+	// ///
 	if (emu_cut*OS_cut*bjets_n2_cut*jets_n_cut == true) {
-	  
-	  h_met->Fill(met*0.001);
-	  h_met_phi->Fill(met_phi);
-	  
-	  //jet pT histograms
-	  h_jet_pt[0]->Fill((*jet_pt)[0]*0.001);
-	  h_jet_pt[1]->Fill((*jet_pt)[1]*0.001);
-	  h_jet_pt[2]->Fill((*jet_pt)[2]*0.001);
 	  
 	  // jets_n
 	  h_jets_n->Fill((*jet_pt).size());
 	  h_bjets_n->Fill(bjets_n);
 
+          // jets parameters
+          for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++){
+            h_all_jets_pt->Fill((*jet_pt)[jet_i]*0.001);
+            h_all_jets_eta->Fill((*jet_eta)[jet_i]); }
 	  
-	  // NN variables hists
+
+	  // MVA variables hists
 	  double min_dR0 = 999999.;
 	  double min_dR1 = 999999.;
 	  
@@ -304,16 +299,11 @@ void prepare_hists_data()
   //Save histograms
   TFile *hists_file = new TFile("hists_data.root", "RECREATE");
 
-  // Regular hists
-  h_met->Write("2b_emu_OS_met");
-  h_met_phi->Write("2b_emu_OS_met_phi");
-  h_jet_pt[0]->Write("2b_emu_OS_jet_pt_0");
-  h_jet_pt[1]->Write("2b_emu_OS_jet_pt_1");
-  h_jet_pt[2]->Write("2b_emu_OS_jet_pt_2");
+  // jets_n - data/mc
   h_jets_n->Write("2b_emu_OS_jets_n");
   h_bjets_n->Write("2b_emu_OS_bjets_n");
   
-  // NN variables hists
+  // MVA variables hists
   h_m_bjet_lep_min_dR->Write("NN__2b_emu_OS_m_bjet_lep_min_dR");
   h_m_bjet_lep_min->Write("NN__2b_emu_OS_m_bjet_lep_min");
   h_m_bjet_lep_max->Write("NN__2b_emu_OS_m_bjet_lep_max");
@@ -324,6 +314,9 @@ void prepare_hists_data()
   h_min_dR_bjet_lep->Write("NN__2b_emu_OS_min_dR_bjet_lep");
   h_min_dR_jet_bjet->Write("NN__2b_emu_OS_min_dR_jet_bjet");
 
+  // jets variables - data/mc
+  h_all_jets_pt->Write("2b_emu_OS_all_jets_pt");
+  h_all_jets_eta->Write("2b_emu_OS_all_jets_eta");
 
   hists_file->Close();
 }

@@ -80,4 +80,12 @@ prepare_hists_classifier.c
 
 
 ## Analyze Classifier Performance on the event level
-Work in progress
+The idea is to deffirintiate events with both jets originating from top identified by the classifier correctly from the events where at least of the jets was miss-identified. The algorythm is as following: 
+(1) Sort jets with respect to the classifier value from the lowest to the highest. For BDT and MLP is was shown that jets originating fro top quarks decay has lower classifier value than jets not from top. 
+(2) Also we expect both jets originating from top to be b-jets. 
+(3) Thus we analyze only two candidates with the following parameters: `classifier < cut vaue` AND `jet_isbtagged_DL1r_77 = 1`. There are a few possible scenarios:
+   (a) The classifier cut is too low, and there is less than 2 candidates: such an event is considered as bad.
+   (b) There is exactly two candidates, and one of them is actually not frop top - such an event is considered as bad.
+   (c) There is exactly two candidates, and both of them are from top - good event.
+   (d) Events with more than two candidates are not considered (reffer to (1) ).
+(4) For each point in the classifier cuts range (by defauls there are 20 points along the entire classifier range) event level efficiency is computed as the ratio of good event to the total number of events. 

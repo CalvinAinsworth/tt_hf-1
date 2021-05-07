@@ -54,6 +54,8 @@ void tmva_analysis()
   dataloader->AddVariable("m_jet_lep_max", 'F');
   //dataloader->AddVariable("m_jet_lep_min", 'F');
   dataloader->AddVariable("min_dR_jet_bjet", 'F');
+  dataloader->AddVariable("jet_pt", 'F');
+  dataloader->AddVariable("jet_eta", 'F');
   cout << "==> Added variables" << endl;
 
 
@@ -65,8 +67,8 @@ void tmva_analysis()
   dataloader->AddSpectator("event_number", "I");
   dataloader->AddSpectator("tot_event_weight", "F");
   dataloader->AddSpectator("met", "F");
-  dataloader->AddSpectator("jet_pt", "F");
-  dataloader->AddSpectator("jet_eta", "F");
+  //dataloader->AddSpectator("jet_pt", "F");
+  //dataloader->AddSpectator("jet_eta", "F");
   dataloader->AddSpectator("jet_phi", "F");
   dataloader->AddSpectator("jet_e", "F");
   dataloader->AddSpectator("mu_pt", "F");

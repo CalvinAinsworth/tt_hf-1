@@ -1,0 +1,120 @@
+Predictions in Data for BDT cut >= -0.65365:
+N(BDT from top, untagged) = 0.0170546
+N(BDT not from top, untagged) = 291857
+N(BDT from top, tagged) = 0.00131659
+N(BDT not from top, tagged = 366840
+
+Predictions in Data for BDT cut >= -0.583889:
+N(BDT from top, untagged) = 12.0924
+N(BDT not from top, untagged) = 291845
+N(BDT from top, tagged) = 0.974562
+N(BDT not from top, tagged = 366840
+
+Predictions in Data for BDT cut >= -0.514129:
+N(BDT from top, untagged) = 220.943
+N(BDT not from top, untagged) = 291636
+N(BDT from top, tagged) = 18.1442
+N(BDT not from top, tagged = 366822
+
+Predictions in Data for BDT cut >= -0.444368:
+N(BDT from top, untagged) = 1795.45
+N(BDT not from top, untagged) = 290062
+N(BDT from top, tagged) = 154.84
+N(BDT not from top, tagged = 366686
+
+Predictions in Data for BDT cut >= -0.374607:
+N(BDT from top, untagged) = 7938.86
+N(BDT not from top, untagged) = 283918
+N(BDT from top, tagged) = 747.231
+N(BDT not from top, tagged = 366093
+
+Predictions in Data for BDT cut >= -0.304847:
+N(BDT from top, untagged) = 23696.5
+N(BDT not from top, untagged) = 268160
+N(BDT from top, tagged) = 2584.57
+N(BDT not from top, tagged = 364256
+
+Predictions in Data for BDT cut >= -0.235086:
+N(BDT from top, untagged) = 47208.9
+N(BDT not from top, untagged) = 244648
+N(BDT from top, tagged) = -57955.5
+N(BDT not from top, tagged = 424796
+
+Predictions in Data for BDT cut >= -0.165325:
+N(BDT from top, untagged) = 1.59578e+15
+N(BDT not from top, untagged) = -1.59578e+15
+N(BDT from top, tagged) = 9.60351e+16
+N(BDT not from top, tagged = -9.60351e+16
+
+Predictions in Data for BDT cut >= -0.0955644:
+N(BDT from top, untagged) = 136274
+N(BDT not from top, untagged) = 155583
+N(BDT from top, tagged) = 34007.7
+N(BDT not from top, tagged = 332833
+
+Predictions in Data for BDT cut >= -0.0258036:
+N(BDT from top, untagged) = 199439
+N(BDT not from top, untagged) = 92418.4
+N(BDT from top, tagged) = 76422
+N(BDT not from top, tagged = 290418
+
+Predictions in Data for BDT cut >= 0.0439571:
+N(BDT from top, untagged) = 245793
+N(BDT not from top, untagged) = 46063.5
+N(BDT from top, tagged) = 137174
+N(BDT not from top, tagged = 229667
+
+Predictions in Data for BDT cut >= 0.113718:
+N(BDT from top, untagged) = 272657
+N(BDT not from top, untagged) = 19199.7
+N(BDT from top, tagged) = 203999
+N(BDT not from top, tagged = 162841
+
+Predictions in Data for BDT cut >= 0.183479:
+N(BDT from top, untagged) = 285041
+N(BDT not from top, untagged) = 6815.85
+N(BDT from top, tagged) = 263240
+N(BDT not from top, tagged = 103600
+
+Predictions in Data for BDT cut >= 0.253239:
+N(BDT from top, untagged) = 289318
+N(BDT not from top, untagged) = 2539.47
+N(BDT from top, tagged) = 301561
+N(BDT not from top, tagged = 65279.6
+
+Predictions in Data for BDT cut >= 0.323:
+N(BDT from top, untagged) = 290772
+N(BDT not from top, untagged) = 1084.81
+N(BDT from top, tagged) = 325709
+N(BDT not from top, tagged = 41131
+
+Predictions in Data for BDT cut >= 0.392761:
+N(BDT from top, untagged) = 291352
+N(BDT not from top, untagged) = 505.222
+N(BDT from top, tagged) = 343043
+N(BDT not from top, tagged = 23797.4
+
+Predictions in Data for BDT cut >= 0.462521:
+N(BDT from top, untagged) = 291635
+N(BDT not from top, untagged) = 222.177
+N(BDT from top, tagged) = 355347
+N(BDT not from top, tagged = 11493.3
+
+Predictions in Data for BDT cut >= 0.532282:
+N(BDT from top, untagged) = 291787
+N(BDT not from top, untagged) = 70.2898
+N(BDT from top, tagged) = 363069
+N(BDT not from top, tagged = 3771.87
+
+Predictions in Data for BDT cut >= 0.602043:
+N(BDT from top, untagged) = 291847
+N(BDT not from top, untagged) = 9.92223
+N(BDT from top, tagged) = 366278
+N(BDT not from top, tagged = 562.313
+
+Predictions in Data for BDT cut >= 0.671804:
+N(BDT from top, untagged) = 291857
+N(BDT not from top, untagged) = 0.354646
+N(BDT from top, tagged) = 366819
+N(BDT not from top, tagged = 21.3428
+

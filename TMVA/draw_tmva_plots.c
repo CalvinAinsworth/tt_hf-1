@@ -58,9 +58,11 @@ int draw_correlations(TH2 *h_corr, TString title, vector<TString> axis_labels, T
   h_corr->Draw("COLZ TEXT");
   h_corr->SetTitle(title);
 
-  for (int i=0; i<h_corr->GetNbinsX(); i++) {
-    h_corr->GetXaxis()->SetBinLabel(i+1, axis_labels[i]);
-    h_corr->GetYaxis()->SetBinLabel(i+1, axis_labels[i]); }
+  if (axis_labels.size() == h_corr->GetNbinsX()) {
+    for (int i=0; i<h_corr->GetNbinsX(); i++) {
+      h_corr->GetXaxis()->SetBinLabel(i+1, axis_labels[i]);
+      h_corr->GetYaxis()->SetBinLabel(i+1, axis_labels[i]); }
+  } // [if] - axis labels
   h_corr->GetXaxis()->SetLabelSize(0.04);
   h_corr->GetYaxis()->SetLabelSize(0.04);
   
@@ -110,6 +112,8 @@ void draw_tmva_plots()
   TH1 *h_NN_m_bjet_mu_S = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_mu__Signal");
   TH1 *h_NN_m_bjet_lep_max_S = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_lep_max__Signal");
   TH1 *h_NN_min_dR_jet_bjet_S = (TH1F*)tmva_file->Get(var_hists_address+"min_dR_jet_bjet__Signal");
+  TH1 *h_NN_jet_pt_S = (TH1F*)tmva_file->Get(var_hists_address+"jet_pt__Signal");
+  TH1 *h_NN_jet_eta_S = (TH1F*)tmva_file->Get(var_hists_address+"jet_eta__Signal");
   TH2 *h_NN_corr_mtrx_S = (TH2F*)tmva_file->Get("dataset/CorrelationMatrixS");
   
   // Background hists
@@ -120,6 +124,8 @@ void draw_tmva_plots()
   TH1 *h_NN_m_bjet_mu_B = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_mu__Background");
   TH1 *h_NN_m_bjet_lep_max_B = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_lep_max__Background");
   TH1 *h_NN_min_dR_jet_bjet_B = (TH1F*)tmva_file->Get(var_hists_address+"min_dR_jet_bjet__Background");
+  TH1 *h_NN_jet_pt_B = (TH1F*)tmva_file->Get(var_hists_address+"jet_pt__Background");
+  TH1 *h_NN_jet_eta_B =(TH1F*)tmva_file->Get(var_hists_address+"jet_eta__Background");
   TH2 *h_NN_corr_mtrx_B = (TH2F*)tmva_file->Get("dataset/CorrelationMatrixB");
   
   // Other hists
@@ -139,6 +145,8 @@ void draw_tmva_plots()
   int m_bjet_mu_draw = draw_hists(h_NN_m_bjet_mu_S, h_NN_m_bjet_mu_B, "#bf{m_{inv}(jet, mu)}", "m_jet_mu");
   int m_bjet_lep_max = draw_hists(h_NN_m_bjet_lep_max_S, h_NN_m_bjet_lep_max_B, "#bf{m_{inv}^{max}(jet, lep)}", "m_jet_lep_max");
   int min_dR_jet_bjet_draw = draw_hists(h_NN_min_dR_jet_bjet_S, h_NN_min_dR_jet_bjet_B, "#bf{#DeltaR_{min}(jet, bjet)}", "min_dR_jet_bjet");
+  int jet_pt_draw = draw_hists(h_NN_jet_pt_S, h_NN_jet_pt_B, "#bf{p_{T}^{jet}}", "jet_pt");
+  int jet_eta_draw = draw_hists(h_NN_jet_eta_S, h_NN_jet_eta_B, "#bf{#eta^{jet}}", "jet_eta");
 
   // Draw correlation matrices
   vector<TString> axis_labels = {"#bf{#DeltaR(jet - lep0)}", "#bf{#DeltaR(jet - lep1)}", "#bf{#DeltaR_{min}(jet, lep)}", "#bf{m_{inv}(jet, el)}", "#bf{m_{inv}(jet, mu)}", "#bf{m_{inv}^{max}(jet, lep)}", "#bf{#DeltaR_{min}(jet, bjet)}"};

@@ -11,8 +11,8 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
 
   
   // Normalize if needed
-  double h_s_int = h_s->Integral("width");
-  double h_b_int = h_b->Integral("width");
+  double h_s_int = h_s->Integral(0, h_s->GetNbinsX()+1);
+  double h_b_int = h_b->Integral(0, h_b->GetNbinsX()+1);
   if (norm_to_1 == true) {
     h_s->Scale(1/h_s_int);
     h_b->Scale(1/h_b_int); }
