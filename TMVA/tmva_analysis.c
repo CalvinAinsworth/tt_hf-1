@@ -4,6 +4,7 @@
 #include <TTree.h>
 #include <map>
 #include <iostream>
+#include <fstream>
 #include "TMVA/Factory.h"
 #include "TMVA/DataLoader.h"
 #include "TMVA/Tools.h"
@@ -56,6 +57,9 @@ void tmva_analysis()
   dataloader->AddVariable("min_dR_jet_bjet", 'F');
   dataloader->AddVariable("jet_pt", 'F');
   dataloader->AddVariable("jet_eta", 'F');
+  dataloader->AddVariable("jet_m", 'F');
+  dataloader->AddVariable("m_min_jet_jet", 'F');
+  dataloader->AddVariable("m_max_jet_jet", 'F');
   cout << "==> Added variables" << endl;
 
 
@@ -91,8 +95,8 @@ void tmva_analysis()
 
 
   // Initialize trees
-  dataloader->AddSignalTree( (TTree*)input->Get("signal"), 1.0 );
-  dataloader->AddBackgroundTree( (TTree*)input->Get("background"), 1.0);
+  dataloader->AddSignalTree( (TTree*)input->Get("Signal"), 1.0 );
+  dataloader->AddBackgroundTree( (TTree*)input->Get("Background"), 1.0);
   cout << "==> Loaded Signal and Bkgd trees" << endl;
   dataloader->PrepareTrainingAndTestTree("", "SplitMode=random:!V");
   cout << "==> Prepared the trees" << endl;

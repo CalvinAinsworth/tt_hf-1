@@ -106,51 +106,66 @@ void draw_data_mc()
   // Get mc hists
   TFile *mc_hists_file = new TFile("hists_mc.root");
   TH1 *h_mc_jets_n = (TH1*)mc_hists_file->Get("2b_emu_OS_jets_n");
-  TH1 *h_mc_bjets_n = (TH1*)mc_hists_file->Get("2b_emu_OS_bjets_n");
-  TH1 *h_mc_NN__m_bjet_lep_min_dR = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min_dR");
-  TH1 *h_mc_NN__m_bjet_lep_min = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min");
-  TH1 *h_mc_NN__m_bjet_lep_max = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_max");
+  TH1 *h_mc_btags_n = (TH1*)mc_hists_file->Get("2b_emu_OS_btags_n");
+  TH1 *h_mc_NN__m_btag_lep_min_dR = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_btag_lep_min_dR");
+  TH1 *h_mc_NN__m_btag_lep_min = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_btag_lep_min");
+  TH1 *h_mc_NN__m_btag_lep_max = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_btag_lep_max");
   TH1 *h_mc_NN__m_bjet_el = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_el");
   TH1 *h_mc_NN__m_bjet_mu = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_m_bjet_mu");
-  TH1 *h_mc_NN__dR_bjet_lep0 = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep0");
-  TH1 *h_mc_NN__dR_bjet_lep1 = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep1");
-  TH1 *h_mc_NN__min_dR_bjet_lep = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_min_dR_bjet_lep");
+  TH1 *h_mc_NN__dR_btag_lep0 = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_dR_btag_lep0");
+  TH1 *h_mc_NN__dR_btag_lep1 = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_dR_btag_lep1");
+  TH1 *h_mc_NN__min_dR_btag_lep = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_min_dR_btag_lep");
   TH1 *h_mc_NN__min_dR_jet_bjet = (TH1*)mc_hists_file->Get("NN__2b_emu_OS_min_dR_jet_bjet");
   TH1 *h_mc_NN__all_jets_pt = (TH1*)mc_hists_file->Get("2b_emu_OS_all_jets_pt");
   TH1 *h_mc_NN__all_jets_eta = (TH1*)mc_hists_file->Get("2b_emu_OS_all_jets_eta");
-
+  TH1 *h_mc_all_jets_phi = (TH1*)mc_hists_file->Get("2b_emu_OS_all_jets_phi");
+  TH1 *h_mc_m_btag = (TH1*)mc_hists_file->Get("2b_emu_OS_m_btag");
+  TH1 *h_mc_m_notbtag = (TH1*)mc_hists_file->Get("2b_emu_OS_m_notbtag");
+  TH1 *h_mc_m_btag_btag = (TH1*)mc_hists_file->Get("2b_emu_OS_m_btag_btag");
+  TH1 *h_mc_m_btag_notbtag = (TH1*)mc_hists_file->Get("2b_emu_OS_m_btag_notbtag");
+  TH1 *h_mc_m_notbtag_notbtag = (TH1*)mc_hists_file->Get("2b_emu_OS_m_notgtag_notbtag");
 
   // Get data hists
   TFile *data_hists_file = new TFile("hists_data.root");
   TH1 *h_data_jets_n = (TH1*)data_hists_file->Get("2b_emu_OS_jets_n");
-  TH1 *h_data_bjets_n = (TH1*)data_hists_file->Get("2b_emu_OS_bjets_n");
-  TH1 *h_data_NN__m_bjet_lep_min_dR = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min_dR");
-  TH1 *h_data_NN__m_bjet_lep_min = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_min");
-  TH1 *h_data_NN__m_bjet_lep_max = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_lep_max");
+  TH1 *h_data_btags_n = (TH1*)data_hists_file->Get("2b_emu_OS_btags_n");
+  TH1 *h_data_NN__m_btag_lep_min_dR = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_btag_lep_min_dR");
+  TH1 *h_data_NN__m_btag_lep_min = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_btag_lep_min");
+  TH1 *h_data_NN__m_btag_lep_max = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_btag_lep_max");
   TH1 *h_data_NN__m_bjet_el = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_el");
   TH1 *h_data_NN__m_bjet_mu = (TH1*)data_hists_file->Get("NN__2b_emu_OS_m_bjet_mu");
-  TH1 *h_data_NN__dR_bjet_lep0 = (TH1*)data_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep0");
-  TH1 *h_data_NN__dR_bjet_lep1 = (TH1*)data_hists_file->Get("NN__2b_emu_OS_dR_bjet_lep1");
-  TH1 *h_data_NN__min_dR_bjet_lep = (TH1*)data_hists_file->Get("NN__2b_emu_OS_min_dR_bjet_lep");
+  TH1 *h_data_NN__dR_btag_lep0 = (TH1*)data_hists_file->Get("NN__2b_emu_OS_dR_btag_lep0");
+  TH1 *h_data_NN__dR_btag_lep1 = (TH1*)data_hists_file->Get("NN__2b_emu_OS_dR_btag_lep1");
+  TH1 *h_data_NN__min_dR_btag_lep = (TH1*)data_hists_file->Get("NN__2b_emu_OS_min_dR_btag_lep");
   TH1 *h_data_NN__min_dR_jet_bjet = (TH1*)data_hists_file->Get("NN__2b_emu_OS_min_dR_jet_bjet");
   TH1 *h_data_NN__all_jets_pt = (TH1*)data_hists_file->Get("2b_emu_OS_all_jets_pt");
   TH1 *h_data_NN__all_jets_eta = (TH1*)data_hists_file->Get("2b_emu_OS_all_jets_eta");
+  TH1 *h_data_all_jets_phi = (TH1*)data_hists_file->Get("2b_emu_OS_all_jets_phi");
+  TH1 *h_data_m_btag = (TH1*)data_hists_file->Get("2b_emu_OS_m_btag");
+  TH1 *h_data_m_notbtag = (TH1*)data_hists_file->Get("2b_emu_OS_m_notbtag");
+  TH1 *h_data_m_btag_btag = (TH1*)data_hists_file->Get("2b_emu_OS_m_btag_btag");
+  TH1 *h_data_m_btag_notbtag = (TH1*)data_hists_file->Get("2b_emu_OS_m_btag_notbtag");
+  TH1 *h_data_m_notbtag_notbtag =(TH1*)data_hists_file->Get("2b_emu_OS_m_notgtag_notbtag");
   
   
   // Draw different hists
   
-  int draw_NN__m_bjet_lep_min_dR = draw_data_mc_plot(h_data_NN__m_bjet_lep_min_dR, h_mc_NN__m_bjet_lep_min_dR, "#bf{m_{inv}^{min dR}(bjet, lep)}", "2b_emu_OS_m_bjet_lep_min_dR");
-  int draw_NN__m_bjet_lep_min = draw_data_mc_plot(h_data_NN__m_bjet_lep_min, h_mc_NN__m_bjet_lep_min, "#bf{m_{inv}^{min}(bjet, lep)}", "2b_emu_OS_m_bjet_lep_min");
-  int draw_NN__m_bjet_lep_max = draw_data_mc_plot(h_data_NN__m_bjet_lep_max, h_mc_NN__m_bjet_lep_max, "#bf{m_{inv}^{max}(bjet, lep)}", "2b_emu_OS_m_bjet_lep_max");
+  int draw_NN__m_btag_lep_min_dR = draw_data_mc_plot(h_data_NN__m_btag_lep_min_dR, h_mc_NN__m_btag_lep_min_dR, "#bf{m_{inv}^{min dR}(bjet, lep)}", "2b_emu_OS_m_btag_lep_min_dR");
+  int draw_NN__m_btag_lep_min = draw_data_mc_plot(h_data_NN__m_btag_lep_min, h_mc_NN__m_btag_lep_min, "#bf{m_{inv}^{min}(bjet, lep)}", "2b_emu_OS_m_btag_lep_min");
+  int draw_NN__m_btag_lep_max = draw_data_mc_plot(h_data_NN__m_btag_lep_max, h_mc_NN__m_btag_lep_max, "#bf{m_{inv}^{max}(bjet, lep)}", "2b_emu_OS_m_btag_lep_max");
   int draw_NN__m_bjet_el = draw_data_mc_plot(h_data_NN__m_bjet_el, h_mc_NN__m_bjet_el, "#bf{m_{inv}(bjet, el)}", "2b_emu_OS_m_bjet_el");
   int draw_NN__m_bjet_mu = draw_data_mc_plot(h_data_NN__m_bjet_mu, h_mc_NN__m_bjet_mu, "#bf{m_{inv}(bjet, mu)}", "2b_emu_OS_m_bjet_mu");
-  int draw_NN__dR_bjet_lep0 = draw_data_mc_plot(h_data_NN__dR_bjet_lep0, h_mc_NN__dR_bjet_lep0, "#bf{dR(bjet, lep0)}", "2b_emu_OS_dR_bjet_lep0");
-  int draw_NN__dR_bjet_lep1 = draw_data_mc_plot(h_data_NN__dR_bjet_lep1, h_mc_NN__dR_bjet_lep1, "#bf{dR(bjet, lep1)}", "2b_emu_OS_dR_bjet_lep1");
-  int draw_NN__min_dR_bjet_lep = draw_data_mc_plot(h_data_NN__min_dR_bjet_lep, h_mc_NN__min_dR_bjet_lep, "#bf{dR_{min}(the bjet, lep)}", "2b_emu_OS_min_dR_bjet_lep");
+  int draw_NN__dR_btag_lep0 = draw_data_mc_plot(h_data_NN__dR_btag_lep0, h_mc_NN__dR_btag_lep0, "#bf{dR(bjet, lep0)}", "2b_emu_OS_dR_btag_lep0");
+  int draw_NN__dR_btag_lep1 = draw_data_mc_plot(h_data_NN__dR_btag_lep1, h_mc_NN__dR_btag_lep1, "#bf{dR(bjet, lep1)}", "2b_emu_OS_dR_btag_lep1");
+  int draw_NN__min_dR_btag_lep = draw_data_mc_plot(h_data_NN__min_dR_btag_lep, h_mc_NN__min_dR_btag_lep, "#bf{dR_{min}(the bjet, lep)}", "2b_emu_OS_min_dR_btag_lep");
   int draw_NN__min_dR_jet_bjet = draw_data_mc_plot(h_data_NN__min_dR_jet_bjet, h_mc_NN__min_dR_jet_bjet, "#bf{dR_{min}(the jet, bjet)}", "2b_emu_OS_min_dR_jet_bjet");
   int draw_NN__all_jets_pt = draw_data_mc_plot(h_data_NN__all_jets_pt, h_mc_NN__all_jets_pt, "#bf{p_{T}^{jets}}", "2b_emu_OS_all_jets_pt");
   int draw_NN__all_jets_eta = draw_data_mc_plot(h_mc_NN__all_jets_eta, h_data_NN__all_jets_eta, "#bf{jets #eta}", "2b_emu_OS_all_jets_eta");
-
-
+  //int draw_NN__all_jets_phi = draw_data_mc_plot(h_mc_NN__all_jets_phi, h_data_NN__all_jets_phi, "#bf{jets #phi}", "2b_emu_OS_all_jets_phi");
+  int draw_NN__m_btag = draw_data_mc_plot(h_data_m_btag, h_mc_m_btag, "#bf{m(btag)}", "2b_emu_OS_m_btag");
+  int draw_NN__m_notbtag = draw_data_mc_plot(h_data_m_notbtag, h_mc_m_notbtag, "#bf{m(notbtag)}", "2b_emu_OS_m_notbtag");
+  int draw_NN__m_btag_btag = draw_data_mc_plot(h_data_m_btag_btag, h_mc_m_btag_btag, "#bf{m(btag, btag)}", "2b_emu_OS_m_btag_btag");
+  int draw_NN__m_btag_notbtag = draw_data_mc_plot(h_data_m_btag_notbtag, h_mc_m_btag_notbtag, "#bf{m(btag, not-btag)}", "2b_emu_OS_m_btag_notbtag");
+  int draw_NN_m_notbtag_notbtag = draw_data_mc_plot(h_data_m_notbtag_notbtag, h_mc_m_notbtag_notbtag, "#bf{m(not-btag, not-btag)}", "2b_emu_OS_m_notbtag_notbtag");
 
 }

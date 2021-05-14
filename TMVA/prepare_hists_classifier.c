@@ -9,8 +9,11 @@
 #include <TPad.h>
 #include <TMath.h>
 #include <TLorentzVector.h>
+#include <TAttLine.h>
+#include <TLine.h>
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <vector>
 
@@ -167,42 +170,55 @@ void prepare_hists_classifier()
   // Declare hists
   TH1 *h_dl1r_tag_weight_sig[n_steps];
   TH1 *h_dl1r_tag_weight_bkg[n_steps];
-  TH1 *h_jet_pT_notfromtop_topHOF[n_steps];
-  TH1 *h_jet_eta_notfromtop_topHOF[n_steps];
-  TH1 *h_jet_phi_notfromtop_topHOF[n_steps];
+  TH1 *h_jet_pT_notfromtop_truth[n_steps];
+  TH1 *h_jet_eta_notfromtop_truth[n_steps];
+  TH1 *h_jet_phi_notfromtop_truth[n_steps];
   TH1 *h_jet_pT_notfromtop_classifier[n_steps];
   TH1 *h_jet_eta_notfromtop_classifier[n_steps];
   TH1 *h_jet_phi_notfromtop_classifier[n_steps];
-  TH1 *h_n_add_jets_topHOF[n_steps];
+  TH1 *h_n_add_jets_truth[n_steps];
   TH1 *h_n_add_jets_classifier[n_steps];
+  TH1 *h_n_add_btags_classifier[n_steps];
+  TH1 *h_n_add_btags_truth[n_steps];
+  TH1 *h_n_add_bjets_classifier[n_steps];
+  TH1 *h_n_add_bjets_truth[n_steps];
   for (int i=0; i<n_steps; i++) {  
     TString dl1r_sig_title = "DL1r_tag_sig" + to_string(i);
     h_dl1r_tag_weight_sig[i] = new TH1F(dl1r_sig_title, dl1r_sig_title, 100, -10, 20);
     TString dl1r_bkg_title = "DL1r_tag_bkg" + to_string(i);
     h_dl1r_tag_weight_bkg[i] = new TH1F(dl1r_bkg_title, dl1r_bkg_title, 100, -10, 20);
-    TString jet_pT_topHOF_title = "pT_topHOF" + to_string(i);
-    h_jet_pT_notfromtop_topHOF[i] = new TH1F(jet_pT_topHOF_title, jet_pT_topHOF_title, 20, 0, 1000 );
-    TString jet_eta_topHOF_title = "eta_topHOF" + to_string(i);
-    h_jet_eta_notfromtop_topHOF[i] = new TH1F(jet_eta_topHOF_title, jet_eta_topHOF_title, 40, -4.0, 4.0);
-    TString jet_phi_topHOF_title = "phi_topHOF" + to_string(i);
-    h_jet_phi_notfromtop_topHOF[i] = new TH1F(jet_phi_topHOF_title, jet_phi_topHOF_title, 40, -4.0, 4.0);
+    TString jet_pT_truth_title = "pT_truth" + to_string(i);
+    h_jet_pT_notfromtop_truth[i] = new TH1F(jet_pT_truth_title, jet_pT_truth_title, 20, 0, 1000 );
+    TString jet_eta_truth_title = "eta_truth" + to_string(i);
+    h_jet_eta_notfromtop_truth[i] = new TH1F(jet_eta_truth_title, jet_eta_truth_title, 40, -4.0, 4.0);
+    TString jet_phi_truth_title = "phi_truth" + to_string(i);
+    h_jet_phi_notfromtop_truth[i] = new TH1F(jet_phi_truth_title, jet_phi_truth_title, 40, -4.0, 4.0);
     TString jet_pT_classifier_title = "pT_classifier" + to_string(i);
     h_jet_pT_notfromtop_classifier[i] = new TH1F(jet_pT_classifier_title, jet_pT_classifier_title, 20, 0, 1000 );
     TString jet_eta_classifier_title = "eta_classifier" + to_string(i);
     h_jet_eta_notfromtop_classifier[i] = new TH1F(jet_eta_classifier_title, jet_eta_classifier_title, 40, -4.0, 4.0);
     TString jet_phi_classifier_title = "phi_classifier" + to_string(i);
     h_jet_phi_notfromtop_classifier[i] = new TH1F(jet_phi_classifier_title, jet_phi_classifier_title, 40, -4.0, 4.0); 
-    TString n_add_jets_topHOF_title = "n_add_jets_topHOF" + to_string(i);
-    h_n_add_jets_topHOF[i] = new TH1F(n_add_jets_topHOF_title, n_add_jets_topHOF_title, 7, 0, 7);
+    TString n_add_jets_truth_title = "n_add_jets_truth" + to_string(i);
+    h_n_add_jets_truth[i] = new TH1F(n_add_jets_truth_title, n_add_jets_truth_title, 7, 0, 7);
     TString n_add_jets_classifier_title = "n_add_jets_classifier" + to_string(i);
     h_n_add_jets_classifier[i] = new TH1F(n_add_jets_classifier_title, n_add_jets_classifier_title, 7, 0, 7);
+    TString n_add_btags_classifier_title = "n_add_btags_classifier" + to_string(i);
+    h_n_add_btags_classifier[i] = new TH1F(n_add_btags_classifier_title, n_add_btags_classifier_title, 6, 0, 6);
+    TString n_add_btags_truth_title = "n_add_btags_truth" + to_string(i);
+    h_n_add_btags_truth[i] = new TH1F(n_add_btags_truth_title, n_add_btags_truth_title, 6, 0, 6);
+    TString n_add_bjets_classifier_title = "n_add_bjets_classifier" + to_string(i);
+    h_n_add_bjets_classifier[i] = new TH1F(n_add_bjets_classifier_title, n_add_bjets_classifier_title, 6, 0 ,6);
+    TString n_add_bjets_truth_title = "n_add_bjets_truth" + to_string(i);
+    h_n_add_bjets_truth[i] = new TH1F(n_add_bjets_truth_title, n_add_bjets_truth_title, 6, 0, 6);
   }
   
 
   // Declare counters of events
   float n1[n_steps] = {0}; // events with two b-tags from top according to classifier
-  float n2 = 0; // events with two b-tags from top according to topHOF 
+  float n2 = 0; // events with two b-tags from top on truth level 
   float n3 = 0; // total number of events
+
 
   // Open the file and get a tree
   TFile *file = new TFile("skimmed_test_ntuple.root");
@@ -210,12 +226,15 @@ void prepare_hists_classifier()
 
 
   // Set all the needed branches
-  vector<float> *jet_DL1r_tag_weight, *classifier, *topHOF, *jet_isbtagged_DL1r_77, *jet_pt, *jet_eta, *jet_phi;
+  vector<float> *jet_DL1r_tag_weight, *classifier, *jet_pt, *jet_eta, *jet_phi;
+  vector<int> *topHOF, *jet_isbtagged_DL1r_77, *jet_truthflav;
   float weight;
-  jet_DL1r_tag_weight = jet_isbtagged_DL1r_77 = classifier = topHOF = jet_pt = jet_eta = jet_phi = 0;
+  jet_DL1r_tag_weight = classifier = jet_pt = jet_eta = jet_phi = 0;
+  topHOF = jet_isbtagged_DL1r_77 = jet_truthflav = 0;
   
   tree->SetBranchAddress("jet_DL1r", &jet_DL1r_tag_weight);
   tree->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_isbtagged_DL1r_77);
+  tree->SetBranchAddress("jet_truthflav", &jet_truthflav);
   tree->SetBranchAddress(method_name, &classifier);
   tree->SetBranchAddress("tot_event_weight", &weight);
   tree->SetBranchAddress("topHadronOriginFlag", &topHOF);
@@ -224,26 +243,37 @@ void prepare_hists_classifier()
   tree->SetBranchAddress("jet_phi", &jet_phi);
   
   
-  // Loop over entries
+  // Loop over events
   Int_t nEntries = tree->GetEntries();
   cout << "\tnumber of entries = " << nEntries << endl;
   
   for (int entry=0; entry<nEntries; entry++) {
     if (entry%1000==0) { cout << "\t" << entry << "\r"; cout.flush(); }
     tree->GetEntry(entry);
-
+    
     // Loop over different cuts in classifier
-    for (int cut_iter = 0; cut_iter < classifier_cuts.size(); cut_iter++) {
+    for (int cut_iter = 0; cut_iter < n_steps; cut_iter++) {
       
       // Counter for btags from top
       int n_jets_from_top_classifier = 0;
-      int n_jets_from_top_topHOF = 0;
+      int n_btags_from_top_classifier = 0;
+      int n_bjets_from_top_classifier = 0;
+      int n_jets_from_top_truth = 0;
+      int n_btags_from_top_truth = 0;
+      int n_bjets_from_top_truth = 0;
       
       // Loop over jets
       for (int jet_i = 0; jet_i<jet_DL1r_tag_weight->size(); jet_i++) {
         
-	if ( (*classifier)[jet_i]<classifier_cuts[cut_iter] /*&& (*jet_isbtagged_DL1r_77)[jet_i]==1*/ ) n_jets_from_top_classifier++;
-	if ( (*topHOF)[jet_i]==4 /*&& (*jet_isbtagged_DL1r_77)[jet_i]==1*/ ) n_jets_from_top_topHOF++;
+	if ( (*classifier)[jet_i]<classifier_cuts[cut_iter] ) {
+	  n_jets_from_top_classifier++;
+	  if ( (*jet_isbtagged_DL1r_77)[jet_i]==1 ) n_btags_from_top_classifier++;
+	  if ( (*jet_truthflav)[jet_i]==5 ) n_bjets_from_top_classifier++; }
+	
+	if ( (*topHOF)[jet_i]==4 ) {
+	  n_jets_from_top_truth++;
+	  if ( (*jet_isbtagged_DL1r_77)[jet_i] ) n_btags_from_top_truth++;
+	  if ( (*jet_truthflav)[jet_i]==5 ) n_bjets_from_top_truth++; }
 	
 	// Fill DL1r tag weight hist
 	if ( (*classifier)[jet_i] >= classifier_cuts[cut_iter] ) { h_dl1r_tag_weight_sig[cut_iter]->Fill( (*jet_DL1r_tag_weight)[jet_i], weight); }
@@ -251,9 +281,9 @@ void prepare_hists_classifier()
 	
 	// Fill jet_* hists
 	if ( (*topHOF)[jet_i] != 4 ) { 
-	  h_jet_pT_notfromtop_topHOF[cut_iter]->Fill( (*jet_pt)[jet_i]/1000, weight); 
-	  h_jet_eta_notfromtop_topHOF[cut_iter]->Fill( (*jet_eta)[jet_i], weight);
-	  h_jet_phi_notfromtop_topHOF[cut_iter]->Fill( (*jet_phi)[jet_i], weight); }
+	  h_jet_pT_notfromtop_truth[cut_iter]->Fill( (*jet_pt)[jet_i]/1000, weight); 
+	  h_jet_eta_notfromtop_truth[cut_iter]->Fill( (*jet_eta)[jet_i], weight);
+	  h_jet_phi_notfromtop_truth[cut_iter]->Fill( (*jet_phi)[jet_i], weight); }
 	if ( (*classifier)[jet_i] >= classifier_cuts[cut_iter] ) {
 	  h_jet_pT_notfromtop_classifier[cut_iter]->Fill( (*jet_pt)[jet_i]/1000, weight);
 	  h_jet_eta_notfromtop_classifier[cut_iter]->Fill( (*jet_eta)[jet_i], weight);
@@ -261,18 +291,28 @@ void prepare_hists_classifier()
 	
       } // [jet_i] - loop over jets
       
+
       // Fill additional jets hists
-      int n_add_jets_topHOF = jet_DL1r_tag_weight->size() - n_jets_from_top_topHOF;
-      h_n_add_jets_topHOF[cut_iter]->Fill(n_add_jets_topHOF, weight);
+      int n_add_jets_truth = jet_DL1r_tag_weight->size() - n_jets_from_top_truth;
+      h_n_add_jets_truth[cut_iter]->Fill(n_add_jets_truth, weight);
       int n_add_jets_classifier = jet_DL1r_tag_weight->size() - n_jets_from_top_classifier;
       h_n_add_jets_classifier[cut_iter]->Fill(n_add_jets_classifier, weight);
+      int n_add_btags_truth = jet_pt->size() - n_btags_from_top_truth;
+      h_n_add_btags_truth[cut_iter]->Fill(n_add_btags_truth, weight);
+      int n_add_btags_classifier = jet_pt->size() - n_btags_from_top_classifier;
+      h_n_add_btags_classifier[cut_iter]->Fill(n_add_btags_classifier, weight);
+      int n_add_bjets_truth = jet_pt->size() - n_bjets_from_top_truth;
+      h_n_add_bjets_truth[cut_iter]->Fill(n_add_bjets_truth, weight);
+      int n_add_bjets_classifier = jet_pt->size() - n_bjets_from_top_classifier;
+      h_n_add_bjets_classifier[cut_iter]->Fill(n_add_bjets_classifier, weight);
 
+        
       // Update counters of events
       if (n_jets_from_top_classifier==2) n1[cut_iter] += weight;
-      if (cut_iter==0 && n_jets_from_top_topHOF==2) n2 += weight;
+      if (cut_iter==0 && n_jets_from_top_truth==2) n2 += weight;
       
     } // [cut_iter] - iteration over cuts values
-
+    
     
     // Update the total number of events.
     n3 += weight;
@@ -291,16 +331,25 @@ void prepare_hists_classifier()
     int draw_dl1r_tag_weights = draw_hists(h_dl1r_tag_weight_sig[cut_iter], h_dl1r_tag_weight_bkg[cut_iter], "#bf{DL1r tag weight}", dl1r_tag_weights_savename, classifier_cuts[cut_iter], {"Jets not from top\n", "Jets from top"}, true, 0, 0.1);
 
     TString jet_pt_savename = "jets_notfromtop_pt__" + to_string(cut_iter);
-    int draw_jet_pt = draw_hists(h_jet_pT_notfromtop_classifier[cut_iter], h_jet_pT_notfromtop_topHOF[cut_iter], "#bf{jet p_{T}, MeV}", jet_pt_savename, classifier_cuts[cut_iter], {method_name, "topHOF"}, true, 0, 0.6);
+    int draw_jet_pt = draw_hists(h_jet_pT_notfromtop_classifier[cut_iter], h_jet_pT_notfromtop_truth[cut_iter], "#bf{jet p_{T}, MeV}", jet_pt_savename, classifier_cuts[cut_iter], {method_name, "true"}, true, 0, 0.6);
 
     TString jet_eta_savename = "jets_notfromtop_eta__" + to_string(cut_iter);
-    int draw_jet_eta = draw_hists(h_jet_eta_notfromtop_classifier[cut_iter], h_jet_eta_notfromtop_topHOF[cut_iter],  "#bf{jet #eta}", jet_eta_savename, classifier_cuts[cut_iter], {method_name, "topHOF"}, true, 0, 0.07);
+    int draw_jet_eta = draw_hists(h_jet_eta_notfromtop_classifier[cut_iter], h_jet_eta_notfromtop_truth[cut_iter],  "#bf{jet #eta}", jet_eta_savename, classifier_cuts[cut_iter], {method_name, "true"}, true, 0, 0.07);
 
     TString jet_phi_savename = "jets_notfromtop_phi__" + to_string(cut_iter);
-    int draw_jet_phi = draw_hists(h_jet_phi_notfromtop_classifier[cut_iter], h_jet_phi_notfromtop_topHOF[cut_iter], "#bf{jet #phi}", jet_phi_savename, classifier_cuts[cut_iter], {method_name, "topHOF"}, true, 0, 0.06);
+    int draw_jet_phi = draw_hists(h_jet_phi_notfromtop_classifier[cut_iter], h_jet_phi_notfromtop_truth[cut_iter], "#bf{jet #phi}", jet_phi_savename, classifier_cuts[cut_iter], {method_name, "true"}, true, 0, 0.06);
 
     TString n_add_jets_savename = "n_additional_jets__" + to_string(cut_iter);
-    int draw_n_add_jets = draw_hists(h_n_add_jets_classifier[cut_iter], h_n_add_jets_topHOF[cut_iter], "#bf{N_{jets}^{additional}}", n_add_jets_savename, classifier_cuts[cut_iter], {method_name, "topHOF"}, true, 0, 0.6);
+    int draw_n_add_jets = draw_hists(h_n_add_jets_classifier[cut_iter], h_n_add_jets_truth[cut_iter], "#bf{N_{jets}^{additional}}", n_add_jets_savename, classifier_cuts[cut_iter], {method_name, "true"}, true, 0, 0.6);
+  
+    TString n_add_btags_savename = "n_additional_btags__" + to_string(cut_iter);
+    int draw_n_add_btags = draw_hists(h_n_add_btags_classifier[cut_iter], h_n_add_btags_truth[cut_iter], "#bf{N_{btags}^{additional}}", n_add_btags_savename, classifier_cuts[cut_iter], {method_name, "truth"}, true, 0, 0.6);
+
+    TString n_add_bjets_savename = "n_additional_bjets__" + to_string(cut_iter);
+    int draw_n_add_bjets = draw_hists(h_n_add_bjets_classifier[cut_iter], h_n_add_bjets_truth[cut_iter], "#bf{N_{bjets}^{additional}}", n_add_bjets_savename, classifier_cuts[cut_iter], {method_name, "truth"}, true, 0, 0.6);
+  
+    TString n_add_btags_vs_bjets_savename = "n_additional_btags_vs_bjets__" + to_string(cut_iter);
+    int draw_n_add_btags_vs_bjets = draw_hists(h_n_add_btags_classifier[cut_iter], h_n_add_bjets_classifier[cut_iter], "#bf{N_{b(tags/jets)}^{additional}}", n_add_btags_vs_bjets_savename, classifier_cuts[cut_iter], {"add. btags", "add. bjets"}, true, 0, 0.6);
   }
 
   

@@ -80,19 +80,27 @@ void prepare_hists_data()
   TH1 *h_bjets_n = new TH1F("h_bjets_n", "h_bjets_n", 6, 2, 8);
 
   // MVA variables - data/mc
-  TH1 *h_m_bjet_lep_min_dR = new TH1F("h_m_bjet_lep_min_dR", "h_m_bjet_lep_min_dR", 120, 0, 700);
-  TH1 *h_m_bjet_lep_min = new TH1F("h_m_bjet_lep_min", "h_m_bjet_lep_min", 120, 0, 700);
-  TH1 *h_m_bjet_lep_max = new TH1F("h_m_bjet_lep_max", "h_m_bjet_lep_max", 120, 0, 700);
+  TH1 *h_m_btag_lep_min_dR = new TH1F("h_m_btag_lep_min_dR", "h_m_btag_lep_min_dR", 120, 0, 700);
+  TH1 *h_m_btag_lep_min = new TH1F("h_m_btag_lep_min", "h_m_btag_lep_min", 120, 0, 700);
+  TH1 *h_m_btag_lep_max = new TH1F("h_m_btag_lep_max", "h_m_btag_lep_max", 120, 0, 700);
   TH1 *h_m_bjet_el = new TH1F("h_m_bjet_el", "h_m_bjet_el", 120, 0, 700);
   TH1 *h_m_bjet_mu = new TH1F("h_m_bjet_mu", "h_m_bjet_mu", 120, 0, 700);
-  TH1 *h_dR_bjet_lep0 = new TH1F("h_min_dR_bjet_lep0", "h_min_dR_bjet_lep0", 20, 0, 5);
-  TH1 *h_dR_bjet_lep1 = new TH1F("h_min_dR_bjet_lep1", "h_min_dR_bjet_lep1", 20, 0, 5);
-  TH1 *h_min_dR_bjet_lep = new TH1F("h_min_dR_bjet_lep", "h_min_dR_bjet_lep", 20, 0, 5);
+  TH1 *h_dR_btag_lep0 = new TH1F("h_dR_btag_lep0", "h_dR_btag_lep0", 20, 0, 5);
+  TH1 *h_dR_btag_lep1 = new TH1F("h_dR_btag_lep1", "h_dR_btag_lep1", 20, 0, 5);
+  TH1 *h_min_dR_btag_lep = new TH1F("h_mi.DeltaR_btag_lep", "h_min_dR_btag_lep", 20, 0, 5);
   TH1 *h_min_dR_jet_bjet = new TH1F("h_min_dR_jet_bjet", "h_min_dR_jet_bjet", 20, 0, 5);
   
   // jets parameters - data/mc
   TH1 *h_all_jets_pt = new TH1F("all_jets_pt", "all_jets_pt", 50, 0, 1000);
   TH1 *h_all_jets_eta = new TH1F("all_jets_eta", "all_jets_eta", 40, -4, 4);
+  TH1 *h_all_jets_phi = new TH1F("all_jets_phi", "all_jets_phi", 40, -4, 4);
+
+  // Invariant mass of btags combinations - data/mc 
+  TH1 *h_m_btag = new TH1F("h_m_btag", "h_m_btag", 100, 0, 50);
+  TH1 *h_m_notbtag = new TH1F("h_m_other", "h_m_other", 200, 0, 100);
+  TH1 *h_m_btag_btag = new TH1F("h_m_btag_btag", "h_m_btag_btag", 100, 0, 500);
+  TH1 *h_m_btag_notbtag = new TH1F("h_m_btag_other", "h_m_btag_other", 100, 0, 500);
+  TH1 *h_m_notbtag_notbtag = new TH1F("h_m_other_other", "h_m_other_other", 100, 0, 500);
 
   
   // Loop over directories with ntuples collections
@@ -127,6 +135,11 @@ void prepare_hists_data()
     // We work with MC only:For this code working with data
     if (is_data != true) continue;
     cout << dir_path_components[last_element_index-1] << endl;
+    
+
+    // Testing option: run over mc16a only
+    //if (is_2017==true || is_2018==true) continue;
+
     
     // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
     vector<TString> paths_to_jobs = get_list_of_files(dir_paths[dir_counter]);
@@ -219,18 +232,19 @@ void prepare_hists_data()
           // jets parameters
           for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++){
             h_all_jets_pt->Fill((*jet_pt)[jet_i]*0.001);
-            h_all_jets_eta->Fill((*jet_eta)[jet_i]); }
+            h_all_jets_eta->Fill((*jet_eta)[jet_i]); 
+	    h_all_jets_phi->Fill((*jet_phi)[jet_i]); }
 	  
 
 	  // MVA variables hists
-	  double min_dR0 = 999999.;
-	  double min_dR1 = 999999.;
+	  double min_R0 = 999999.;
+	  double min_R1 = 999999.;
 	  
 	  for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
 	    
 	    if ((*jet_DL1r_77)[jet_i]==1) {
 	      
-	      // Compute min_dR bjet-lep0/1
+	      // Compute min dR btag-lep0/1
 	      double dR0 = 0;
 	      double dR1 = 0;
 	      
@@ -241,29 +255,31 @@ void prepare_hists_data()
 		dR0 = el_lvec.DeltaR(jets_lvec[jet_i]);
 		dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
 	      
-	      h_dR_bjet_lep0->Fill(dR0);
-	      h_dR_bjet_lep1->Fill(dR1);
-	      h_min_dR_bjet_lep->Fill( min(dR0, dR1) );
+	      h_dR_btag_lep0->Fill(dR0);
+	      h_dR_btag_lep1->Fill(dR1);
+	      h_min_dR_btag_lep->Fill( min(dR0, dR1) );
 	      
-	      // Compute inv masses for bjet-lep pairs
+
 	      
-	      // bjet and the closest lepton
-	      double m_bjet_lep = 0;
+	      // Compute inv masses for btag-lep pairs
+	      
+	      // btag and the closest lepton
+	      double m_btag_lep = 0;
 	      double dr_bjet_el = jets_lvec[jet_i].DeltaR(el_lvec);
 	      double dr_bjet_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
-	      if (dr_bjet_el <= dr_bjet_mu) { m_bjet_lep = (jets_lvec[jet_i] + el_lvec).M(); }
-	      else { m_bjet_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
-	      if (m_bjet_lep!=0) h_m_bjet_lep_min_dR->Fill(m_bjet_lep);
+	      if (dr_bjet_el <= dr_bjet_mu) { m_btag_lep = (jets_lvec[jet_i] + el_lvec).M(); }
+	      else { m_btag_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
+	      if (m_btag_lep!=0) h_m_btag_lep_min_dR->Fill(m_btag_lep);
 	      
-	      // bjet and el/mu
+	      // btag and el/mu
 	      h_m_bjet_el->Fill( (jets_lvec[jet_i] + el_lvec).M() );
 	      h_m_bjet_mu->Fill( (jets_lvec[jet_i] + mu_lvec).M() );
 	      
-	      // bjet and lepton to min/max inv mass
-	      double m_max_bjet_lep = max((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
-	      double m_min_bjet_lep = min((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
-	      h_m_bjet_lep_max->Fill(m_max_bjet_lep);
-	      h_m_bjet_lep_min->Fill(m_min_bjet_lep);
+	      // btag and lepton to min/max inv mass
+	      double m_max_btag_lep = max((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
+	      double m_min_btag_lep = min((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
+	      h_m_btag_lep_max->Fill(m_max_btag_lep);
+	      h_m_btag_lep_min->Fill(m_min_btag_lep);
 	      
 	    } // [if] - DL1r tagget jet_i
 	    
@@ -279,6 +295,23 @@ void prepare_hists_data()
 	    } // [jet_j] - loop over jets
 
 	    h_min_dR_jet_bjet->Fill(min_dR_jet_bjet);
+
+
+	    // Invariant masses of btags/other and their combinations - data/mc  
+	    float m_jet = jets_lvec[jet_i].M();
+	    if ( (*jet_DL1r_77)[jet_i]==1 ) { h_m_btag->Fill(m_jet); }
+	    else { h_m_notbtag->Fill(m_jet); }
+
+	    for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
+
+	      if (jet_i==jet_j) continue;
+
+	      float m_jet_jet = (jets_lvec[jet_i] + jets_lvec[jet_j]).M();
+	      if ( (*jet_DL1r_77)[jet_i]==1 && (*jet_DL1r_77)[jet_j]==1 ) h_m_btag_btag->Fill(m_jet_jet);
+	      if ( (*jet_DL1r_77)[jet_i]!=1 ^  (*jet_DL1r_77)[jet_j]!=1 ) h_m_btag_notbtag->Fill(m_jet_jet);
+	      if ( (*jet_DL1r_77)[jet_i]!=1 && (*jet_DL1r_77)[jet_j]!=1 ) h_m_notbtag_notbtag->Fill(m_jet_jet);
+
+	    } // [jet_j] - loop over jets 
 	    
 	    
 	  } // [jet_i] - loop over jets
@@ -304,19 +337,27 @@ void prepare_hists_data()
   h_bjets_n->Write("2b_emu_OS_bjets_n");
   
   // MVA variables hists
-  h_m_bjet_lep_min_dR->Write("NN__2b_emu_OS_m_bjet_lep_min_dR");
-  h_m_bjet_lep_min->Write("NN__2b_emu_OS_m_bjet_lep_min");
-  h_m_bjet_lep_max->Write("NN__2b_emu_OS_m_bjet_lep_max");
+  h_m_btag_lep_min_dR->Write("NN__2b_emu_OS_m_btag_lep_min_dR");
+  h_m_btag_lep_min->Write("NN__2b_emu_OS_m_btag_lep_min");
+  h_m_btag_lep_max->Write("NN__2b_emu_OS_m_btag_lep_max");
   h_m_bjet_el->Write("NN__2b_emu_OS_m_bjet_el");
   h_m_bjet_mu->Write("NN__2b_emu_OS_m_bjet_mu");
-  h_dR_bjet_lep0->Write("NN__2b_emu_OS_dR_bjet_lep0");
-  h_dR_bjet_lep1->Write("NN__2b_emu_OS_dR_bjet_lep1");
-  h_min_dR_bjet_lep->Write("NN__2b_emu_OS_min_dR_bjet_lep");
+  h_dR_btag_lep0->Write("NN__2b_emu_OS_dR_btag_lep0");
+  h_dR_btag_lep1->Write("NN__2b_emu_OS_dR_btag_lep1");
+  h_min_dR_btag_lep->Write("NN__2b_emu_OS_min_dR_btag_lep");
   h_min_dR_jet_bjet->Write("NN__2b_emu_OS_min_dR_jet_bjet");
 
   // jets variables - data/mc
   h_all_jets_pt->Write("2b_emu_OS_all_jets_pt");
   h_all_jets_eta->Write("2b_emu_OS_all_jets_eta");
+  h_all_jets_phi->Write("2b_emu_OS_all_jets_phi");
+  
+  // Invariant masses of btags and other and their combinations
+  h_m_btag->Write("2b_emu_OS_m_btag");
+  h_m_notbtag->Write("2b_emu_OS_m_notbtag");
+  h_m_btag_btag->Write("2b_emu_OS_m_btag_btag");
+  h_m_btag_notbtag->Write("2b_emu_OS_m_btag_notbtag");
+  h_m_notbtag_notbtag->Write("2b_emu_OS_m_notgtag_notbtag");
 
   hists_file->Close();
 }
