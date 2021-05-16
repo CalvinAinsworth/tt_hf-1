@@ -1,6 +1,20 @@
+#include <TH1.h>
 #include <TTree.h>
 #include <TFile.h>
 #include <TCanvas.h>
+#include <TGraph.h>
+#include <TLegend.h>
+#include <TAxis.h>
+#include <TLine.h>
+#include <TMath.h>
+#include <TMatrix.h>
+#include <TArrayF.h>
+#include <TStyle.h>
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
 
 int const n_steps = 20; // number of steps in classifier cut on its whole range
 int const n_channels = 3; // 2b3j excl, 3b3j excl, 4b4j incl - for the event level efficiency study
@@ -9,9 +23,9 @@ vector<Int_t> colors = {4, 417, 617, 433, 2};
 
 
 
-//////////////////////////
-//     Draw TGraphs     //
-/////////////////////////
+// ##########################
+// ##     Draw TGraphs     ##
+// ##########################
 int draw_graphs(vector<TGraph*> gr, TString x_axis_title, TString y_axis_title, vector<TString> legend_entries, TString savename)
 {
   // Create a canvas
@@ -20,7 +34,7 @@ int draw_graphs(vector<TGraph*> gr, TString x_axis_title, TString y_axis_title, 
   gPad->SetGrid();
 
   // Create a legend
-  TLegend *legend = new TLegend(0.7, 0.6, 0.9, 0.8);
+  TLegend *legend = new TLegend(0.15, 0.65, 0.35, 0.85);
 
   // Draw everything nicely
   for (int i=0; i<gr.size(); i++) {
@@ -64,9 +78,9 @@ int draw_graphs(vector<TGraph*> gr, TString x_axis_title, TString y_axis_title, 
 
 
 
-//////////////////
-//     MAIN     //
-/////////////////
+// ##################
+// ##     MAIN     ##
+// ##################
 void analyze_events_with_classifier()
 {
   // Get name of the TMVA method
@@ -86,18 +100,13 @@ void analyze_events_with_classifier()
 
   // Set Classifier cuts in the whole range of the classifier
   TFile *tmva_file = new TFile("TMVA.root");
-  TH1 *h_NN_classifier_output_S = (TH1F*)tmva_file->Get("dataset/Method_" + method_name + "/" + method_name + "/MVA_" + method_name + "_S");
+  TH1F *h_NN_classifier_output_S = (TH1F*)tmva_file->Get("dataset/Method_" + method_name + "/" + method_name + "/MVA_" + method_name + "_S");
   double x_min = h_NN_classifier_output_S->GetXaxis()->GetBinLowEdge(1);
   double x_max = h_NN_classifier_output_S->GetXaxis()->GetBinUpEdge(h_NN_classifier_output_S->GetNbinsX());
   double step = (x_max - x_min)/n_steps;
   vector<float> classifier_cuts = {};
   for (double i=x_min; i<=x_max; i += step) classifier_cuts.push_back(i);
   tmva_file->Close();
-  
-
-  // Declare hists
-  TH1F *h_jet_pt_topHOF = new TH1F("lead_jet_pT_topHOF", "lead_jet_pT_topHOF", 20, 0, 1000);
-  TH1F *h_jet_pt_classifier = new TH1F("lead_jet_pT_classifier", "lead_jet_pT_classifier", 20, 0, 1000);
 
 
   // Open the ttile - skimmed
@@ -162,7 +171,10 @@ void analyze_events_with_classifier()
   float n_all_events[n_channels][n_steps] = {0}; // number of all events
   float event_level_efficiency[n_channels][n_steps] = {0}; // [4] = 2b3j excl, 3b3j excl, 4b4j incl
 
-
+  // Set counters for events where the 3rd smallest classifier jet tp be identified as not from top correctly
+  float n_3rd_nb[n_channels][n_steps] = {0}; // nb == not from top, b-tagged
+  float third_jet_efficiency[n_channels][n_steps] = {0}; // efficiency of identification the 3rd classifier value jet as origination not from top
+  
 
   // Loop over the events
   for (int entry=0; entry<nEntries; entry++) {
@@ -203,42 +215,46 @@ void analyze_events_with_classifier()
     } // [jet_i] - loop over jets
     
 
-
+    // ///
     // Event level efficiency study
+    // ///
     int n_missidentified[n_channels][n_steps] = {0}; // number of b-tags missidentified by BDT as jets **from top**
     
     for (int cut_iter=0; cut_iter<n_steps; cut_iter++) {
-      //cout << "\n\nBDT cut: " << classifier_cuts[cut_iter] << endl;
+      
       for (int channel=0; channel<n_channels; channel++) {
 	
-	//cout << "Channel: " << channel_names[channel] << endl;
 	if (b_tags_selection[channel]==false) continue;
 
 	int n_bftc = 0; // number of B-tagged && From Top by Classifier (BFTC) jets 
+	int third_btag_idx = 0; // index of the 3rd b-tag
 	
 	for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) {
-	
-	  //cout << "\tJet[" << jet_i << "]: BDT = " << (*classifier)[JN[jet_i]] << ", tag = " << (*jet_isbtagged_DL1r_77)[JN[jet_i]] << ", topHOF = " << (*topHadronOriginFlag)[JN[jet_i]] << endl; 
 	  
 	  if ( (*classifier)[JN[jet_i]] < classifier_cuts[cut_iter] && (*jet_isbtagged_DL1r_77)[JN[jet_i]]==1 ) {
 	    n_bftc++ ;
+	    if (n_bftc==3) third_btag_idx = jet_i;
 	    if (n_bftc > 2) continue;
 	    if ( (*topHadronOriginFlag)[JN[jet_i]]!=4 )  n_missidentified[channel][cut_iter]++ ;
 	  } // [if] - classifier<cut && b-tagged
 	  
 	} // [jet_i] - loop over jets 
 
-	//cout << "\tN missidentified jets: " << n_missidentified[channel][cut_iter] << endl;
-	//cout << "\tN b-tagged jets from top: " << n_bftc << endl;
 	if (n_bftc>=2 && n_missidentified[channel][cut_iter]==0) n_good_events[channel][cut_iter] += weight ;
         n_all_events[channel][cut_iter] += weight;
+
+
+	// The 3rd smallest classifier value jet
+	if ( (*classifier)[JN[third_btag_idx]]<classifier_cuts[cut_iter] && (*topHadronOriginFlag)[JN[third_btag_idx]]!=4) n_3rd_nb[channel][cut_iter] += weight;
 
       } // [channel] - loop over 2b3j, 3b3j, 4b4j channels
     } // [cut_iter] - loop over classifier cuts
 
 
 
+    // ///
     // Predicted number of events study varuables
+    // ///
     // Loop over jets
     for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) {
       
@@ -289,22 +305,39 @@ void analyze_events_with_classifier()
 
 
   // Event level efficiency
+  
+  // Output file for the efficiency values
+  ofstream eff_file("event_level_efficiency.txt", ios::binary);
+
+  // Compute the efficiencies for eahc classifier cut slice
   for (int cut_iter=0; cut_iter<n_steps; cut_iter++) {
-    cout << "\n\n" << method_name << " cut: " << classifier_cuts[cut_iter] << endl;
+    TString title = "\n\n" + method_name + " cut: " + to_string(classifier_cuts[cut_iter]);
+    eff_file << title << endl;
+    cout << title << endl;
+    
     for (int channel=0; channel<n_channels; channel++) {
       
       event_level_efficiency[channel][cut_iter] = n_good_events[channel][cut_iter] / n_all_events[channel][cut_iter];
-      cout << "Channel: " << channel_names[channel] << ",\teff. = " << event_level_efficiency[channel][cut_iter] << ",\tN good events = " << n_good_events[channel][cut_iter] << ",\tN all events = " << n_all_events[channel][cut_iter] << endl;
+      third_jet_efficiency[channel][cut_iter] = n_3rd_nb[channel][cut_iter] / n_all_events[channel][cut_iter];
+
+      TString results = "Channel: " + channel_names[channel] + ",\t event eff. = " + to_string(event_level_efficiency[channel][cut_iter]).substr(0,4) + ",\tN good events = " + to_string(n_good_events[channel][cut_iter]) + ",\tN all events = " + to_string(n_all_events[channel][cut_iter]) + "\n\t\t\t3rd jet eff. = " + to_string(third_jet_efficiency[channel][cut_iter]).substr(0,4);
+      eff_file << results << endl;
+      cout << results << endl;
       
     } // [channel] - loop over 2b3j, 3b3j, 4b4j channels
   } // [cut_iter] - loop over classifier cuts
+  eff_file.close();
 
   vector<TGraph*> gr_efficiency;
+  vector<TGraph*> gr_3rd_jet_eff;
   for (int channel=0; channel<n_channels; channel++) {
-    TGraph *gr_tmp = new TGraph(n_steps, &classifier_cuts[0], event_level_efficiency[channel]);
-    gr_efficiency.push_back(gr_tmp);
+    TGraph *gr_tmp1 = new TGraph(n_steps, &classifier_cuts[0], event_level_efficiency[channel]);
+    gr_efficiency.push_back(gr_tmp1);
+    TGraph *gr_tmp2 = new TGraph(n_steps, &classifier_cuts[0], third_jet_efficiency[channel]);
+    gr_3rd_jet_eff.push_back(gr_tmp2);
   } // [channel]
   int draw_gr_efficiency = draw_graphs(gr_efficiency, method_name, "Efficiency", channel_names, "event_level_efficiencies");
+  int draw_gr_3rd_jet_eff = draw_graphs(gr_3rd_jet_eff, method_name, "3rd jet eff.", channel_names, "3rd_jet_efficiency");
   
 
 

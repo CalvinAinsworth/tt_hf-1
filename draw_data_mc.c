@@ -1,106 +1,34 @@
-///////////////////////////////
-// Draw Data/Bkgd Comparison //
-///////////////////////////////
+#include <TH2.h>
+#include <TTree.h>
+#include <TFile.h>
+#include <TSystemFile.h>
+#include <TSystemDirectory.h>
+#include <TCanvas.h>
+#include <TStyle.h>
+#include <TLegend.h>
+#include <TPad.h>
+#include <TMath.h>
+#include <TLorentzVector.h>
+#include <TAttLine.h>
+#include <TLine.h>
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+
+
+
+// ###############################
+// ## Draw Data/Bkgd Comparison ##
+// ###############################
 int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, vector<TString> legend_entries = {"Data", "MC"}, bool norm_to_1 = false)
-{
-  cout << "Drawing " << title << endl;
-
-  // Create a canvas
-  TCanvas *c = new TCanvas("c", "c", 1600, 1200);  
-  gStyle->SetOptStat(0);
-
-  
-  // Define two TPads for distributions and ratio
-  TPad *tPad = new TPad("tPad", "tPad", 0, 0.3, 1, 1);
-  TPad *bPad = new TPad("bPad", "bPad", 0, 0,   1, 0.3);
-  tPad->Draw();
-  bPad->Draw("same");
 
 
-  // Get integrals and normalize if needed
-  double data_int = h_data->Integral(0, h_data->GetNbinsX()+1);
-  double mc_int = h_mc->Integral(0, h_mc->GetNbinsX()+1);
-  if (norm_to_1==true) {
-    h_data->Scale(1/data_int);
-    h_mc->Scale(1/mc_int); }
-  
 
-  // Top pad: hists
-  tPad->cd();
-  tPad->SetGrid();
-  tPad->SetRightMargin(0.05);
-  tPad->SetLeftMargin(0.07);
-  tPad->SetBottomMargin(0.02);
-  tPad->SetTopMargin(0.03);
-  
-  h_data->Draw("E1P");
-  h_data->SetMarkerStyle(20);
-  h_data->SetMarkerColor(1);
-  h_data->SetMarkerSize(1.5);
-  h_data->SetLineWidth(1);
-  h_data->SetTitle("");
-  h_data->GetXaxis()->SetLabelSize(0);
-  if (norm_to_1 == true) {
-    h_data->GetYaxis()->SetTitle("norm. to 1"); }
-  else {
-    gPad->SetLogy();
-    h_data->GetYaxis()->SetTitle("#bf{N Events}"); }
-  h_mc->Draw("e2 hist same");
-  h_mc->SetLineColor(4);
-  h_mc->SetLineWidth(4);
-  h_mc->SetLineColor(2);
-
-  TLegend *legend = new TLegend(0.7, 0.7, 0.95, 0.95);
-  legend->AddEntry(h_data, legend_entries[0]);
-  legend->AddEntry(h_mc, legend_entries[1]);
-  legend->Draw("same");
-  
-
-  // Bottom pad: ratio
-  bPad->cd();
-  bPad->SetRightMargin(0.05);
-  bPad->SetLeftMargin(0.07);
-  bPad->SetTopMargin(0.02);
-  bPad->SetBottomMargin(0.4);
-  bPad->SetGrid();
-  TH1 *h_ratio = (TH1*)h_data->Clone();
-  
-  h_ratio->Divide(h_mc);
-  h_ratio->SetTitle("");
-  
-  h_ratio->GetXaxis()->SetLabelSize(0.10);
-  h_ratio->GetXaxis()->SetTitle(title);
-  h_ratio->GetXaxis()->SetTitleOffset(1.3);
-  h_ratio->GetXaxis()->SetTitleSize(0.12);
-  
-  h_ratio->GetYaxis()->SetLabelSize(0.05);  
-  h_ratio->GetYaxis()->SetTitle("#bf{Data/mc}");
-  h_ratio->GetYaxis()->SetTitleOffset(0.5);
-  h_ratio->GetYaxis()->SetTitleSize(0.07);
-  h_ratio->GetYaxis()->CenterTitle();
-  h_ratio->GetYaxis()->SetRangeUser(0,2);
-  h_ratio->GetYaxis()->SetNdivisions(8);
-  h_ratio->Draw("E1");
-
-  // Draw a line at R=1
-  TLine *line = new TLine(h_ratio->GetXaxis()->GetXmin(), 1, h_ratio->GetXaxis()->GetXmax(), 1);
-  line->SetLineColor(9);
-  line->SetLineWidth(3);
-  line->SetLineStyle(7);
-  line->Draw("same");
-  
-  // Save the plot and print yileds
-  c->Print("Plots/data_mc_comparison/"+savename+".png");
-
-  cout << "Data integral = " << data_int << "\nmc integral =   " << mc_int << "\n\n" << endl;
-  
-  return 0;
-}
-
-
-//////////////
-//   MAIN   //
-//////////////
+// ##################
+// ##     MAIN     ##
+// ##################
 void draw_data_mc()
 {
   // Get mc hists
@@ -168,4 +96,106 @@ void draw_data_mc()
   int draw_NN__m_btag_notbtag = draw_data_mc_plot(h_data_m_btag_notbtag, h_mc_m_btag_notbtag, "#bf{m(btag, not-btag)}", "2b_emu_OS_m_btag_notbtag");
   int draw_NN_m_notbtag_notbtag = draw_data_mc_plot(h_data_m_notbtag_notbtag, h_mc_m_notbtag_notbtag, "#bf{m(not-btag, not-btag)}", "2b_emu_OS_m_notbtag_notbtag");
 
+} // END OF MAIN
+
+
+
+
+// ###############################
+// ## Draw Data/Bkgd Comparison ##
+// ###############################
+int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, vector<TString> legend_entries = {"Data", "MC"}, bool norm_to_1 = false)
+{
+  cout << "Drawing " << title << endl;
+
+  // Create a canvas
+  TCanvas *c = new TCanvas("c", "c", 1600, 1200);
+  gStyle->SetOptStat(0);
+
+
+  // Define two TPads for distributions and ratio
+  TPad *tPad = new TPad("tPad", "tPad", 0, 0.3, 1, 1);
+  TPad *bPad = new TPad("bPad", "bPad", 0, 0,   1, 0.3);
+  tPad->Draw();
+  bPad->Draw("same");
+
+
+  // Get integrals and normalize if needed
+  double data_int = h_data->Integral(0, h_data->GetNbinsX()+1);
+  double mc_int = h_mc->Integral(0, h_mc->GetNbinsX()+1);
+  if (norm_to_1==true) {
+    h_data->Scale(1/data_int);
+    h_mc->Scale(1/mc_int); }
+
+
+  // Top pad: hists
+  tPad->cd();
+  tPad->SetGrid();
+  tPad->SetRightMargin(0.05);
+  tPad->SetLeftMargin(0.07);
+  tPad->SetBottomMargin(0.02);
+  tPad->SetTopMargin(0.03);
+
+  h_data->Draw("E1P");
+  h_data->SetMarkerStyle(20);
+  h_data->SetMarkerColor(1);
+  h_data->SetMarkerSize(1.5);
+  h_data->SetLineWidth(1);
+  h_data->SetTitle("");
+  h_data->GetXaxis()->SetLabelSize(0);
+  if (norm_to_1 == true) {
+    h_data->GetYaxis()->SetTitle("norm. to 1"); }
+  else {
+    gPad->SetLogy();
+    h_data->GetYaxis()->SetTitle("#bf{N Events}"); }
+  h_mc->Draw("e2 hist same");
+  h_mc->SetLineColor(4);
+  h_mc->SetLineWidth(4);
+  h_mc->SetLineColor(2);
+
+  TLegend *legend = new TLegend(0.7, 0.7, 0.95, 0.95);
+  legend->AddEntry(h_data, legend_entries[0]);
+  legend->AddEntry(h_mc, legend_entries[1]);
+  legend->Draw("same");
+
+
+  // Bottom pad: ratio
+  bPad->cd();
+  bPad->SetRightMargin(0.05);
+  bPad->SetLeftMargin(0.07);
+  bPad->SetTopMargin(0.02);
+  bPad->SetBottomMargin(0.4);
+  bPad->SetGrid();
+  TH1 *h_ratio = (TH1*)h_data->Clone();
+
+  h_ratio->Divide(h_mc);
+  h_ratio->SetTitle("");
+
+  h_ratio->GetXaxis()->SetLabelSize(0.10);
+  h_ratio->GetXaxis()->SetTitle(title);
+  h_ratio->GetXaxis()->SetTitleOffset(1.3);
+  h_ratio->GetXaxis()->SetTitleSize(0.12);
+
+  h_ratio->GetYaxis()->SetLabelSize(0.05);
+  h_ratio->GetYaxis()->SetTitle("#bf{Data/mc}");
+  h_ratio->GetYaxis()->SetTitleOffset(0.5);
+  h_ratio->GetYaxis()->SetTitleSize(0.07);
+  h_ratio->GetYaxis()->CenterTitle();
+  h_ratio->GetYaxis()->SetRangeUser(0,2);
+  h_ratio->GetYaxis()->SetNdivisions(8);
+  h_ratio->Draw("E1");
+
+  // Draw a line at R=1
+  TLine *line = new TLine(h_ratio->GetXaxis()->GetXmin(), 1, h_ratio->GetXaxis()->GetXmax(), 1);
+  line->SetLineColor(9);
+  line->SetLineWidth(3);
+  line->SetLineStyle(7);
+  line->Draw("same");
+
+  // Save the plot and print yileds
+  c->Print("Plots/data_mc_comparison/"+savename+".png");
+
+  cout << "Data integral = " << data_int << "\nmc integral =   " << mc_int << "\n\n" << endl;
+
+  return 0;
 }

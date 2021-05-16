@@ -3,9 +3,9 @@
 #include <TH2.h>
 #include <fstream>
 
-/////////////////////
-//   DRAW HISTS    //
-/////////////////////
+// #####################
+// ##   DRAW HISTS    ##
+// #####################
 int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, vector<TString> legend_entries_titles= {"Sig", "Bkgd"}, bool norm_to_1 = true)
 {
   cout << "Drawing " << savename << endl;
@@ -46,9 +46,9 @@ int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, vecto
 }
 
 
-/////////////////////////////
-//    Draw Correlations    //
-////////////////////////////
+// ############################
+// ##   Draw Correlations    ##
+// ############################
 int draw_correlations(TH2 *h_corr, TString title, vector<TString> axis_labels, TString savename)
 {
   TCanvas *c = new TCanvas(savename, savename, 1600, 1200);
@@ -78,9 +78,9 @@ int draw_correlations(TH2 *h_corr, TString title, vector<TString> axis_labels, T
 
 
 
-////////////////
-//    MAIN    //
-////////////////
+// ################
+// ##    MAIN    ##
+// ################
 void draw_tmva_plots()
 {
   // Get name of the TMVA method

@@ -1,6 +1,6 @@
-////////////////////////////////
-//   Draw Sig/Bkgd Comparison //
-////////////////////////////////
+// ################################
+// ##   Draw Sig/Bkgd Comparison ##
+// ################################
 int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString savename, vector<TString> legend_entries_titles= {"Sig", "Bkgd"}, bool norm_to_1=false)
 {
   cout << "Drawing " << title << endl;
@@ -95,13 +95,9 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
 
 
 
-
-
-
-
-//////////////////
-//     MAIN     //
-//////////////////
+// #################
+// ##    MAIN     ##
+// #################
 void optimize_classifier_cut()
 {
   // Get name of the TMVA method 

@@ -17,25 +17,10 @@ using namespace std;
 
 
 
-
-
 // ##################################
 // ## Split string into components ##
 // ##################################
 vector<TString> split(TString split_string, char delimiter)
-{
-  stringstream ss;
-  ss << split_string;
-  string component;
-
-  vector<TString> container;
-  while(getline(ss, component, delimiter))
-    {
-      container.push_back(component);
-    }
-
-  return container;
-}
 
 
 
@@ -43,26 +28,6 @@ vector<TString> split(TString split_string, char delimiter)
 // ## Make a list of files in the given directory ##
 // #################################################
 vector<TString> get_list_of_files(TString dirname, vector<TString> container = {})
-{
-  TSystemDirectory dir(dirname, dirname);
-  TList *files = dir.GetListOfFiles();
-  if (files)
-    {
-      TSystemFile *file;
-      TString fname;
-      TIter next(files);
-      while ((file=(TSystemFile*)next()))
-        {
-          fname = file->GetName();
-          if (fname != "." && fname != "..")
-            {
-              if (fname.EndsWith(".root")) { container.push_back(dirname + fname); }
-              else { container.push_back(dirname + fname + "/"); }
-            }
-        }
-    }
-  return container;
-}
 
 
 
@@ -360,4 +325,53 @@ void prepare_hists_data()
   h_m_notbtag_notbtag->Write("2b_emu_OS_m_notgtag_notbtag");
 
   hists_file->Close();
+} // END OF MAIN
+
+
+
+
+// ##################################
+// ## Split string into components ##
+// ##################################
+vector<TString> split(TString split_string, char delimiter)
+{ 
+  stringstream ss;
+  ss << split_string;
+  string component;
+  
+  vector<TString> container;
+  while(getline(ss, component, delimiter))
+    { 
+      container.push_back(component);
+    }
+  
+  return container;
+}
+
+
+
+
+// #################################################
+// ## Make a list of files in the given directory ##
+// #################################################
+vector<TString> get_list_of_files(TString dirname, vector<TString> container = {})
+{ 
+  TSystemDirectory dir(dirname, dirname);
+  TList *files = dir.GetListOfFiles();
+  if (files)
+    { 
+      TSystemFile *file;
+      TString fname;
+      TIter next(files);
+      while ((file=(TSystemFile*)next()))
+        {
+          fname = file->GetName();
+          if (fname != "." && fname != "..")
+            {
+              if (fname.EndsWith(".root")) { container.push_back(dirname + fname); }
+              else { container.push_back(dirname + fname + "/"); }
+            }
+        }
+    }
+  return container;
 }

@@ -23,60 +23,7 @@ vector<Int_t> colors = {632, 416+1, 600, 800-3, 432+2, 616+1, 400+1};
 // ###########################
 // ## Draw a few histograms ## 
 // ###########################
-int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool normalize=false, Double_t y_min=0, Double_t y_max=10000)
-{
-  // Draws N histogram on one canvas (not stacked)
-  cout << "Start drawing " << title << " !" << endl;
-  if (h_vec.size()==0) { cout << "h_vec is emmpty, aborting!!!" << endl; return 0; }
-  
-  
-  TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 1200);
-  gStyle->SetOptStat(0);
-  gPad->SetGrid();
-  if (normalize==false) gPad->SetLogy();
-  double legend_height = 0.09*h_vec.size();
-  double legend_y1 = 0.90 - legend_height;
-  TLegend *legend = new TLegend(0.70, legend_y1, 0.90, 0.90);
-
-  for (int i=0; i<h_vec.size(); i++){
-     
-    if (!h_vec[i]) cout << "Requested object TH_[" << i << "] wasn't found!" << endl;
-    
-    double h_int = h_vec[i]->Integral(0, h_vec[i]->GetNbinsX()+1);
-    double sf = 1/h_int;
-    cout << "Hist: " << h_title[i] << " , Integral: " << h_int << endl;
-    
-    h_vec[i]->SetMarkerStyle(20);
-    h_vec[i]->SetMarkerSize(2);
-    h_vec[i]->SetMarkerColor(colors[i]);
-    h_vec[i]->SetLineColor(colors[i]);
-    h_vec[i]->SetLineWidth(4);
-    if (normalize==true) h_vec[i]->Scale(sf);
-    
-    if (i==0) {
-      h_vec[i]->Draw("hist");
-      h_vec[i]->SetTitle(title);
-      
-      if (normalize==true) {
-	h_vec[i]->GetYaxis()->SetRangeUser(y_min, y_max);
-	h_vec[i]->GetYaxis()->SetTitle("#bf{Events, norm to 1}"); }
-      else {
-	if (y_min==0) y_min = 1;
-	h_vec[i]->GetYaxis()->SetRangeUser(y_min, y_max);
-	h_vec[i]->GetYaxis()->SetTitle("#bf{Events}"); 
-	gPad->SetLogy(); }
-      
-      h_vec[i]->GetXaxis()->SetTitle(x_axis_title); }
-    
-    else { h_vec[i]->Draw("hist same"); }
-    legend->AddEntry(h_vec[i], h_title[i]); }
-  legend->Draw("same");
-  
-  c->Print("Plots/mc_studies/" + title + ".png");
-  cout << "Drawn " + title + " !\n\n" << endl;
-  
-  return 0;
-}
+int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool normalize, Double_t y_min, Double_t y_max)
 
 
 
@@ -197,6 +144,64 @@ void draw_hists()
 
   // Close the hists file
   hists_file_mc->Close();
+} // END OF MAIN
+
+
+
+
+// ###########################
+// ## Draw a few histograms ##
+// ###########################
+int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool normalize=false, Double_t y_min=0, Double_t y_max=10000)
+{
+  // Draws N histograms in one canvas (not stacked)
+  cout << "Start drawing " << title << " !" << endl;
+  if (h_vec.size()==0) { cout << "h_vec is emmpty, aborting!!!" << endl; return 0; }
+
+
+  TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 1200);
+  gStyle->SetOptStat(0);
+  gPad->SetGrid();
+  if (normalize==false) gPad->SetLogy();
+  double legend_height = 0.09*h_vec.size();
+  double legend_y1 = 0.90 - legend_height;
+  TLegend *legend = new TLegend(0.70, legend_y1, 0.90, 0.90);
+
+  for (int i=0; i<h_vec.size(); i++){
+
+    if (!h_vec[i]) cout << "Requested object TH_[" << i << "] wasn't found!" << endl;
+
+    double h_int = h_vec[i]->Integral(0, h_vec[i]->GetNbinsX()+1);
+    double sf = 1/h_int;
+    cout << "Hist: " << h_title[i] << " , Integral: " << h_int << endl;
+
+    h_vec[i]->SetMarkerStyle(20);
+    h_vec[i]->SetMarkerSize(2);
+    h_vec[i]->SetMarkerColor(colors[i]);
+    h_vec[i]->SetLineColor(colors[i]);
+    h_vec[i]->SetLineWidth(4);
+    if (normalize==true) h_vec[i]->Scale(sf);
+
+    if (i==0) {
+      h_vec[i]->Draw("hist");
+      h_vec[i]->SetTitle(title);
+
+      if (normalize==true) {
+        h_vec[i]->GetYaxis()->SetRangeUser(y_min, y_max);
+        h_vec[i]->GetYaxis()->SetTitle("#bf{Events, norm to 1}"); }
+      else {
+        if (y_min==0) y_min = 1;
+        h_vec[i]->GetYaxis()->SetRangeUser(y_min, y_max);
+        h_vec[i]->GetYaxis()->SetTitle("#bf{Events}"); }
+
+      h_vec[i]->GetXaxis()->SetTitle(x_axis_title); }
+
+    else { h_vec[i]->Draw("hist same"); }
+    legend->AddEntry(h_vec[i], h_title[i]); }
+  legend->Draw("same");
+
+  c->Print("Plots/mc_studies/" + title + ".png");
+  cout << "Drawn " + title + " !\n\n" << endl;
+
+  return 0;
 }
-
-

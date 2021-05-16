@@ -8,9 +8,9 @@ vector<Int_t> colors = {4, 417, 617, 433, 2};
 
 
 
-//////////////////////
-//   Draw TGraphs   //
-//////////////////////
+// ######################
+// ##   Draw TGraphs   ##
+// ######################
 int draw_graphs(vector<TGraph*> gr, TString x_axis_title, TString y_axis_title, vector<TString> legend_entries, TString savename)
 {
   // Create a canvas
@@ -49,9 +49,9 @@ int draw_graphs(vector<TGraph*> gr, TString x_axis_title, TString y_axis_title, 
 
 
 
-///////////////////
-//     MAIN      //
-//////////////////
+// ###################
+// ##     MAIN      ##
+// ###################
 void study_tmva_perpormnce_results()
 {
   // Get name of the TMVA method
