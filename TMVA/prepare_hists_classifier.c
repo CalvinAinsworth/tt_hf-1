@@ -92,6 +92,8 @@ void prepare_hists_classifier()
   TH1 *h_n_add_btags_truth[n_steps];
   TH1 *h_n_add_bjets_classifier[n_steps];
   TH1 *h_n_add_bjets_truth[n_steps];
+  TH1 *h_btags_from_top_spectrum_classifier[n_steps];
+  TH1 *h_btags_from_top_spectrum_truth[n_steps];
   for (int i=0; i<n_steps; i++) {  
     TString dl1r_sig_title = "DL1r_tag_sig" + to_string(i);
     h_dl1r_tag_weight_sig[i] = new TH1F(dl1r_sig_title, dl1r_sig_title, 100, -10, 20);
@@ -121,6 +123,10 @@ void prepare_hists_classifier()
     h_n_add_bjets_classifier[i] = new TH1F(n_add_bjets_classifier_title, n_add_bjets_classifier_title, 6, 0 ,6);
     TString n_add_bjets_truth_title = "n_add_bjets_truth" + to_string(i);
     h_n_add_bjets_truth[i] = new TH1F(n_add_bjets_truth_title, n_add_bjets_truth_title, 6, 0, 6);
+    TString btags_from_top_spectrum_classifier_title = "btags_from_top_spectrum_classifier" + to_string(i);
+    h_btags_from_top_spectrum_classifier[i] = new TH1F(btags_from_top_spectrum_classifier_title, btags_from_top_spectrum_classifier_title, 6, 0, 6);
+    TString btags_from_top_spectrum_truth_title = "btags_from_top_spectrum_truth" + to_string(i);
+    h_btags_from_top_spectrum_truth[i] = new TH1F(btags_from_top_spectrum_truth_title, btags_from_top_spectrum_truth_title, 6, 0, 6);
   }
   TH1 *h_lead_classifier_jet_tag[3];
   TH1 *h_lead_classifier_jet_pt[3];
@@ -214,7 +220,7 @@ void prepare_hists_classifier()
 	  h_jet_pT_notfromtop_classifier[cut_iter]->Fill( (*jet_pt)[jet_i]/1000, weight);
 	  h_jet_eta_notfromtop_classifier[cut_iter]->Fill( (*jet_eta)[jet_i], weight);
 	  h_jet_phi_notfromtop_classifier[cut_iter]->Fill( (*jet_phi)[jet_i], weight); }
-	
+
       } // [jet_i] - loop over jets
       
 
@@ -237,7 +243,7 @@ void prepare_hists_classifier()
       if (n_jets_from_top_classifier==2) n1[cut_iter] += weight;
       if (cut_iter==0 && n_jets_from_top_truth==2) n2 += weight;
       
-    } // [cut_iter] - iteration over cuts values
+    } // [cut_iter] - iteration over classifier slices
     
     
     // Update the total number of events.
@@ -274,6 +280,24 @@ void prepare_hists_classifier()
       h_lead_classifier_jet_truth_flav[i]->Fill( (*jet_truthflav)[JN[idx]], weight );
     }
 
+
+
+    // jets from top spectrum
+    for (int cut_iter = 0; cut_iter < n_steps; cut_iter++) {
+      int n_tagged_jets = 0;
+      for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) { if ( (*jet_isbtagged_DL1r_77)[JN[jet_i]] ) n_tagged_jets++ ; }
+      
+      if (n_tagged_jets<3) continue;
+      n_tagged_jets = 0;
+      
+      for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) {
+	if ( (*jet_isbtagged_DL1r_77)[JN[jet_i]] ) {
+	  n_tagged_jets++ ;
+	  if (n_tagged_jets==1 && (*classifier)[JN[jet_i]]<classifier_cuts[cut_iter] ) h_btags_from_top_spectrum_classifier[cut_iter]->Fill(n_tagged_jets-0.5, weight);
+	  if (n_tagged_jets==2 && (*classifier)[JN[jet_i]]<classifier_cuts[cut_iter] ) h_btags_from_top_spectrum_classifier[cut_iter]->Fill(n_tagged_jets-0.5, weight);
+	  if ( (*topHOF)[JN[jet_i]] == 4) h_btags_from_top_spectrum_truth[cut_iter]->Fill(n_tagged_jets-0.5, weight); }
+      } // [jets_i] - loop over jets
+    } // [cut_iter] - loop over classifier slices
     
 
   } // [entry] - loop over entries
@@ -289,6 +313,7 @@ void prepare_hists_classifier()
   int n_add_btags_plots_begin = write_latex_header("plots_n_add_btags.tex");
   int n_add_bjets_plots_begin = write_latex_header("plots_n_add_bjets.tex");
   int n_add_btags_vs_bjets_begin = write_latex_header("plots_n_add_btags_vs_bjets.tex");
+  int btags_from_top_spectrum_begin = write_latex_header("plots_btags_from_top_spectrum.tex");
   
   for (int cut_iter=0; cut_iter < n_steps; cut_iter++) {
     cout << "\n\nclassifier: " << n1[cut_iter]/n3 << "\ntopHOF: " << n2/n3 << endl << endl;
@@ -374,6 +399,16 @@ void prepare_hists_classifier()
       TString gr1_name = "n_additional_btags_vs_bjets__" + to_string(cut_iter);
       int add_plots = add_plots_to_tex_file("plots_n_add_btags_vs_bjets.tex", gr0_name, gr1_name, cont_float); }
 
+
+    TString btags_from_top_spectrum_savename = "btags_from_top_spectrum__" + to_string(cut_iter);
+    int draw_btags_from_top_spectrum = draw_hists(h_btags_from_top_spectrum_classifier[cut_iter], h_btags_from_top_spectrum_truth[cut_iter], "#bf{lowest "+method_name+" b-tags}", btags_from_top_spectrum_savename, classifier_cuts[cut_iter], {method_name, "truth"}, true, 0, 0.6);
+    if (cut_iter%2==1) {
+      bool cont_float = true;
+      if (cut_iter==1) cont_float = false;
+      TString gr0_name = "btags_from_top_spectrum__" + to_string(cut_iter-1);
+      TString gr1_name = "btags_from_top_spectrum__" + to_string(cut_iter);
+      int add_plots = add_plots_to_tex_file("plots_btags_from_top_spectrum.tex", gr0_name, gr1_name, cont_float); }
+
   } // [cut_iter] - loop over cut slices
 
 
@@ -385,6 +420,7 @@ void prepare_hists_classifier()
   int n_add_btags_plots_end = write_latex_end_of_the_file("plots_n_add_btags.tex");
   int n_add_bjets_plots_end = write_latex_end_of_the_file("plots_n_add_bjets.tex");
   int n_add_btags_vs_bjets_end = write_latex_end_of_the_file("plots_n_add_btags_vs_bjets.tex");
+  int btags_from_top_spectrum_end = write_latex_end_of_the_file("plots_btags_from_top_spectrum.tex");
   
   
 
