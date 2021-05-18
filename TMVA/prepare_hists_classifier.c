@@ -1,3 +1,4 @@
+#include <TSystem.h>
 #include <TH2.h>
 #include <TTree.h>
 #include <TFile.h>
@@ -64,6 +65,11 @@ void prepare_hists_classifier()
     }
   }
   config_file.close();
+
+
+  // Create directory for plots
+  gSystem->Exec("mkdir Plots");
+  gSystem->Exec("mkdir Plots/cut_iter_slices");
 
   
   // Set Classifier cuts in the whole range of the classifier

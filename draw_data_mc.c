@@ -1,3 +1,4 @@
+#include <TSystem.h>
 #include <TH2.h>
 #include <TTree.h>
 #include <TFile.h>
@@ -22,7 +23,7 @@
 // ###############################
 // ## Draw Data/Bkgd Comparison ##
 // ###############################
-int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, vector<TString> legend_entries = {"Data", "MC"}, bool norm_to_1 = false)
+int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, vector<TString> legend_entries = {"Data", "MC"}, bool norm_to_1 = false);
 
 
 
@@ -31,6 +32,11 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, v
 // ##################
 void draw_data_mc()
 {
+  // Create directories for plots
+  gSystem->Exec("mkdir Plots");
+  gSystem->Exec("mkdir Plots/data_mc_comparison");
+
+
   // Get mc hists
   TFile *mc_hists_file = new TFile("hists_mc.root");
   TH1 *h_mc_jets_n = (TH1*)mc_hists_file->Get("2b_emu_OS_jets_n");
@@ -104,7 +110,7 @@ void draw_data_mc()
 // ###############################
 // ## Draw Data/Bkgd Comparison ##
 // ###############################
-int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, vector<TString> legend_entries = {"Data", "MC"}, bool norm_to_1 = false)
+int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, vector<TString> legend_entries, bool norm_to_1)
 {
   cout << "Drawing " << title << endl;
 

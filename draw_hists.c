@@ -1,3 +1,4 @@
+#include <TSystem.h>
 #include <TH2.h>
 #include <TTree.h>
 #include <TFile.h>
@@ -23,7 +24,7 @@ vector<Int_t> colors = {632, 416+1, 600, 800-3, 432+2, 616+1, 400+1};
 // ###########################
 // ## Draw a few histograms ## 
 // ###########################
-int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool normalize, Double_t y_min, Double_t y_max)
+int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool normalize=false, Double_t y_min=1, Double_t y_max=10000);
 
 
 
@@ -32,6 +33,12 @@ int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_tit
 // ################
 void draw_hists()
 {
+  // Create directories for plots
+  gSystem->Exec("mkdir Plots");
+  gSystem->Exec("mkdir Plots/mc_studies");
+  
+
+
   // Open the file with histograms
   TFile *hists_file_mc = TFile::Open("hists_mc.root");
 
@@ -152,7 +159,7 @@ void draw_hists()
 // ###########################
 // ## Draw a few histograms ##
 // ###########################
-int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool normalize=false, Double_t y_min=0, Double_t y_max=10000)
+int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool normalize, Double_t y_min, Double_t y_max)
 {
   // Draws N histograms in one canvas (not stacked)
   cout << "Start drawing " << title << " !" << endl;

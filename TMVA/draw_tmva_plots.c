@@ -1,3 +1,4 @@
+#include <TSystem.h>
 #include <TFile.h>
 #include <TCanvas.h>
 #include <TH2.h>
@@ -96,6 +97,10 @@ void draw_tmva_plots()
     }
   }
   config_file.close();
+
+
+  // Create folders for plots
+  gSystem->Exec("mkdir Plots");
 
   
   // Open the TMVA output file
