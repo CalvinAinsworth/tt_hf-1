@@ -82,14 +82,14 @@ Plots will be saved in `Plots/cut_iter_slices` directory that is created by the 
 
 ## Analyze Classifier Performance on the event level
 The idea is to deffirintiate events with both jets originating from top identified by the classifier correctly from the events where at least of the jets was miss-identified. The algorythm is as following: 
-(1) Sort jets with respect to the classifier value from the lowest to the highest. For BDT and MLP is was shown that jets originating from top quarks decay has lower classifier value than jets not from top.__ 
-(2) Also we expect both jets originating from top to be b-jets.__
-(3) Thus we select only two candidates with the following properties: `classifier < cut vaue` AND `jet_isbtagged_DL1r_77 = 1`. There are a few possible scenarios:__
---(a) The classifier cut is too low, and there is less than 2 candidates: such an event is considered as bad.__
---(b) There is exactly two candidates, and one of them is actually not frop top - such an event is considered as bad.__
---(c) There is exactly two candidates, and both of them are from top - good event.__
---(d) There is more than two candidates, and only the two with the lowest classifier value are assumed to originate from top. Based on the truth level information such an event could fall to (b) or (c) category.__ 
-(4) For each point in the classifier cuts range (by defauls there are 20 points along the entire classifier range) event level efficiency is computed as the ratio of good event to the total number of events.__
+(1) Sort jets with respect to the classifier value from the lowest to the highest. For BDT and MLP is was shown that jets originating from top quarks decay has lower classifier value than jets not from top.\ 
+(2) Also we expect both jets originating from top to be b-jets.\
+(3) Thus we select only two candidates with the following properties: `classifier < cut vaue` AND `jet_isbtagged_DL1r_77 = 1`. There are a few possible scenarios:\
+--(a) The classifier cut is too low, and there is less than 2 candidates: such an event is considered as bad.\
+--(b) There is exactly two candidates, and one of them is actually not frop top - such an event is considered as bad.\
+--(c) There is exactly two candidates, and both of them are from top - good event.\
+--(d) There is more than two candidates, and only the two with the lowest classifier value are assumed to originate from top. Based on the truth level information such an event could fall to (b) or (c) category.\ 
+(4) For each point in the classifier cuts range (by defauls there are 20 points along the entire classifier range) event level efficiency is computed as the ratio of good event to the total number of events.\
 To perform the analysis run:
 ```bach 
 root -l -b -q analyze_events_with_classifier.c+
