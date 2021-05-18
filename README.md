@@ -81,8 +81,8 @@ Plots will be saved in `Plots/cut_iter_slices` directory that is created by the 
 
 
 ## Analyze Classifier Performance on the event level
-The idea is to deffirintiate events with both jets originating from top identified by the classifier correctly from the events where at least of the jets was miss-identified. The algorythm is as following: 
-(1) Sort jets with respect to the classifier value from the lowest to the highest. For BDT and MLP is was shown that jets originating from top quarks decay has lower classifier value than jets not from top.\ 
+The idea is to deffirintiate events with both jets originating from top identified by the classifier correctly from the events where at least of the jets was miss-identified. The algorythm is as following:\
+(1) Sort jets with respect to the classifier value from the lowest to the highest. For BDT and MLP is was shown that jets originating from top quarks decay has lower classifier value than jets not from top.\
 (2) Also we expect both jets originating from top to be b-jets.\
 (3) Thus we select only two candidates with the following properties: `classifier < cut vaue` AND `jet_isbtagged_DL1r_77 = 1`. There are a few possible scenarios:\
 --(a) The classifier cut is too low, and there is less than 2 candidates: such an event is considered as bad.\
