@@ -1,0 +1,8 @@
+TMVA Method: BDT
+NTrees: 400
+MinNodeSize: 5%
+MaxDepth: 3
+BoostType: AdaBoost
+SeparationType: GiniIndex
+nCuts: 20
+VarTransform: Decorrelate

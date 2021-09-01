@@ -111,7 +111,7 @@ void analyze_events_with_classifier()
 
   // Open the ttile - skimmed
   TFile *in_file = new TFile("skimmed_test_ntuple.root");
-  TTree *in_tree = (TTree*)in_file->Get("test");
+  TTree *in_tree = (TTree*)in_file->Get("nominal");
 
   
   // Set branches
@@ -255,6 +255,7 @@ void analyze_events_with_classifier()
     // ///
     // Predicted number of events study varuables
     // ///
+
     // Loop over jets
     for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) {
       
@@ -309,7 +310,7 @@ void analyze_events_with_classifier()
   // Output file for the efficiency values
   ofstream eff_file("event_level_efficiency.txt", ios::binary);
 
-  // Compute the efficiencies for eahc classifier cut slice
+  // Compute the efficiencies for each classifier cut slice
   for (int cut_iter=0; cut_iter<n_steps; cut_iter++) {
     TString title = "\n\n" + method_name + " cut: " + to_string(classifier_cuts[cut_iter]);
     eff_file << title << endl;

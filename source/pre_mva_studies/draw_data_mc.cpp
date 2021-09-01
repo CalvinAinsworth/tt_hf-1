@@ -1,0 +1,65 @@
+#include "../common_functions.h"
+#include "../draw_functions.h"
+
+
+// ///
+// MAIN
+// ///
+int main(int argc, char *argv[])
+{
+  // Create directories for plots
+  gSystem->Exec("mkdir results/plots");
+  gSystem->Exec("mkdir results/plots/data_mc");
+
+
+
+  // Get data hists
+  TFile *data_hists_file = new TFile("results/hists_data_test.root");
+  TIter next(data_hists_file->GetListOfKeys());
+  TKey *key;
+  std::vector<TString> hists_names = {};
+  std::vector<TH1*> data_hists = {};
+  
+  while ( (key = (TKey*)next()) ) {
+    
+    TString hist_name;
+    TString class_name = key->GetClassName();
+    
+    if (class_name=="TH1F") {
+      TString hist_name = key->GetName();
+      hists_names.push_back(hist_name);
+      TH1 *h_tmp = (TH1*)data_hists_file->Get(hist_name);
+      data_hists.push_back(h_tmp);
+    }
+    
+  } // [while] - loop over hists in tfile
+  
+  
+  
+  // Get mc hists
+  TFile *mc_hists_file = new TFile("results/hists_data_test.root");
+  std::vector<TH1*> mc_hists;
+  for (int i=0; i<data_hists.size(); i++) {
+    TH1 *h_tmp = (TH1*)mc_hists_file->Get(hists_names[i]);
+    mc_hists.push_back(h_tmp);
+  }
+  
+  
+  
+  // Draw hists
+  for (int i=0; i<data_hists.size(); i++) {
+
+    // Split the hits name: its root is the savename and its suffix is the x-axis title
+    std::vector<TString> hist_strings = split(hists_names[i], '.');
+    int draw_the_hists = draw_data_mc_plot(data_hists[i], mc_hists[i], "#bf{" + hist_strings[1] + "}", hist_strings[0], {"Data", "MC"}, true);
+   
+    //std::cout << hist_strings[0] << " ; " << hist_strings[1] << std::endl;
+  }
+
+  
+  // Close the hists files
+  data_hists_file->Close();
+  mc_hists_file->Close();
+
+  return 0;
+}
