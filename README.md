@@ -9,7 +9,7 @@ Compile:
 ```
 
 Prepare data hists (y15-16 enabled for testing, uncomment if need all Run2):
-``bash
+```bash
 ./run/prepare_hists_data
 ```
 
