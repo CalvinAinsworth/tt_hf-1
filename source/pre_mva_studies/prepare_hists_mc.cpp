@@ -38,8 +38,10 @@ int main(int argc, char *argv[])
 
   
   // Declare TFile, TTree, TBranches and variables for MVA
+  //TString tmva_file_name = std::string("results/") + std::string(argv[1]) + std::string("_MVA_input.root");
+  //TFile *MVA_tfile =  new TFile(tmva_file_name, "RECREATE");
   TFile *MVA_tfile;
-  if (std::string(argv[1])=="tt") MVA_tfile = new TFile("results/tt_hf_MVA_input.root", "RECREATE");
+  if (std::string(argv[1]) == "tt") MVA_tfile = new TFile("results/tt_hv_MVA_input.root", "RECREATE");
   TTree *MVA_sig_tree = new TTree("Signal", "inputS");
   TTree *MVA_bkg_tree = new TTree("Background", "inputB");
   #include "set_mva_ntuple_branches.h"
@@ -77,7 +79,7 @@ int main(int argc, char *argv[])
 
 
     // Testing option: run over mc16a only
-    if (is_mc16a != true) continue;
+    //if (is_mc16a != true) continue;
 
 
     // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
@@ -101,7 +103,7 @@ int main(int argc, char *argv[])
       if (campaign_info[1]!="s3126") continue; // (1)
       
       bool correct_did = false;
-      if (std::string(argv[1])=="tt" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411077") ) correct_did = true;
+      if (std::string(argv[1])=="tt" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
       if (std::string(argv[1])=="singletop" && (job_DID=="410648" || job_DID=="410649" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676") ) correct_did = true;
       if (std::string(argv[1])=="ttV" && (job_DID=="410155" || job_DID=="410156" || job_DID=="410157") ) correct_did = true;
       if (std::string(argv[1])=="ttH" && (job_DID=="346345") ) correct_did = true;
@@ -173,7 +175,7 @@ int main(int argc, char *argv[])
           if (btags_n ==3) btags_n3_cut = true;
 	  
           if ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) topHFFF_cut = true;
-	  
+	  if (std::string(argv[1])!="tt") topHFFF_cut = true;
 	  
 	  
 	  // TLorentzVectors for leptons and jets
@@ -229,15 +231,17 @@ int main(int argc, char *argv[])
 	    
 
 	      // ///
-	      // jets parameters - sig/bkg and data/mc
-              if ( (*topHadronOriginFlag)[jet_i]==4 ) {
-                h_all_jets_from_top_pt->Fill((*jet_pt)[jet_i]*0.001, weight);
-                h_all_jets_from_top_eta->Fill((*jet_eta)[jet_i], weight);
-                h_all_jets_from_top_phi->Fill((*jet_phi)[jet_i], weight); }
-              else {
-                h_all_jets_not_from_top_pt->Fill((*jet_pt)[jet_i]*0.001, weight);
-                h_all_jets_not_from_top_eta->Fill((*jet_eta)[jet_i], weight);
-                h_all_jets_not_from_top_phi->Fill((*jet_phi)[jet_i], weight); }
+	      // jets parameters - sig/bkg
+	      if (std::string(argv[1])=="tt") { 
+		if ( (*topHadronOriginFlag)[jet_i]==4 ) {
+		  h_all_jets_from_top_pt->Fill((*jet_pt)[jet_i]*0.001, weight);
+		  h_all_jets_from_top_eta->Fill((*jet_eta)[jet_i], weight);
+		  h_all_jets_from_top_phi->Fill((*jet_phi)[jet_i], weight); }
+		else {
+		  h_all_jets_not_from_top_pt->Fill((*jet_pt)[jet_i]*0.001, weight);
+		  h_all_jets_not_from_top_eta->Fill((*jet_eta)[jet_i], weight);
+		  h_all_jets_not_from_top_phi->Fill((*jet_phi)[jet_i], weight); }
+	      } // if "tt"
 
 
 	      // ///
@@ -255,13 +259,14 @@ int main(int argc, char *argv[])
                   dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
                   dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
 
-                if ((*topHadronOriginFlag)[jet_i]==4) {
-                  min_dR0_top = std::min(min_dR0_top, dR0);
-                  min_dR1_top = std::min(min_dR1_top, dR1);}
-                else {
-                  min_dR0_not_top = std::min(min_dR0_not_top, dR0);
-                  min_dR1_not_top = std::min(min_dR1_not_top, dR0); }
-
+		if (std::string(argv[1])=="tt") {
+		  if ((*topHadronOriginFlag)[jet_i]==4) {
+		    min_dR0_top = std::min(min_dR0_top, dR0);
+		    min_dR1_top = std::min(min_dR1_top, dR1);}
+		  else {
+		    min_dR0_not_top = std::min(min_dR0_not_top, dR0);
+		    min_dR1_not_top = std::min(min_dR1_not_top, dR0); }
+		} // if "tt" 
               } // [if] DL1r tag
 	    
 
@@ -279,65 +284,68 @@ int main(int argc, char *argv[])
               double min_dR_btag_not_from_top_to_lep = 999999.;
               double min_dR_not_btag_to_lep = 999999.;
 
-              for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
-                if (jet_i==jet_j) continue;
-
-                // dR_min
-		if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]==4 && (*jet_DL1r_77)[jet_j]==1) {
-                  double dR_btag_from_top_to_btag = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
-                  if (dR_btag_from_top_to_btag < min_dR_btag_from_top_to_btag) min_dR_btag_from_top_to_btag = dR_btag_from_top_to_btag; }
-
-                if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_DL1r_77)[jet_j]==1) {
-                  double dR_btag_not_from_top_to_btag = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
-                  if (dR_btag_not_from_top_to_btag < min_dR_btag_not_from_top_to_btag) min_dR_btag_not_from_top_to_btag = dR_btag_not_from_top_to_btag; }
-
-                if ((*jet_DL1r_77)[jet_i]!=1 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_DL1r_77)[jet_j]==1) {
-                  double dR_not_btag_to_btag = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
-                  if (dR_not_btag_to_btag < min_dR_not_btag_to_btag) min_dR_not_btag_to_btag = dR_not_btag_to_btag; }
-
-                if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]==4 && (*jet_DL1r_77)[jet_j]!=1) {
-                  double dR_btag_from_top_to_jet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
-                  if (dR_btag_from_top_to_jet < min_dR_btag_from_top_to_jet) min_dR_btag_from_top_to_jet = dR_btag_from_top_to_jet; }
-
-                if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_DL1r_77)[jet_j]!=1) {
-                  double dR_btag_not_from_top_to_jet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
-                  if (dR_btag_not_from_top_to_jet < min_dR_btag_not_from_top_to_jet) min_dR_btag_not_from_top_to_jet = dR_btag_not_from_top_to_jet; }
-
-                if ((*jet_DL1r_77)[jet_i]!=1 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_DL1r_77)[jet_j]!=1) {
-                  double dR_not_btag_to_jet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
-                  if (dR_not_btag_to_jet < min_dR_not_btag_to_jet) min_dR_not_btag_to_jet = dR_not_btag_to_jet; }
-              } // loop over [jet_j]
-
-	      if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]==4) {
-                double dR_btag_from_top_to_el = jets_lvec[jet_i].DeltaR(el_lvec);
-                double dR_btag_from_top_to_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
-                double dR_btag_from_top_to_lep = std::min(dR_btag_from_top_to_el, dR_btag_from_top_to_mu);
-                if (dR_btag_from_top_to_lep < min_dR_btag_from_top_to_lep) min_dR_btag_from_top_to_lep = dR_btag_from_top_to_lep; }
-
-              if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]!=4) {
-                double dR_btag_not_from_top_to_el = jets_lvec[jet_i].DeltaR(el_lvec);
-                double dR_btag_not_from_top_to_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
-                double dR_btag_not_from_top_to_lep = std::min(dR_btag_not_from_top_to_el, dR_btag_not_from_top_to_mu);
-                if (dR_btag_not_from_top_to_lep < min_dR_btag_not_from_top_to_lep) min_dR_btag_not_from_top_to_lep = dR_btag_not_from_top_to_lep; }
-
-              if ((*jet_DL1r_77)[jet_i]!=1 && (*topHadronOriginFlag)[jet_i]!=4) {
-                double dR_not_btag_to_el = jets_lvec[jet_i].DeltaR(el_lvec);
-                double dR_not_btag_to_mu = jets_lvec[jet_i].DeltaR(mu_lvec);;
-                double dR_not_btag_to_lep = std::min(dR_not_btag_to_el, dR_not_btag_to_mu);
-                if (dR_not_btag_to_lep < min_dR_not_btag_to_lep) min_dR_not_btag_to_lep = dR_not_btag_to_lep; }
-
-
-              if (min_dR_btag_from_top_to_btag!=999999) h_min_dR_btag_from_top_to_btag->Fill(min_dR_btag_from_top_to_btag, weight);
-              if (min_dR_btag_not_from_top_to_btag!=999999) h_min_dR_btag_not_from_top_to_btag->Fill(min_dR_btag_not_from_top_to_btag, weight);
-              if (min_dR_not_btag_to_btag!=999999) h_min_dR_not_btag_to_btag->Fill(min_dR_not_btag_to_btag, weight);
-              if (min_dR_btag_from_top_to_jet!=999999) h_min_dR_btag_from_top_to_jet->Fill(min_dR_btag_from_top_to_jet, weight);
-              if (min_dR_btag_not_from_top_to_jet!=999999) h_min_dR_btag_not_from_top_to_jet->Fill(min_dR_btag_not_from_top_to_jet, weight);
-              if (min_dR_not_btag_to_jet!=999999) h_min_dR_not_btag_to_jet->Fill(min_dR_not_btag_to_jet, weight);
-              if (min_dR_btag_from_top_to_lep!=999999) h_min_dR_btag_from_top_to_lep->Fill(min_dR_btag_from_top_to_lep, weight);
-              if (min_dR_btag_not_from_top_to_lep!=999999) h_min_dR_btag_not_from_top_to_lep->Fill(min_dR_btag_not_from_top_to_lep, weight);
-              if (min_dR_not_btag_to_lep!=999999) h_min_dR_not_btag_to_lep->Fill(min_dR_not_btag_to_lep, weight);
-
+	      if (std::string(argv[1])=="tt") {
 	      
+		for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
+		  if (jet_i==jet_j) continue;
+		  
+		  // dR_min
+		  if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]==4 && (*jet_DL1r_77)[jet_j]==1) {
+		    double dR_btag_from_top_to_btag = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
+		    if (dR_btag_from_top_to_btag < min_dR_btag_from_top_to_btag) min_dR_btag_from_top_to_btag = dR_btag_from_top_to_btag; }
+		  
+		  if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_DL1r_77)[jet_j]==1) {
+		    double dR_btag_not_from_top_to_btag = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
+		    if (dR_btag_not_from_top_to_btag < min_dR_btag_not_from_top_to_btag) min_dR_btag_not_from_top_to_btag = dR_btag_not_from_top_to_btag; }
+		  
+		  if ((*jet_DL1r_77)[jet_i]!=1 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_DL1r_77)[jet_j]==1) {
+		    double dR_not_btag_to_btag = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
+		    if (dR_not_btag_to_btag < min_dR_not_btag_to_btag) min_dR_not_btag_to_btag = dR_not_btag_to_btag; }
+		  
+		  if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]==4 && (*jet_DL1r_77)[jet_j]!=1) {
+		    double dR_btag_from_top_to_jet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
+		    if (dR_btag_from_top_to_jet < min_dR_btag_from_top_to_jet) min_dR_btag_from_top_to_jet = dR_btag_from_top_to_jet; }
+		  
+		  if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_DL1r_77)[jet_j]!=1) {
+		    double dR_btag_not_from_top_to_jet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
+		    if (dR_btag_not_from_top_to_jet < min_dR_btag_not_from_top_to_jet) min_dR_btag_not_from_top_to_jet = dR_btag_not_from_top_to_jet; }
+		  
+		  if ((*jet_DL1r_77)[jet_i]!=1 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_DL1r_77)[jet_j]!=1) {
+		    double dR_not_btag_to_jet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
+		    if (dR_not_btag_to_jet < min_dR_not_btag_to_jet) min_dR_not_btag_to_jet = dR_not_btag_to_jet; }
+		} // loop over [jet_j]
+		
+		if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]==4) {
+		  double dR_btag_from_top_to_el = jets_lvec[jet_i].DeltaR(el_lvec);
+		  double dR_btag_from_top_to_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
+		  double dR_btag_from_top_to_lep = std::min(dR_btag_from_top_to_el, dR_btag_from_top_to_mu);
+		  if (dR_btag_from_top_to_lep < min_dR_btag_from_top_to_lep) min_dR_btag_from_top_to_lep = dR_btag_from_top_to_lep; }
+		
+		if ((*jet_DL1r_77)[jet_i]==1 && (*topHadronOriginFlag)[jet_i]!=4) {
+		  double dR_btag_not_from_top_to_el = jets_lvec[jet_i].DeltaR(el_lvec);
+		  double dR_btag_not_from_top_to_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
+		  double dR_btag_not_from_top_to_lep = std::min(dR_btag_not_from_top_to_el, dR_btag_not_from_top_to_mu);
+		  if (dR_btag_not_from_top_to_lep < min_dR_btag_not_from_top_to_lep) min_dR_btag_not_from_top_to_lep = dR_btag_not_from_top_to_lep; }
+		
+		if ((*jet_DL1r_77)[jet_i]!=1 && (*topHadronOriginFlag)[jet_i]!=4) {
+		  double dR_not_btag_to_el = jets_lvec[jet_i].DeltaR(el_lvec);
+		  double dR_not_btag_to_mu = jets_lvec[jet_i].DeltaR(mu_lvec);;
+		  double dR_not_btag_to_lep = std::min(dR_not_btag_to_el, dR_not_btag_to_mu);
+		  if (dR_not_btag_to_lep < min_dR_not_btag_to_lep) min_dR_not_btag_to_lep = dR_not_btag_to_lep; }
+		
+		
+		if (min_dR_btag_from_top_to_btag!=999999) h_min_dR_btag_from_top_to_btag->Fill(min_dR_btag_from_top_to_btag, weight);
+		if (min_dR_btag_not_from_top_to_btag!=999999) h_min_dR_btag_not_from_top_to_btag->Fill(min_dR_btag_not_from_top_to_btag, weight);
+		if (min_dR_not_btag_to_btag!=999999) h_min_dR_not_btag_to_btag->Fill(min_dR_not_btag_to_btag, weight);
+		if (min_dR_btag_from_top_to_jet!=999999) h_min_dR_btag_from_top_to_jet->Fill(min_dR_btag_from_top_to_jet, weight);
+		if (min_dR_btag_not_from_top_to_jet!=999999) h_min_dR_btag_not_from_top_to_jet->Fill(min_dR_btag_not_from_top_to_jet, weight);
+		if (min_dR_not_btag_to_jet!=999999) h_min_dR_not_btag_to_jet->Fill(min_dR_not_btag_to_jet, weight);
+		if (min_dR_btag_from_top_to_lep!=999999) h_min_dR_btag_from_top_to_lep->Fill(min_dR_btag_from_top_to_lep, weight);
+		if (min_dR_btag_not_from_top_to_lep!=999999) h_min_dR_btag_not_from_top_to_lep->Fill(min_dR_btag_not_from_top_to_lep, weight);
+		if (min_dR_not_btag_to_lep!=999999) h_min_dR_not_btag_to_lep->Fill(min_dR_not_btag_to_lep, weight);
+	      } // if "tt"
+	      
+
 
 	      // ///
 	      // M {lep, btag/jet} - sig/bkg discrimination
@@ -349,52 +357,55 @@ int main(int argc, char *argv[])
               double min_m_lep_other_jet = 999999;
               double max_m_lep_other_jet = 0;
 
-              // btag and the closest lepton
-	      if ((*jet_DL1r_77)[jet_i]==1) {
-                if ((*topHadronOriginFlag)[jet_i]==4) {
-                  double dr_j_el = jets_lvec[jet_i].DeltaR(el_lvec);
-                  double dr_j_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
-                  double m_j_lep = 0;
-                  if (dr_j_el <= dr_j_mu) { m_j_lep = (jets_lvec[jet_i] + el_lvec).M(); }
-                  else { m_j_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
-                  if (m_j_lep != 0) h_m_lep_btag_from_top_min_dR->Fill(m_j_lep, weight); }
-                else {
-                  double dr_j_el = jets_lvec[jet_i].DeltaR(el_lvec);
-                  double dr_j_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
-                  double m_j_lep = 0;
-                  if (dr_j_el <= dr_j_mu) { m_j_lep = (jets_lvec[jet_i] + el_lvec).M(); }
-                  else { m_j_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
-                  if (m_j_lep != 0) h_m_lep_btag_not_from_top_min_dR->Fill(m_j_lep, weight); } } // [else], [if jet_i tagged] closing
+	      if (std::string(argv[1])=="tt") {
+		
+		// btag and the closest lepton
+		if ((*jet_DL1r_77)[jet_i]==1) {
+		  if ((*topHadronOriginFlag)[jet_i]==4) {
+		    double dr_j_el = jets_lvec[jet_i].DeltaR(el_lvec);
+		    double dr_j_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
+		    double m_j_lep = 0;
+		    if (dr_j_el <= dr_j_mu) { m_j_lep = (jets_lvec[jet_i] + el_lvec).M(); }
+		    else { m_j_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
+		    if (m_j_lep != 0) h_m_lep_btag_from_top_min_dR->Fill(m_j_lep, weight); }
+		  else {
+		    double dr_j_el = jets_lvec[jet_i].DeltaR(el_lvec);
+		    double dr_j_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
+		    double m_j_lep = 0;
+		    if (dr_j_el <= dr_j_mu) { m_j_lep = (jets_lvec[jet_i] + el_lvec).M(); }
+		    else { m_j_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
+		    if (m_j_lep != 0) h_m_lep_btag_not_from_top_min_dR->Fill(m_j_lep, weight); } } // [else], [if jet_i tagged] closing
+		
+		// btag and leptons - min and max M
+		if ((*jet_DL1r_77)[jet_i]==1) {
+		  if ((*topHadronOriginFlag)[jet_i]==4) {
+		    double min_m_lep_btag_from_top_tmp = std::min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		    double max_m_lep_btag_from_top_tmp = std::max( (jets_lvec[jet_i] + mu_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		    min_m_lep_btag_from_top = std::min(min_m_lep_btag_from_top_tmp, min_m_lep_btag_from_top);
+		    max_m_lep_btag_from_top = std::max(max_m_lep_btag_from_top_tmp, max_m_lep_btag_from_top_tmp); }
+		  else {
+		    double min_m_lep_btag_not_from_top_tmp = std::min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		    double max_m_lep_btag_not_from_top_tmp = std::max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		    min_m_lep_btag_not_from_top = std::min(min_m_lep_btag_not_from_top_tmp, min_m_lep_btag_not_from_top);
+		    max_m_lep_btag_not_from_top = std::max(max_m_lep_btag_not_from_top_tmp, max_m_lep_btag_not_from_top); } }
+		
+		// other than btags and leptons - min and max M
+		else {
+		  double min_m_lep_other_jet_tmp = std::min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		  double max_m_lep_other_jet_tmp = std::max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		  min_m_lep_other_jet = std::min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
+		  max_m_lep_other_jet = std::max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() ); }
+		
+		// Fill the min/max M hists
+		if (min_m_lep_btag_from_top!=999999) h_min_m_lep_btag_from_top->Fill(min_m_lep_btag_from_top, weight);
+		if (max_m_lep_btag_from_top!=0) h_max_m_lep_btag_from_top->Fill(max_m_lep_btag_from_top, weight);
+		if (min_m_lep_btag_not_from_top!=999999) h_min_m_lep_btag_not_from_top->Fill(min_m_lep_btag_not_from_top, weight);
+		if (max_m_lep_btag_not_from_top!=0) h_max_m_lep_btag_not_from_top->Fill(max_m_lep_btag_not_from_top, weight);
+		if (min_m_lep_other_jet!=999999) h_min_m_lep_other_jet->Fill(min_m_lep_other_jet, weight);
+		if (max_m_lep_other_jet!=0) h_max_m_lep_other_jet->Fill(max_m_lep_other_jet, weight);
+	      } // if "tt"
 
-	      // btag and leptons - min and max M
-	      if ((*jet_DL1r_77)[jet_i]==1) {
-                if ((*topHadronOriginFlag)[jet_i]==4) {
-                  double min_m_lep_btag_from_top_tmp = std::min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-                  double max_m_lep_btag_from_top_tmp = std::max( (jets_lvec[jet_i] + mu_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-                  min_m_lep_btag_from_top = std::min(min_m_lep_btag_from_top_tmp, min_m_lep_btag_from_top);
-                  max_m_lep_btag_from_top = std::max(max_m_lep_btag_from_top_tmp, max_m_lep_btag_from_top_tmp); }
-                else {
-                  double min_m_lep_btag_not_from_top_tmp = std::min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-                  double max_m_lep_btag_not_from_top_tmp = std::max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-                  min_m_lep_btag_not_from_top = std::min(min_m_lep_btag_not_from_top_tmp, min_m_lep_btag_not_from_top);
-                  max_m_lep_btag_not_from_top = std::max(max_m_lep_btag_not_from_top_tmp, max_m_lep_btag_not_from_top); } }
-
-              // other than btags and leptons - min and max M
-	      else {
-                double min_m_lep_other_jet_tmp = std::min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-                double max_m_lep_other_jet_tmp = std::max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-                min_m_lep_other_jet = std::min( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() );
-                max_m_lep_other_jet = std::max( (jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M() ); }
-
-              // Fill the min/max M hists
-	      if (min_m_lep_btag_from_top!=999999) h_min_m_lep_btag_from_top->Fill(min_m_lep_btag_from_top, weight);
-              if (max_m_lep_btag_from_top!=0) h_max_m_lep_btag_from_top->Fill(max_m_lep_btag_from_top, weight);
-              if (min_m_lep_btag_not_from_top!=999999) h_min_m_lep_btag_not_from_top->Fill(min_m_lep_btag_not_from_top, weight);
-              if (max_m_lep_btag_not_from_top!=0) h_max_m_lep_btag_not_from_top->Fill(max_m_lep_btag_not_from_top, weight);
-              if (min_m_lep_other_jet!=999999) h_min_m_lep_other_jet->Fill(min_m_lep_other_jet, weight);
-              if (max_m_lep_other_jet!=0) h_max_m_lep_other_jet->Fill(max_m_lep_other_jet, weight);
-
-
+	      
 
 	      // ///
 	      // M of btags, other than btags and combinations: {btag, btag} {btag, other than} {other than, other than} - data/mc
@@ -431,46 +442,49 @@ int main(int argc, char *argv[])
               float m_min_jet_jet = 999999.;
               float m_max_jet_jet = 0.;
 
-              if ( (*jet_DL1r_77)[jet_i]!=1) {
-		n_btags_tmp++ ;
-		if ( (*topHadronOriginFlag)[jet_i]==4 ) { h_m_btag_top->Fill(m_jet, weight); }
-		else { h_m_btag_other->Fill(m_jet, weight); } }
-
-              for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
-
-                if (jet_i==jet_j) continue;
-
-                float m_jet_jet = (jets_lvec[jet_i] + jets_lvec[jet_j]).M();
-                m_min_jet_jet = std::min(m_min_jet_jet, m_jet_jet);
-                m_max_jet_jet = std::max(m_max_jet_jet, m_jet_jet);
-
-                if ( (*jet_DL1r_77)[jet_j]!=1 ) continue;
-
-                if ( (*topHadronOriginFlag)[jet_i]==4 && (*topHadronOriginFlag)[jet_j]==4) {
-                  h_m_btag_top_btag_top->Fill(m_jet_jet, weight);
-                  m_min_btag_top_btag_top = std::min(m_jet_jet, m_min_btag_top_btag_top);
-                  m_max_btag_top_btag_top = std::max(m_jet_jet, m_max_btag_top_btag_top); }
-                if ( (*topHadronOriginFlag)[jet_i]==4 ^  (*topHadronOriginFlag)[jet_j]==4) {
-                  h_m_btag_top_btag_other->Fill(m_jet_jet, weight);
-                  m_min_btag_top_btag_other = std::min(m_jet_jet, m_min_btag_top_btag_other);
-                  m_max_btag_top_btag_other = std::max(m_jet_jet, m_max_btag_top_btag_other); }
-                if ( (*topHadronOriginFlag)[jet_i]!=4 && (*topHadronOriginFlag)[jet_j]!=4) {
-                  h_m_btag_other_btag_other->Fill(m_jet_jet, weight);
-                  m_min_btag_other_btag_other = std::min(m_jet_jet, m_min_btag_other_btag_other);
-                  m_max_btag_other_btag_other = std::max(m_jet_jet, m_max_btag_other_btag_other); }
-
-              } // [jet_j] - loop over jets
-
-              three_btags_lvecs += jets_lvec[jet_i];
-              if (n_btags_tmp<=3) three_btags_lvecs += jets_lvec[jet_i];
-
-              if (m_min_btag_top_btag_top!=999999.) h_m_min_btag_top_btag_top->Fill(m_min_btag_top_btag_top, weight);
-              if (m_max_btag_top_btag_top!=0)       h_m_max_btag_top_btag_top->Fill(m_max_btag_top_btag_top, weight);
-              if (m_min_btag_top_btag_other!=999999.) h_m_min_btag_top_btag_other->Fill(m_min_btag_top_btag_other, weight);
-              if (m_max_btag_top_btag_other!=0)       h_m_max_btag_top_btag_other->Fill(m_max_btag_top_btag_other, weight);
-              if (m_min_btag_other_btag_other!=999999.) h_m_min_btag_other_btag_other->Fill(m_min_btag_other_btag_other, weight);
-              if (m_max_btag_other_btag_other!=0)       h_m_max_btag_other_btag_other->Fill(m_max_btag_other_btag_other, weight);	    
-
+	      if (std::string(argv[1])=="tt") {
+	      
+		if ( (*jet_DL1r_77)[jet_i]!=1) {
+		  n_btags_tmp++ ;
+		  if ( (*topHadronOriginFlag)[jet_i]==4 ) { h_m_btag_top->Fill(m_jet, weight); }
+		  else { h_m_btag_other->Fill(m_jet, weight); } }
+		
+		for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
+		  
+		  if (jet_i==jet_j) continue;
+		  
+		  float m_jet_jet = (jets_lvec[jet_i] + jets_lvec[jet_j]).M();
+		  m_min_jet_jet = std::min(m_min_jet_jet, m_jet_jet);
+		  m_max_jet_jet = std::max(m_max_jet_jet, m_jet_jet);
+		  
+		  if ( (*jet_DL1r_77)[jet_j]!=1 ) continue;
+		  
+		  if ( (*topHadronOriginFlag)[jet_i]==4 && (*topHadronOriginFlag)[jet_j]==4) {
+		    h_m_btag_top_btag_top->Fill(m_jet_jet, weight);
+		    m_min_btag_top_btag_top = std::min(m_jet_jet, m_min_btag_top_btag_top);
+		    m_max_btag_top_btag_top = std::max(m_jet_jet, m_max_btag_top_btag_top); }
+		  if ( (*topHadronOriginFlag)[jet_i]==4 ^  (*topHadronOriginFlag)[jet_j]==4) {
+		    h_m_btag_top_btag_other->Fill(m_jet_jet, weight);
+		    m_min_btag_top_btag_other = std::min(m_jet_jet, m_min_btag_top_btag_other);
+		    m_max_btag_top_btag_other = std::max(m_jet_jet, m_max_btag_top_btag_other); }
+		  if ( (*topHadronOriginFlag)[jet_i]!=4 && (*topHadronOriginFlag)[jet_j]!=4) {
+		    h_m_btag_other_btag_other->Fill(m_jet_jet, weight);
+		    m_min_btag_other_btag_other = std::min(m_jet_jet, m_min_btag_other_btag_other);
+		    m_max_btag_other_btag_other = std::max(m_jet_jet, m_max_btag_other_btag_other); }
+		  
+		} // [jet_j] - loop over jets
+		
+		three_btags_lvecs += jets_lvec[jet_i];
+		if (n_btags_tmp<=3) three_btags_lvecs += jets_lvec[jet_i];
+		
+		if (m_min_btag_top_btag_top!=999999.) h_m_min_btag_top_btag_top->Fill(m_min_btag_top_btag_top, weight);
+		if (m_max_btag_top_btag_top!=0)       h_m_max_btag_top_btag_top->Fill(m_max_btag_top_btag_top, weight);
+		if (m_min_btag_top_btag_other!=999999.) h_m_min_btag_top_btag_other->Fill(m_min_btag_top_btag_other, weight);
+		if (m_max_btag_top_btag_other!=0)       h_m_max_btag_top_btag_other->Fill(m_max_btag_top_btag_other, weight);
+		if (m_min_btag_other_btag_other!=999999.) h_m_min_btag_other_btag_other->Fill(m_min_btag_other_btag_other, weight);
+		if (m_max_btag_other_btag_other!=0)       h_m_max_btag_other_btag_other->Fill(m_max_btag_other_btag_other, weight);	    
+	      } // if "tt"
+		
 
 
 	      // ///
@@ -537,30 +551,33 @@ int main(int argc, char *argv[])
 	      
 	      // ///
 	      // Populate the MVA ntuple with values
-              #include "populate_mva_ntuple.h"
+              if (std::string(argv[1])=="tt") { 
+                #include "populate_mva_ntuple.h"
+	      }
 	      
 	    } // [jet_i] - loop over jets (populating MVA input ntuple)
 	    
 	    
+	    
 	    h_min_dR_lep0_btags_from_top->Fill(min_dR0_top, weight);
-            h_min_dR_lep0_btags_not_from_top->Fill(min_dR0_not_top, weight);
-            h_min_dR_lep1_btags_from_top->Fill(min_dR1_top, weight);
-            h_min_dR_lep1_btags_not_from_top->Fill(min_dR1_not_top, weight);
+	    h_min_dR_lep0_btags_not_from_top->Fill(min_dR0_not_top, weight);
+	    h_min_dR_lep1_btags_from_top->Fill(min_dR1_top, weight);
+	    h_min_dR_lep1_btags_not_from_top->Fill(min_dR1_not_top, weight);
 	    
 	    float m_three_tags = three_btags_lvecs.M();
-            float m_four_tags = four_btags_lvecs.M();
-            if (n_btags_tmp==3) h_m_three_tags->Fill(m_three_tags, weight);
+	    float m_four_tags = four_btags_lvecs.M();
+	    if (n_btags_tmp==3) h_m_three_tags->Fill(m_three_tags, weight);
 	    if (n_btags_tmp>=4) h_m_four_tags->Fill(m_four_tags, weight);
 	    
 	  } // 2b (tags), emu, OS cuts
 	  
 	  
 	} // [entry] - loop over entries
-
+	
 	ntuple->Close();
 	
       } // [ntuple_number] - loop over ntuple pieces
-	
+      
     } // [job_number] - loop over given DIDs
     
   } // [dir_counter] - loop over mc16/data campaigns
@@ -583,7 +600,9 @@ int main(int argc, char *argv[])
   TFile *hists_file = new TFile(savename, "RECREATE");
   hists_file->cd();
   #include "write_hists_data_mc.h"
-  #include "write_hists_sig_bkg.h"
+  if (std::string(argv[1])=="tt") {
+    #include "write_hists_sig_bkg.h"
+  }
   hists_file->Close();
 	  
   return 0;

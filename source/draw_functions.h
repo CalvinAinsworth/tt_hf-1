@@ -1,4 +1,4 @@
-int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, std::vector<TString> legend_entries, bool norm_to_1);
+int draw_data_mc_plot(TH1 *h_data, std::vector<TH1*> h_mc, TString title, TString savename, std::vector<TString> legend_entries, bool norm_to_1 = true);
 
 int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString x_axis_title, TString title, bool normalize=false, Double_t y_min=1, Double_t y_max=10000);
 

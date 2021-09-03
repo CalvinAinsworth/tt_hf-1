@@ -20,6 +20,7 @@
 #include <TLine.h>
 #include <TLatex.h>
 #include <TExec.h>
+#include <THStack.h>
 
 #include "TMVA/Factory.h"
 #include "TMVA/DataLoader.h"

@@ -3,8 +3,21 @@
 // ###############################
 // ## Draw Data/Bkgd Comparison ##
 // ###############################
-int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, std::vector<TString> legend_entries, bool norm_to_1){
+int draw_data_mc_plot(TH1 *h_data, std::vector<TH1*> h_mc, TString title, TString savename, std::vector<TString> legend_entries, bool norm_to_1){
   std::cout << "Drawing " << title << std::endl;
+  std::vector<Int_t> colors = {4, 416+1, 2, 9, 5, 18};
+
+
+  if (h_mc.size()==0) {
+    std::cout << "ERROR: Vector of mc hists is empty!" << std::endl;
+    return 0; }
+  if (h_mc.size() != legend_entries.size()) {
+    std::cout << "WARNING: Number of MC hists != Number of legend entries!\n";
+    int n_hists = h_mc.size();
+    int n_titles = legend_entries.size();
+    std::cout << n_hists << " vs " << n_titles << std::endl;
+  }
+    
 
   // Create a canvas
   TCanvas *c = new TCanvas("c", "c", 1600, 1200);
@@ -15,7 +28,7 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, s
 
   
   // Define two TPads for distributions and ratio 
-  TPad *tPad = new TPad("tPad", "tPad", 0, 0.35, 1, 1);
+  TPad *tPad = new TPad("tPad", "tPad", 0, 0.31, 1, 1.0);
   TPad *bPad = new TPad("bPad", "bPad", 0, 0,    1, 0.3);
   tPad->Draw();
   bPad->Draw("same");
@@ -23,10 +36,27 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, s
   
   // Get integrals and normalize if needed
   double data_int = h_data->Integral(0, h_data->GetNbinsX()+1);
-  double mc_int = h_mc->Integral(0, h_mc->GetNbinsX()+1);
+  double mc_int = 0;
+  for (int i=0; i<h_mc.size(); i++) { 
+    double mc_int_tmp = h_mc[i]->Integral(0, h_mc[i]->GetNbinsX()+1);
+    mc_int += mc_int_tmp;
+    std::cout << legend_entries[i] << ": " << mc_int_tmp << std::endl; }
   if (norm_to_1==true) {
     h_data->Scale(1/data_int);
-    h_mc->Scale(1/mc_int); }
+    for (int i=0; i<h_mc.size(); i++) {
+      h_mc[i]->Scale(1/mc_int); } }
+
+
+  // Create a stack of hists
+  THStack *mc_stack = new THStack();
+  for (int i=0; i<h_mc.size(); i++) { 
+    h_mc[i]->SetFillColor(colors[i]);
+    mc_stack->Add(h_mc[i]); }
+
+
+  // Create one hist as a sum of mc (for data/mc ratio)
+  TH1 *h_mc_combined = (TH1*)h_mc[0]->Clone();
+  for (int i=1; i<h_mc.size(); i++) { h_mc_combined->Add(h_mc[i]); }
 
   
   // Top pad: hists
@@ -35,28 +65,40 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, s
   tPad->SetRightMargin(0.05);
   tPad->SetLeftMargin(0.07);
   tPad->SetBottomMargin(0.02);
-  tPad->SetTopMargin(0.03);
+  //tPad->SetTopMargin(0.03);
 
-  h_data->Draw("E1P");
+  mc_stack->Draw("hist");
+  mc_stack->SetTitle("");
+  mc_stack->GetXaxis()->SetLabelSize(0);
+  mc_stack->GetYaxis()->SetLabelSize(0.04);
+  mc_stack->GetYaxis()->SetTitleOffset(0.9);
+  if (norm_to_1 == true) { mc_stack->GetYaxis()->SetTitle("norm. to 1");
+  } else {
+    gPad->SetLogy();
+    mc_stack->GetYaxis()->SetTitle("#bf{N Events}"); 
+  }
+  c->Update();
+
+  TLatex *ltx = new TLatex();
+  ltx->SetNDC();
+  ltx->SetTextFont(42);
+  ltx->SetTextSize(0.05);
+  ltx->DrawLatex(0.07, 0.93, "#it{#bf{ATLAS}}");
+  ltx->DrawLatex(0.25, 0.93, "Work in progress");
+  ltx->DrawLatex(0.72, 0.93, "#sqrt{s}=13 TeV, 139.0 fb^{-1}");
+  
+  h_data->Draw("same E1P");
   h_data->SetMarkerStyle(20);
   h_data->SetMarkerColor(1);
   h_data->SetMarkerSize(1.5);
   h_data->SetLineWidth(1);
-  h_data->SetTitle("");
-  h_data->GetXaxis()->SetLabelSize(0);
-  if (norm_to_1 == true) {
-    h_data->GetYaxis()->SetTitle("norm. to 1"); }
-  else {
-    gPad->SetLogy();
-    h_data->GetYaxis()->SetTitle("#bf{N Events}"); }
-  h_mc->Draw("e2 hist same");
-  h_mc->SetLineColor(4);
-  h_mc->SetLineWidth(4);
-  h_mc->SetLineColor(2);
 
-  TLegend *legend = new TLegend(0.7, 0.7, 0.95, 0.95);
-  legend->AddEntry(h_data, legend_entries[0]);
-  legend->AddEntry(h_mc, legend_entries[1]);
+  double legend_y_min = 0.95 - (1 + h_mc.size())*0.04;
+  TLegend *legend = new TLegend(0.75, legend_y_min, 0.95, 0.90);
+  legend->SetNColumns(2);
+  legend->SetFillStyle(0);
+  legend->AddEntry(h_data, "Data");
+  for (int i=0; i<h_mc.size(); i++) { legend->AddEntry(h_mc[i], legend_entries[i]); }
   legend->Draw("same");
 
   
@@ -69,17 +111,17 @@ int draw_data_mc_plot(TH1 *h_data, TH1 *h_mc, TString title, TString savename, s
   bPad->SetGrid();
   TH1 *h_ratio = (TH1*)h_data->Clone();
 
-  h_ratio->Divide(h_mc);
+  h_ratio->Divide(h_mc_combined);
   h_ratio->SetTitle("");
 
   h_ratio->GetXaxis()->SetLabelSize(0.10);
   h_ratio->GetXaxis()->SetTitle(title);
-  h_ratio->GetXaxis()->SetTitleOffset(1.3);
+  h_ratio->GetXaxis()->SetTitleOffset(1);
   h_ratio->GetXaxis()->SetTitleSize(0.12);
 
-  h_ratio->GetYaxis()->SetLabelSize(0.05);
+  h_ratio->GetYaxis()->SetLabelSize(0.07);
   h_ratio->GetYaxis()->SetTitle("#bf{Data/mc}");
-  h_ratio->GetYaxis()->SetTitleOffset(0.5);
+  h_ratio->GetYaxis()->SetTitleOffset(0.4);
   h_ratio->GetYaxis()->SetTitleSize(0.07);
   h_ratio->GetYaxis()->CenterTitle();
   h_ratio->GetYaxis()->SetRangeUser(0,2);

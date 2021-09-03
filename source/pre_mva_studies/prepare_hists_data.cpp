@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     
 
     // Testing option: data15-17 only (mc16a)
-    if (is_2017==true || is_2018==true) continue;
+    //if (is_2017==true || is_2018==true) continue;
 
 
     // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)

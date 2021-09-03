@@ -1,4 +1,4 @@
-mkdir run
+#mkdir run
 
 echo "Compiling prepare_hists_mc.cpp"
 gcc source/pre_mva_studies/prepare_hists_mc.cpp   source/common_functions.cpp -o run/prepare_hists_mc   -lstdc++ `root-config --cflags --glibs`

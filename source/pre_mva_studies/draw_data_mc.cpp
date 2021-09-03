@@ -37,13 +37,36 @@ int main(int argc, char *argv[])
   
   
   // Get mc hists
-  TFile *mc_hists_file = new TFile("results/hists_data_test.root");
-  std::vector<TH1*> mc_hists;
-  for (int i=0; i<data_hists.size(); i++) {
-    TH1 *h_tmp = (TH1*)mc_hists_file->Get(hists_names[i]);
-    mc_hists.push_back(h_tmp);
-  }
+  std::vector<TString> processes = {"z_jets", "diboson", "ttH", "ttV", "singletop", "tt"};
+  std::vector<std::vector<TH1*>> mc_hists;
+
+  for (int i=0; i<processes.size(); i++) {
+    TString mc_hists_file_name = "results/hists_" + processes[i] + "_test.root";
+    TFile *mc_hists_file = new TFile(mc_hists_file_name);
+    
+    std::vector<TH1*> mc_hists_tmp;
+
+    for (int j=0; j<hists_names.size(); j++) {
+      TH1 *h_tmp = (TH1*)mc_hists_file->Get(hists_names[j]);
+      mc_hists_tmp.push_back(h_tmp);
+    } // [j] - different hists (hists_names)
+    mc_hists.push_back(mc_hists_tmp);
+
+  } // [i] - processes
+
+
+
+  // Prepare vectors of hists
+  std::vector<std::vector<TH1*>> mc_hists_to_stack;
   
+  for (int j=0; j<hists_names.size(); j++) {
+    std::vector<TH1*> h_tmp;
+    for (int i=0; i<processes.size(); i++) {
+      h_tmp.push_back(mc_hists[i][j]);
+    } // [i] - loop over processes
+    mc_hists_to_stack.push_back(h_tmp);
+  } // [j] - loop over names of hists
+
   
   
   // Draw hists
@@ -51,7 +74,7 @@ int main(int argc, char *argv[])
 
     // Split the hits name: its root is the savename and its suffix is the x-axis title
     std::vector<TString> hist_strings = split(hists_names[i], '.');
-    int draw_the_hists = draw_data_mc_plot(data_hists[i], mc_hists[i], "#bf{" + hist_strings[1] + "}", hist_strings[0], {"Data", "MC"}, true);
+    int draw_the_hists = draw_data_mc_plot(data_hists[i], mc_hists_to_stack[i], "#bf{" + hist_strings[1] + "}", hist_strings[0], processes, false);
    
     //std::cout << hist_strings[0] << " ; " << hist_strings[1] << std::endl;
   }
@@ -59,7 +82,6 @@ int main(int argc, char *argv[])
   
   // Close the hists files
   data_hists_file->Close();
-  mc_hists_file->Close();
 
   return 0;
 }
