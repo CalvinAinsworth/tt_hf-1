@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
   
   
   // Get mc hists
-  std::vector<TString> processes = {"z_jets", "diboson", "ttH", "ttV", "singletop", "tt"};
+  std::vector<TString> processes = {"z_jets", "other", "diboson", "ttH", "ttV", "singletop", "tt"};
   std::vector<std::vector<TH1*>> mc_hists;
 
   for (int i=0; i<processes.size(); i++) {

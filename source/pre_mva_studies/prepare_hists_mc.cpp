@@ -11,14 +11,14 @@ int main(int argc, char *argv[])
     std::cout << "\nError: I don't know what to do =(\n" << std::endl;
     std::cout << "Aks for a process:" << std::endl;
     std::cout << "./run/prepare_hists_mc PROCESS\n" << std::endl;
-    std::cout << "PROCESS = tt  or  singletop  or  ttV  or  ttH  or  diboson  or  z_jets\n" << std::endl;
+    std::cout << "PROCESS = tt  or  singletop  or  ttV  or  ttH  or  diboson  or  z_jets  or  other\n" << std::endl;
     return 0;
   }
-  if ( argc>1 && (std::string(argv[1])=="tt" || std::string(argv[1])=="singletop" || std::string(argv[1])=="ttV" || std::string(argv[1])=="ttH" || std::string(argv[1])=="diboson" || std::string(argv[1])=="z_jets") ) {
+  if ( argc>1 && (std::string(argv[1])=="tt" || std::string(argv[1])=="singletop" || std::string(argv[1])=="ttV" || std::string(argv[1])=="ttH" || std::string(argv[1])=="diboson" || std::string(argv[1])=="z_jets" || std::string(argv[1])=="other") ) {
     std::cout << "Working with " << std::string(argv[1]) << "\n\n" <<std::endl; 
   } else {
     std::cout << "Error: Unknown argument " << std::string(argv[1]) << std::endl;
-    std::cout << "Try \"tt\" or \"singletop\" or \"ttV\" or \"ttH\" or \"diboson\" or \"z_jets\" (without quotes)\n" << std::endl;
+    std::cout << "Try \"tt\" or \"singletop\" or \"ttV\" or \"ttH\" or \"diboson\" or \"z_jets\" or \"other\" (without quotes)\n" << std::endl;
     return 0;
   }
   
@@ -104,11 +104,12 @@ int main(int argc, char *argv[])
       
       bool correct_did = false;
       if (std::string(argv[1])=="tt" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
-      if (std::string(argv[1])=="singletop" && (job_DID=="410648" || job_DID=="410649" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676") ) correct_did = true;
+      if (std::string(argv[1])=="singletop" && (job_DID=="410648" || job_DID=="410649" || job_DID=="410644" || job_DID=="410645") ) correct_did = true;
       if (std::string(argv[1])=="ttV" && (job_DID=="410155" || job_DID=="410156" || job_DID=="410157") ) correct_did = true;
       if (std::string(argv[1])=="ttH" && (job_DID=="346345") ) correct_did = true;
-      if (std::string(argv[1])=="diboson" && (job_DID=="364250" || job_DID=="364253" || job_DID=="364254" || (std::stoi(job_DID)>=364283 && std::stoi(job_DID)<=364290) || job_DID=="345705" || job_DID=="345706" || job_DID=="345723" || job_DID=="363356" || job_DID=="363358") ) correct_did = true;
+      if (std::string(argv[1])=="diboson" && (job_DID=="364250" || job_DID=="364253" || job_DID=="364254" || (std::stoi(job_DID)>=364283 && std::stoi(job_DID)<=364290 && job_DID!="364286") || job_DID=="345705" || job_DID=="345706" || job_DID=="345723" || job_DID=="363356" || job_DID=="363358") ) correct_did = true;
       if (std::string(argv[1])=="z_jets" && (std::stoi(job_DID)>=364100 && std::stoi(job_DID)<=364141) ) correct_did = true;
+      if (std::string(argv[1])=="other" && (job_DID=="412043" || job_DID=="410218" || job_DID=="410219" || job_DID=="410220" || job_DID=="410276" || job_DID=="410277" || job_DID=="410278" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676") ) correct_did = true;
       
       if (correct_did==false) continue;
       else { std::cout << "\n\nDID: " << job_DID << std::endl; }
