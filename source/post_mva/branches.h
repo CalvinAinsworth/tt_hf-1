@@ -70,7 +70,7 @@
   Float_t met_phi;
   UInt_t runNumber;
   ULong64_t eventNumber;
-  Int_t topHeavyFlavorFilterFlag = -999.;
+  Int_t topHeavyFlavorFilterFlag = -999;
 
 
   // Weights
@@ -139,7 +139,7 @@
   Float_t met_phi_pl;
   UInt_t runNumber_pl;
   ULong64_t eventNumber_pl;
-  Int_t topHeavyFlavorFilterFlag_pl = -999.;
+  Int_t topHeavyFlavorFilterFlag_pl = -999;
 
 
   // Weights
@@ -150,7 +150,7 @@
 
   // ///
   // Set the branches
-
+    
   tree_nominal->SetBranchAddress("jet_pt", &jet_pt);
   tree_nominal->SetBranchAddress("jet_eta", &jet_eta);
   tree_nominal->SetBranchAddress("jet_phi", &jet_phi);
@@ -163,7 +163,7 @@
   tree_nominal->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag);
   tree_nominal->SetBranchAddress("jet_truthPartonLabel", &jet_truthPartonLabel);
   tree_nominal->SetBranchAddress("jet_isTrueHS", &jet_isTrueHS);  
-
+  
   tree_nominal->SetBranchAddress("el_pt", &el_pt);
   tree_nominal->SetBranchAddress("el_eta", &el_eta);
   tree_nominal->SetBranchAddress("el_cl_eta", &el_cl_eta);
@@ -201,50 +201,54 @@
   tree_nominal->SetBranchAddress("runNumber", &runNumber);
   tree_nominal->SetBranchAddress("eventNumber", &eventNumber);
   tree_nominal->SetBranchAddress("topHeavyFlavorFilterFlag", &topHeavyFlavorFilterFlag);
-
+  
   tree_nominal->SetBranchAddress("weight_mc", &w_mc);
   tree_nominal->SetBranchAddress("weight_pileup", &w_pu);
   tree_nominal->SetBranchAddress("weight_leptonSF", &w_leptonSF);
   tree_nominal->SetBranchAddress("weight_bTagSF_DL1r_77", &w_DL1r_77);
   tree_nominal->SetBranchAddress("weight_jvt", &w_jvt);
-
+  
   tree_nominal->SetBranchAddress("vertex_type", &vertex_type);
   tree_nominal->SetBranchAddress("vertex_z", &vertex_z);
-
-
-  tree_pl->SetBranchAddress("jet_pt", &jet_pt_pl);
-  tree_pl->SetBranchAddress("jet_eta", &jet_eta_pl);
-  tree_pl->SetBranchAddress("jet_phi", &jet_phi_pl);
-  tree_pl->SetBranchAddress("jet_e", &jet_e_pl);
-  tree_pl->SetBranchAddress("jet_nGhosts_bHadron", &jet_nGhosts_bHadron_pl);
-  tree_pl->SetBranchAddress("jet_nGhosts_cHadron", &jet_nGhosts_cHadron_pl);
-  tree_pl->SetBranchAddress("jet_truthPartonLabel", &jet_truthPartonLabel_pl);
-  tree_pl->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag_pl);
-
-  tree_pl->SetBranchAddress("el_pt", &el_pt_pl);
-  tree_pl->SetBranchAddress("el_eta", &el_eta_pl);
-  tree_pl->SetBranchAddress("el_phi", &el_phi_pl);
-  tree_pl->SetBranchAddress("el_e", &el_e_pl);
-  tree_pl->SetBranchAddress("el_charge", &el_charge_pl);
-  tree_pl->SetBranchAddress("el_pt_bare", &el_pt_bare);
-  tree_pl->SetBranchAddress("el_eta_bare", &el_eta_bare);
-  tree_pl->SetBranchAddress("el_phi_bare", &el_phi_bare);
-  tree_pl->SetBranchAddress("el_e_bare", &el_e_bare);
-
-  tree_pl->SetBranchAddress("mu_pt", &mu_pt_pl);
-  tree_pl->SetBranchAddress("mu_eta", &mu_eta_pl);
-  tree_pl->SetBranchAddress("mu_phi", &mu_phi_pl);
-  tree_pl->SetBranchAddress("mu_e", &mu_e_pl);
-  tree_pl->SetBranchAddress("mu_charge", &mu_charge_pl);
-  tree_pl->SetBranchAddress("mu_pt_bare", &mu_pt_bare);
-  tree_pl->SetBranchAddress("mu_eta_bare", &mu_eta_bare);
-  tree_pl->SetBranchAddress("mu_phi_bare", &mu_phi_bare);
-  tree_pl->SetBranchAddress("mu_e_bare", &mu_e_bare);
-
-  tree_pl->SetBranchAddress("met_met", &met_pl);
-  tree_pl->SetBranchAddress("met_phi", &met_phi_pl);
-  tree_pl->SetBranchAddress("runNumber", &runNumber_pl);
-  tree_pl->SetBranchAddress("eventNumber", &eventNumber_pl);
-  tree_pl->SetBranchAddress("topHeavyFlavorFilterFlag", &topHeavyFlavorFilterFlag_pl);
-
-  tree_pl->SetBranchAddress("weight_mc", &w_mc_pl);
+  
+  
+  if (tree_pl_exists==true) {
+    
+    tree_pl->SetBranchAddress("jet_pt", &jet_pt_pl);
+    tree_pl->SetBranchAddress("jet_eta", &jet_eta_pl);
+    tree_pl->SetBranchAddress("jet_phi", &jet_phi_pl);
+    tree_pl->SetBranchAddress("jet_e", &jet_e_pl);
+    tree_pl->SetBranchAddress("jet_nGhosts_bHadron", &jet_nGhosts_bHadron_pl);
+    tree_pl->SetBranchAddress("jet_nGhosts_cHadron", &jet_nGhosts_cHadron_pl);
+    tree_pl->SetBranchAddress("jet_truthPartonLabel", &jet_truthPartonLabel_pl);
+    tree_pl->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag_pl);
+    
+    tree_pl->SetBranchAddress("el_pt", &el_pt_pl);
+    tree_pl->SetBranchAddress("el_eta", &el_eta_pl);
+    tree_pl->SetBranchAddress("el_phi", &el_phi_pl);
+    tree_pl->SetBranchAddress("el_e", &el_e_pl);
+    tree_pl->SetBranchAddress("el_charge", &el_charge_pl);
+    tree_pl->SetBranchAddress("el_pt_bare", &el_pt_bare);
+    tree_pl->SetBranchAddress("el_eta_bare", &el_eta_bare);
+    tree_pl->SetBranchAddress("el_phi_bare", &el_phi_bare);
+    tree_pl->SetBranchAddress("el_e_bare", &el_e_bare);
+    
+    tree_pl->SetBranchAddress("mu_pt", &mu_pt_pl);
+    tree_pl->SetBranchAddress("mu_eta", &mu_eta_pl);
+    tree_pl->SetBranchAddress("mu_phi", &mu_phi_pl);
+    tree_pl->SetBranchAddress("mu_e", &mu_e_pl);
+    tree_pl->SetBranchAddress("mu_charge", &mu_charge_pl);
+    tree_pl->SetBranchAddress("mu_pt_bare", &mu_pt_bare);
+    tree_pl->SetBranchAddress("mu_eta_bare", &mu_eta_bare);
+    tree_pl->SetBranchAddress("mu_phi_bare", &mu_phi_bare);
+    tree_pl->SetBranchAddress("mu_e_bare", &mu_e_bare);
+    
+    tree_pl->SetBranchAddress("met_met", &met_pl);
+    tree_pl->SetBranchAddress("met_phi", &met_phi_pl);
+    tree_pl->SetBranchAddress("runNumber", &runNumber_pl);
+    tree_pl->SetBranchAddress("eventNumber", &eventNumber_pl);
+    tree_pl->SetBranchAddress("topHeavyFlavorFilterFlag", &topHeavyFlavorFilterFlag_pl);
+    
+    tree_pl->SetBranchAddress("weight_mc", &w_mc_pl);
+    
+  } // if tree_pl_exists == true

@@ -119,9 +119,22 @@ int main(int argc, char *argv[])
 	  // Open the ntuple
 	  std::cout << paths_to_ntuples[ntuple_number] << std::endl;
 	  TFile *ntuple = new TFile(paths_to_ntuples[ntuple_number]);
+	  
+	  // Set trees. Particle level exists not for all the ntuples.
+	  TTree *tree_pl;
+	  bool tree_pl_exists = false;
+	  TIter next(ntuple->GetListOfKeys());
+	  TKey *key;
+	  while (key = (TKey*)next()) {
+	    TString obj_name = key->GetName();
+	    TString obj_class_name = key->GetClassName();
+	    if (obj_name=="particleLevel" && obj_class_name=="TTree") {
+	      tree_pl = (TTree*)ntuple->Get(obj_name);
+	      tree_pl_exists = true; }
+	  } // while key
+	  
 	  TTree *tree_sumWeights = (TTree*)ntuple->Get("sumWeights");
 	  TTree *tree_truth = (TTree*)ntuple->Get("truth");
-	  TTree *tree_pl = (TTree*)ntuple->Get("particleLevel");
 	  TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
 	  
 	  
@@ -142,7 +155,8 @@ int main(int argc, char *argv[])
 	  
 	    if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
 	    tree_nominal->GetEntry(entry);
-	
+	    
+	    
 	    
 	    // Zero vectors for output file 
 	    dR_jet_lep0_out->clear();
@@ -170,7 +184,6 @@ int main(int argc, char *argv[])
 	    bool btags_n2_cut = false;
 	    bool btags_n3_cut = false;
 	    
-	    
 	    // Declare cuts themselves
 	    if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
 	    if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
@@ -182,7 +195,6 @@ int main(int argc, char *argv[])
 	    for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_DL1r_77)[i]==1) btags_n++; }
 	    if (btags_n >= 2) btags_n2_cut = true;
 	    if (btags_n == 3) btags_n3_cut = true;
-	    
 	    
 	    // TLorentzVector for leptons and jets
 	    TLorentzVector el_lvec;
@@ -236,13 +248,15 @@ int main(int argc, char *argv[])
 	  // ///
 	  // Loop over entries - Partilce level tree
 
+	  if (tree_pl_exists==false) continue;
+
 	  Int_t nEntries_pl = tree_pl->GetEntries();
 	  std::cout << "\tEntris PL = " << nEntries_pl << std::endl;
 	  for (int entry=0; entry<nEntries_pl; entry++) {
 	    
 	    if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
 	    tree_pl->GetEntry(entry);
-
+	    
 
 	    // Zero vector for output file (particle level tree)
 	    dR_jet_lep0_pl_out->clear();
@@ -343,8 +357,10 @@ int main(int argc, char *argv[])
 	  out_tree->SetDirectory(out_ntuple);
 	  out_tree->Write("nominal", TTree::kOverwrite);
 	  
-	  out_tree_pl->SetDirectory(out_ntuple);
-	  out_tree_pl->Write("particleLevel", TTree::kOverwrite);
+	  if (tree_pl_exists==true) {
+	    out_tree_pl->SetDirectory(out_ntuple);
+	    out_tree_pl->Write("particleLevel", TTree::kOverwrite);
+	  }
 	  
 	  out_ntuple->Close();
 	  
