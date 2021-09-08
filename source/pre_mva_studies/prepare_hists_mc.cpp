@@ -104,12 +104,12 @@ int main(int argc, char *argv[])
       
       bool correct_did = false;
       if (std::string(argv[1])=="tt" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
-      if (std::string(argv[1])=="singletop" && (job_DID=="410648" || job_DID=="410649" || job_DID=="410644" || job_DID=="410645") ) correct_did = true;
-      if (std::string(argv[1])=="ttV" && (job_DID=="410155" || job_DID=="410156" || job_DID=="410157") ) correct_did = true;
+      if (std::string(argv[1])=="singletop" && (job_DID=="410648" || job_DID=="410649" || job_DID=="410644" || job_DID=="410645" || job_DID=="410658" || job_DID=="410659") ) correct_did = true;
+      if (std::string(argv[1])=="ttV" && (job_DID=="410155" || job_DID=="410156" || job_DID=="410157" || job_DID=="410218" || job_DID=="410219" || job_DID=="410220" || job_DID=="410276" || job_DID=="410277" || job_DID=="410278") ) correct_did = true;
       if (std::string(argv[1])=="ttH" && (job_DID=="346345") ) correct_did = true;
       if (std::string(argv[1])=="diboson" && (job_DID=="364250" || job_DID=="364253" || job_DID=="364254" || (std::stoi(job_DID)>=364283 && std::stoi(job_DID)<=364290 && job_DID!="364286") || job_DID=="345705" || job_DID=="345706" || job_DID=="345723" || job_DID=="363356" || job_DID=="363358") ) correct_did = true;
       if (std::string(argv[1])=="z_jets" && (std::stoi(job_DID)>=364100 && std::stoi(job_DID)<=364141) ) correct_did = true;
-      if (std::string(argv[1])=="other" && (job_DID=="412043" || job_DID=="410218" || job_DID=="410219" || job_DID=="410220" || job_DID=="410276" || job_DID=="410277" || job_DID=="410278" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676") ) correct_did = true;
+      if (std::string(argv[1])=="other" && (job_DID=="410560" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676" || job_DID=="412043") ) correct_did = true;
       
       if (correct_did==false) continue;
       else { std::cout << "\n\nDID: " << job_DID << std::endl; }

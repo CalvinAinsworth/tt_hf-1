@@ -1,4 +1,4 @@
-  
+ 
   // Jets
   jet_pt_out = jet_pt;
   jet_DL1r_out = jet_DL1r;
@@ -8,6 +8,7 @@
   jet_jvt_out = jet_jvt;
   jet_truthflav_out = jet_truthflav;
   jet_DL1r_77_out = jet_DL1r_77;
+//jet_GBHInit_topHadronOriginFlag_out = jet_GBHInit_topHadronOriginFlag;
   jet_truthPartonLabel_out = jet_truthPartonLabel;
   jet_isTrueHS_out = jet_isTrueHS;
   jet_tagWeightBin_DL1r_Continuous_out = jet_tagWeightBin_DL1r_Continuous;
@@ -51,6 +52,7 @@
   met_phi_out = met_phi;
   runNumber_out = runNumber;
   eventNumber_out = eventNumber;
+  topHeavyFlavorFilterFlag_out = topHeavyFlavorFilterFlag;
 
   // Weights
   w_mc_out = w_mc;

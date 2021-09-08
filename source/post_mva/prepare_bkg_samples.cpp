@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
      
       
       
-      // Only nominal trees
+      // Only nominal ntuples
       dir_paths[dir_counter] += "nominal/";
       
       
@@ -111,6 +111,7 @@ int main(int argc, char *argv[])
 	  // Declare the output file and set all branches
 	  TString savefile_name = dir3 + std::string("/") + std::to_string(ntuple_number) + std::string(".root");
 	  TFile *out_ntuple = new TFile(savefile_name, "RECREATE");
+	  TTree *out_tree_pl = new TTree("particleLevel", "particleLevel");
 	  TTree *out_tree = new TTree("nominal", "nominal");
           #include "savefile_declare_branches.h"
 
@@ -118,7 +119,9 @@ int main(int argc, char *argv[])
 	  // Open the ntuple
 	  std::cout << paths_to_ntuples[ntuple_number] << std::endl;
 	  TFile *ntuple = new TFile(paths_to_ntuples[ntuple_number]);
-	  TTree *sumWeights_tree = (TTree*)ntuple->Get("sumWeights");
+	  TTree *tree_sumWeights = (TTree*)ntuple->Get("sumWeights");
+	  TTree *tree_truth = (TTree*)ntuple->Get("truth");
+	  TTree *tree_pl = (TTree*)ntuple->Get("particleLevel");
 	  TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
 	  
 	  
@@ -128,8 +131,11 @@ int main(int argc, char *argv[])
 	  
 	  // Ignore the "ReadStreamerInfo, class:string, illegal uid=-2" error
 
-	  
-	  // Loop over entries
+
+
+	  // ///
+	  // Loop over entries - nominal tree
+
 	  Int_t nEntries = tree_nominal->GetEntries();
 	  std::cout << "\tEntries = " << nEntries << std::endl;
 	  for (int entry=0; entry<nEntries; entry++) {
@@ -137,7 +143,7 @@ int main(int argc, char *argv[])
 	    if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
 	    tree_nominal->GetEntry(entry);
 	
-
+	    
 	    // Zero vectors for output file 
 	    dR_jet_lep0_out->clear();
 	    dR_jet_lep1_out->clear();
@@ -163,7 +169,6 @@ int main(int argc, char *argv[])
 	    bool jets_n_cut = false;
 	    bool btags_n2_cut = false;
 	    bool btags_n3_cut = false;
-	    bool topHFFF_cut = false;
 	    
 	    
 	    // Declare cuts themselves
@@ -192,10 +197,7 @@ int main(int argc, char *argv[])
 	    
 	    
 	    
-	    // ///
-	    // 2b (tags) inclusive, emu, OS 
-	    // ///
-	    
+	    // 2b (tags) inclusive, emu, OS
 	    if (emu_cut*OS_cut*btags_n2_cut*jets_n_cut == true) {
 	      
 	      // Loop over jets
@@ -222,23 +224,128 @@ int main(int argc, char *argv[])
 	      // var_out = var_in for those that we don't need to change
 	      #include "var_out.h"
 
-	      
 	      out_tree->Fill();
 	      
 	    } // [if] - 2b dilep OS cuts
 	    
-	  } // [entry] - loop over entries
+	  } // [entry] - loop over entries, nominal tree
+
+
+
+	  
+	  // ///
+	  // Loop over entries - Partilce level tree
+
+	  Int_t nEntries_pl = tree_pl->GetEntries();
+	  std::cout << "\tEntris PL = " << nEntries_pl << std::endl;
+	  for (int entry=0; entry<nEntries_pl; entry++) {
+	    
+	    if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
+	    tree_pl->GetEntry(entry);
+
+
+	    // Zero vector for output file (particle level tree)
+	    dR_jet_lep0_pl_out->clear();
+            dR_jet_lep1_pl_out->clear();
+            min_dR_jet_lep_pl_out->clear();
+            m_jet_el_pl_out->clear();
+            m_jet_mu_pl_out->clear();
+            m_jet_lep_max_pl_out->clear();
+            jet_m_pl_out->clear();
+            m_min_jet_jet_pl_out->clear();
+            m_max_jet_jet_pl_out->clear();
+            min_dR_jet_bjet_pl_out->clear();
+            MVA_score_pl->clear();
+	    
+	    
+	    // Declare cuts names nad set to false as the default
+	    bool emu_cut = false;
+	    bool OS_cut = false;
+	    bool jets_n_cut = false;
+	    bool btags_n2_cut = false;
+
+	    
+	    // Declare cuts themselves
+	    if ((*el_pt_pl).size()==1 && (*mu_pt_pl).size()==1) emu_cut = true;
+	    if ((*el_charge_pl)[0]!=(*mu_charge_pl)[0]) OS_cut = true;
+	    
+	    int jets_n = (*jet_pt_pl).size();
+	    if (jets_n >= 3) jets_n_cut = true;
+	    
+	    int btags_n = 0;
+	    for (int i=0; i<(*jet_pt_pl).size(); i++) { if ( (*jet_truthPartonLabel_pl)[i]==5 ) btags_n++; }
+	    if (btags_n >= 2) btags_n2_cut = true;
+
+
+	    // TLorentzVector for leptons and jets
+            TLorentzVector el_lvec;
+            TLorentzVector mu_lvec;
+	    std::vector<TLorentzVector> jets_lvec;
+            el_lvec.SetPtEtaPhiE((*el_pt_pl)[0]*0.001, (*el_eta_pl)[0], (*el_phi_pl)[0], (*el_e_pl)[0]*0.001);
+            mu_lvec.SetPtEtaPhiE((*mu_pt_pl)[0]*0.001, (*mu_eta_pl)[0], (*mu_phi_pl)[0], (*mu_e_pl)[0]*0.001);
+            for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
+              TLorentzVector lvec;
+              lvec.SetPtEtaPhiE((*jet_pt_pl)[jet_i]*0.001, (*jet_eta_pl)[jet_i], (*jet_phi_pl)[jet_i], (*jet_e_pl)[jet_i]*0.001);
+	      jets_lvec.push_back(lvec); }
+
+	    
+	    
+	    // 2b (truth) inclusive, emu, OS
+	    if (emu_cut*OS_cut*jets_n_cut*btags_n2_cut == true) {
+	      
+	      // Loop over jets
+	      for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
+
+		// Set localVar - treeVar for furthe mva score estimation
+		#include "get_mva_score_pl.h"
+		MVA_score_pl->push_back(mvaValue);
+
+		dR_jet_lep0_pl_out->push_back(dR_jet_lep0);
+                dR_jet_lep1_pl_out->push_back(dR_jet_lep1);
+                min_dR_jet_lep_pl_out->push_back(min_dR_jet_lep);
+                m_jet_el_pl_out->push_back(m_jet_el);
+                m_jet_mu_pl_out->push_back(m_jet_mu);
+                m_jet_lep_max_pl_out->push_back(m_jet_lep_max);
+                jet_m_pl_out->push_back(jet_m);
+                m_min_jet_jet_pl_out->push_back(m_min_jet_jet);
+                m_max_jet_jet_pl_out->push_back(m_max_jet_jet);
+                min_dR_jet_bjet_pl_out->push_back(min_dR_jet_bjet);
+		
+	      } // [jet_i] - loop over jets
+
+	      // var_out = var_in for those that we don't need to change
+	      #include "var_out_pl.h"
+
+	      out_tree_pl->Fill();
+	      
+	    } // if - 2b (truth) inclusive, emu, OS
+	    
+	  } // [entry] - loop over entries, particle level tree
 	  
 	  
-	  TTree *out_sumWeights_tree = (TTree*)sumWeights_tree->CloneTree(0);
-	  out_sumWeights_tree->CopyEntries(sumWeights_tree);
-    
+
+
+	  // ///
+	  // Save all the trees to the new file now
+
+	  out_ntuple->cd();
+	  
+	  TTree *out_sumWeights_tree = (TTree*)tree_sumWeights->CloneTree(0);
+	  out_sumWeights_tree->CopyEntries(tree_sumWeights);
+	  out_sumWeights_tree->SetDirectory(out_ntuple);
+	  out_sumWeights_tree->Write("sumWeights", TTree::kOverwrite); 
+
+	  TTree *out_truth_tree = (TTree*)tree_truth->CloneTree(0);
+	  out_truth_tree->CopyEntries(tree_truth);
+	  out_truth_tree->SetDirectory(out_ntuple);
+	  out_truth_tree->Write("truth", TTree::kOverwrite); 
 	  
 	  out_tree->SetDirectory(out_ntuple);
-	  out_sumWeights_tree->SetDirectory(out_ntuple);
-	  out_ntuple->cd();
 	  out_tree->Write("nominal", TTree::kOverwrite);
-	  out_sumWeights_tree->Write("sumWeights", TTree::kOverwrite);
+	  
+	  out_tree_pl->SetDirectory(out_ntuple);
+	  out_tree_pl->Write("particleLevel", TTree::kOverwrite);
+	  
 	  out_ntuple->Close();
 	  
 	  ntuple->Close();

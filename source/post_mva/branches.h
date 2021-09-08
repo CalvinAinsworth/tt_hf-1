@@ -1,4 +1,6 @@
-  // Set all the needed branches
+
+  // ///
+  // Nominal tree variables
   
   // Jet variables
   std::vector<Float_t> *jet_pt;
@@ -10,11 +12,12 @@
   std::vector<Float_t> *jet_tagWeightBin_DL1r_Continuous;
   std::vector<Int_t> *jet_truthflav;
   std::vector<Int_t> *jet_truthPartonLabel;
+  std::vector<Int_t> *jet_GBHInit_topHadronOriginFlag;
   std::vector<char> *jet_DL1r_77;
   std::vector<char> *jet_isTrueHS;
-  
+
   jet_pt = jet_DL1r = jet_eta = jet_phi = jet_e = jet_jvt = jet_tagWeightBin_DL1r_Continuous = 0;
-  jet_truthflav = jet_truthPartonLabel = 0;
+  jet_truthflav = jet_truthPartonLabel = jet_GBHInit_topHadronOriginFlag = 0;
   jet_DL1r_77 = jet_isTrueHS = 0;
 
   
@@ -67,6 +70,7 @@
   Float_t met_phi;
   UInt_t runNumber;
   ULong64_t eventNumber;
+  Int_t topHeavyFlavorFilterFlag = -999.;
 
 
   // Weights
@@ -81,9 +85,72 @@
   std::vector<Int_t> *vertex_type;
   std::vector<Double_t> *vertex_z;
 
+  vertex_type = 0;
+  vertex_z = 0;
 
 
+  // ///
+  // Particle level tree variables
+
+  // Jet variables
+  std::vector<Float_t> *jet_pt_pl;
+  std::vector<Float_t> *jet_eta_pl;
+  std::vector<Float_t> *jet_phi_pl;
+  std::vector<Float_t> *jet_e_pl;
+  std::vector<Int_t> *jet_nGhosts_bHadron_pl;
+  std::vector<Int_t> *jet_nGhosts_cHadron_pl;
+  std::vector<Int_t> *jet_truthPartonLabel_pl;
+  std::vector<Int_t> *jet_GBHInit_topHadronOriginFlag_pl;
+
+  jet_pt_pl = jet_eta_pl = jet_phi_pl = jet_e_pl = 0;
+  jet_nGhosts_bHadron_pl = jet_nGhosts_cHadron_pl = jet_truthPartonLabel_pl = jet_GBHInit_topHadronOriginFlag_pl = 0;
+
+
+  // Electrons
+  std::vector<Float_t> *el_pt_pl;
+  std::vector<Float_t> *el_eta_pl;
+  std::vector<Float_t> *el_phi_pl;
+  std::vector<Float_t> *el_e_pl;
+  std::vector<Float_t> *el_charge_pl;
+  std::vector<Float_t> *el_pt_bare;
+  std::vector<Float_t> *el_eta_bare;
+  std::vector<Float_t> *el_phi_bare;
+  std::vector<Float_t> *el_e_bare;
+
+  el_pt_pl = el_eta_pl = el_phi_pl = el_e_pl = el_charge_pl = el_pt_bare = el_eta_bare = el_phi_bare = el_e_bare = 0;
+  
+
+  // Muons
+  std::vector<Float_t> *mu_pt_pl;
+  std::vector<Float_t> *mu_eta_pl;
+  std::vector<Float_t> *mu_phi_pl;
+  std::vector<Float_t> *mu_e_pl;
+  std::vector<Float_t> *mu_charge_pl;
+  std::vector<Float_t> *mu_pt_bare;
+  std::vector<Float_t> *mu_eta_bare;
+  std::vector<Float_t> *mu_phi_bare;
+  std::vector<Float_t> *mu_e_bare;
+  
+  mu_pt_pl = mu_eta_pl = mu_phi_pl = mu_e_pl = mu_charge_pl = mu_pt_bare = mu_eta_bare = mu_phi_bare = mu_e_bare = 0;
+  
+
+  // Other
+  Float_t met_pl;
+  Float_t met_phi_pl;
+  UInt_t runNumber_pl;
+  ULong64_t eventNumber_pl;
+  Int_t topHeavyFlavorFilterFlag_pl = -999.;
+
+
+  // Weights
+  Float_t w_mc_pl;
+  Float_t w_pu_pl;  
+
+
+
+  // ///
   // Set the branches
+
   tree_nominal->SetBranchAddress("jet_pt", &jet_pt);
   tree_nominal->SetBranchAddress("jet_eta", &jet_eta);
   tree_nominal->SetBranchAddress("jet_phi", &jet_phi);
@@ -93,9 +160,10 @@
   tree_nominal->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_DL1r_77);
   tree_nominal->SetBranchAddress("jet_tagWeightBin_DL1r_Continuous", &jet_tagWeightBin_DL1r_Continuous);
   tree_nominal->SetBranchAddress("jet_truthflav", &jet_truthflav);
+  tree_nominal->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag);
   tree_nominal->SetBranchAddress("jet_truthPartonLabel", &jet_truthPartonLabel);
-  tree_nominal->SetBranchAddress("jet_isTrueHS", &jet_isTrueHS);
-  
+  tree_nominal->SetBranchAddress("jet_isTrueHS", &jet_isTrueHS);  
+
   tree_nominal->SetBranchAddress("el_pt", &el_pt);
   tree_nominal->SetBranchAddress("el_eta", &el_eta);
   tree_nominal->SetBranchAddress("el_cl_eta", &el_cl_eta);
@@ -132,6 +200,7 @@
   tree_nominal->SetBranchAddress("met_phi", &met_phi);
   tree_nominal->SetBranchAddress("runNumber", &runNumber);
   tree_nominal->SetBranchAddress("eventNumber", &eventNumber);
+  tree_nominal->SetBranchAddress("topHeavyFlavorFilterFlag", &topHeavyFlavorFilterFlag);
 
   tree_nominal->SetBranchAddress("weight_mc", &w_mc);
   tree_nominal->SetBranchAddress("weight_pileup", &w_pu);
@@ -141,3 +210,41 @@
 
   tree_nominal->SetBranchAddress("vertex_type", &vertex_type);
   tree_nominal->SetBranchAddress("vertex_z", &vertex_z);
+
+
+  tree_pl->SetBranchAddress("jet_pt", &jet_pt_pl);
+  tree_pl->SetBranchAddress("jet_eta", &jet_eta_pl);
+  tree_pl->SetBranchAddress("jet_phi", &jet_phi_pl);
+  tree_pl->SetBranchAddress("jet_e", &jet_e_pl);
+  tree_pl->SetBranchAddress("jet_nGhosts_bHadron", &jet_nGhosts_bHadron_pl);
+  tree_pl->SetBranchAddress("jet_nGhosts_cHadron", &jet_nGhosts_cHadron_pl);
+  tree_pl->SetBranchAddress("jet_truthPartonLabel", &jet_truthPartonLabel_pl);
+  tree_pl->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag_pl);
+
+  tree_pl->SetBranchAddress("el_pt", &el_pt_pl);
+  tree_pl->SetBranchAddress("el_eta", &el_eta_pl);
+  tree_pl->SetBranchAddress("el_phi", &el_phi_pl);
+  tree_pl->SetBranchAddress("el_e", &el_e_pl);
+  tree_pl->SetBranchAddress("el_charge", &el_charge_pl);
+  tree_pl->SetBranchAddress("el_pt_bare", &el_pt_bare);
+  tree_pl->SetBranchAddress("el_eta_bare", &el_eta_bare);
+  tree_pl->SetBranchAddress("el_phi_bare", &el_phi_bare);
+  tree_pl->SetBranchAddress("el_e_bare", &el_e_bare);
+
+  tree_pl->SetBranchAddress("mu_pt", &mu_pt_pl);
+  tree_pl->SetBranchAddress("mu_eta", &mu_eta_pl);
+  tree_pl->SetBranchAddress("mu_phi", &mu_phi_pl);
+  tree_pl->SetBranchAddress("mu_e", &mu_e_pl);
+  tree_pl->SetBranchAddress("mu_charge", &mu_charge_pl);
+  tree_pl->SetBranchAddress("mu_pt_bare", &mu_pt_bare);
+  tree_pl->SetBranchAddress("mu_eta_bare", &mu_eta_bare);
+  tree_pl->SetBranchAddress("mu_phi_bare", &mu_phi_bare);
+  tree_pl->SetBranchAddress("mu_e_bare", &mu_e_bare);
+
+  tree_pl->SetBranchAddress("met_met", &met_pl);
+  tree_pl->SetBranchAddress("met_phi", &met_phi_pl);
+  tree_pl->SetBranchAddress("runNumber", &runNumber_pl);
+  tree_pl->SetBranchAddress("eventNumber", &eventNumber_pl);
+  tree_pl->SetBranchAddress("topHeavyFlavorFilterFlag", &topHeavyFlavorFilterFlag_pl);
+
+  tree_pl->SetBranchAddress("weight_mc", &w_mc_pl);
