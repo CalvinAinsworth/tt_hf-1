@@ -8,7 +8,7 @@
   jet_jvt_out = jet_jvt;
   jet_truthflav_out = jet_truthflav;
   jet_DL1r_77_out = jet_DL1r_77;
-//jet_GBHInit_topHadronOriginFlag_out = jet_GBHInit_topHadronOriginFlag;
+  jet_GBHInit_topHadronOriginFlag_out = jet_GBHInit_topHadronOriginFlag;
   jet_truthPartonLabel_out = jet_truthPartonLabel;
   jet_isTrueHS_out = jet_isTrueHS;
   jet_tagWeightBin_DL1r_Continuous_out = jet_tagWeightBin_DL1r_Continuous;
