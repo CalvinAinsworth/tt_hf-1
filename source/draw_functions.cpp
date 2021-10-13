@@ -160,6 +160,8 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
 
   std::vector<Int_t> colors = {632, 416+1, 600, 800-3, 432+2, 616+1, 400+1};
 
+  gStyle->SetPaintTextFormat("0.3f");
+
   TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 1200);
   gStyle->SetOptStat(0);
   gPad->SetGrid();
@@ -184,7 +186,8 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
     if (normalize==true) h_vec[i]->Scale(sf);
 
     if (i==0) {
-      h_vec[i]->Draw("hist");
+      h_vec[i]->Draw("hist text00");
+      //h_vec[i]->Draw("hist"); 
       h_vec[i]->SetTitle(title);
 
       if (normalize==true) {
@@ -197,10 +200,11 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
 
       h_vec[i]->GetXaxis()->SetTitle(x_axis_title); }
 
-    else { h_vec[i]->Draw("hist same"); }
+    else { h_vec[i]->Draw("hist same text00"); }
+    //else { h_vec[i]->Draw("hist same"); }
     legend->AddEntry(h_vec[i], h_title[i]); }
   legend->Draw("same");
-
+  
   c->Print("results/plots/mc/" + title + ".png");
   std::cout << "Drawn " + title + " !\n\n" << std::endl;
 

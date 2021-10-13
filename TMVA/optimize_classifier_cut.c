@@ -116,7 +116,7 @@ void optimize_classifier_cut()
 
 
   // Open the TMVA output file
-  TFile *tmva_file = new TFile("TMVA.root");
+  TFile *tmva_file = new TFile("results/004/TMVA.root");
 
 
   // Open classifier hists

@@ -12,6 +12,7 @@
 #include <TLorentzVector.h>
 #include <TAttLine.h>
 #include <TLine.h>
+#include <TGraphAsymmErrors.h>
 
 #include <iostream>
 #include <fstream>
@@ -27,14 +28,21 @@ vector<Int_t> colors = {632, 416+1, 600, 800-3, 432+2, 616+1, 400+1};
 // ##############################
 // ##   DRAW "Sig/Bkg" HISTS   ##
 // ##############################
-int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float classifier_cut, vector<TString> legend_entries_titles, bool norm_to_1, double y_min, double y_max);
+int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float classifier_cut, vector<TString> legend_entries_titles, bool norm_to_1, double y_min, double y_max, double ratio_y_min, double ratio_y_max);
 
 
 
 // ###########################
 // ## Draw a few histograms ##
 // ###########################
-int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool norm_to_0, Double_t y_min, Double_t y_max);
+int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool norm_to_1, Double_t y_min, Double_t y_max);
+
+
+
+// ##########################
+// ##     Draw TGraphs     ##
+// ##########################
+int draw_graphs(vector<TGraphAsymmErrors*> gr, TString x_axis_title, TString y_axis_title, vector<TString> legend_entries, TString savename);
 
 
 
@@ -73,50 +81,26 @@ void prepare_hists_classifier()
 
   
   // Set Classifier cuts in the whole range of the classifier
-  TFile *tmva_file = new TFile("TMVA.root");
+  TFile *tmva_file = new TFile("results/004/TMVA.root");
   TH1 *h_NN_classifier_output_S = (TH1F*)tmva_file->Get("dataset/Method_" + method_name + "/" + method_name + "/MVA_" + method_name + "_S");
   double x_min = h_NN_classifier_output_S->GetXaxis()->GetBinLowEdge(1);
   double x_max = h_NN_classifier_output_S->GetXaxis()->GetBinUpEdge(h_NN_classifier_output_S->GetNbinsX());
   double step = (x_max - x_min)/n_steps;
+  double n_bins_classifier = h_NN_classifier_output_S->GetNbinsX();
   vector<float> classifier_cuts = {};
   for (double i=x_min; i<=x_max; i += step) classifier_cuts.push_back(i);
   tmva_file->Close();
+ 
   
 
-  // Declare hists
-  TH1 *h_dl1r_tag_weight_sig[n_steps];
-  TH1 *h_dl1r_tag_weight_bkg[n_steps];
-  TH1 *h_jet_pT_notfromtop_truth[n_steps];
-  TH1 *h_jet_eta_notfromtop_truth[n_steps];
-  TH1 *h_jet_phi_notfromtop_truth[n_steps];
-  TH1 *h_jet_pT_notfromtop_classifier[n_steps];
-  TH1 *h_jet_eta_notfromtop_classifier[n_steps];
-  TH1 *h_jet_phi_notfromtop_classifier[n_steps];
+  // Declare hists for number of additional X
   TH1 *h_n_add_jets_truth[n_steps];
   TH1 *h_n_add_jets_classifier[n_steps];
   TH1 *h_n_add_btags_classifier[n_steps];
   TH1 *h_n_add_btags_truth[n_steps];
   TH1 *h_n_add_bjets_classifier[n_steps];
   TH1 *h_n_add_bjets_truth[n_steps];
-  TH1 *h_btags_from_top_spectrum_classifier[n_steps];
-  TH1 *h_btags_from_top_spectrum_truth[n_steps];
-  for (int i=0; i<n_steps; i++) {  
-    TString dl1r_sig_title = "DL1r_tag_sig" + to_string(i);
-    h_dl1r_tag_weight_sig[i] = new TH1F(dl1r_sig_title, dl1r_sig_title, 100, -10, 20);
-    TString dl1r_bkg_title = "DL1r_tag_bkg" + to_string(i);
-    h_dl1r_tag_weight_bkg[i] = new TH1F(dl1r_bkg_title, dl1r_bkg_title, 100, -10, 20);
-    TString jet_pT_truth_title = "pT_truth" + to_string(i);
-    h_jet_pT_notfromtop_truth[i] = new TH1F(jet_pT_truth_title, jet_pT_truth_title, 20, 0, 1000 );
-    TString jet_eta_truth_title = "eta_truth" + to_string(i);
-    h_jet_eta_notfromtop_truth[i] = new TH1F(jet_eta_truth_title, jet_eta_truth_title, 40, -4.0, 4.0);
-    TString jet_phi_truth_title = "phi_truth" + to_string(i);
-    h_jet_phi_notfromtop_truth[i] = new TH1F(jet_phi_truth_title, jet_phi_truth_title, 40, -4.0, 4.0);
-    TString jet_pT_classifier_title = "pT_classifier" + to_string(i);
-    h_jet_pT_notfromtop_classifier[i] = new TH1F(jet_pT_classifier_title, jet_pT_classifier_title, 20, 0, 1000 );
-    TString jet_eta_classifier_title = "eta_classifier" + to_string(i);
-    h_jet_eta_notfromtop_classifier[i] = new TH1F(jet_eta_classifier_title, jet_eta_classifier_title, 40, -4.0, 4.0);
-    TString jet_phi_classifier_title = "phi_classifier" + to_string(i);
-    h_jet_phi_notfromtop_classifier[i] = new TH1F(jet_phi_classifier_title, jet_phi_classifier_title, 40, -4.0, 4.0); 
+  for (int i=0; i<n_steps; i++) {
     TString n_add_jets_truth_title = "n_add_jets_truth" + to_string(i);
     h_n_add_jets_truth[i] = new TH1F(n_add_jets_truth_title, n_add_jets_truth_title, 7, 0, 7);
     TString n_add_jets_classifier_title = "n_add_jets_classifier" + to_string(i);
@@ -129,23 +113,49 @@ void prepare_hists_classifier()
     h_n_add_bjets_classifier[i] = new TH1F(n_add_bjets_classifier_title, n_add_bjets_classifier_title, 6, 0 ,6);
     TString n_add_bjets_truth_title = "n_add_bjets_truth" + to_string(i);
     h_n_add_bjets_truth[i] = new TH1F(n_add_bjets_truth_title, n_add_bjets_truth_title, 6, 0, 6);
-    TString btags_from_top_spectrum_classifier_title = "btags_from_top_spectrum_classifier" + to_string(i);
-    h_btags_from_top_spectrum_classifier[i] = new TH1F(btags_from_top_spectrum_classifier_title, btags_from_top_spectrum_classifier_title, 6, 0, 6);
-    TString btags_from_top_spectrum_truth_title = "btags_from_top_spectrum_truth" + to_string(i);
-    h_btags_from_top_spectrum_truth[i] = new TH1F(btags_from_top_spectrum_truth_title, btags_from_top_spectrum_truth_title, 6, 0, 6);
+    TString add_truth_bjet_pt_title = "add_truth_bjet_pt" + to_string(i);
   }
-  TH1 *h_lead_classifier_jet_tag[3];
-  TH1 *h_lead_classifier_jet_pt[3];
-  TH1 *h_lead_classifier_jet_truth_flav[3];
-  for (int i=0; i<3; i++) {
-    TString lead_classifier_jet_tag_title = "lead_classifier_jet_tag_" + to_string(i);
-    h_lead_classifier_jet_tag[i] = new TH1F(lead_classifier_jet_tag_title, lead_classifier_jet_tag_title, 100, -10, 20);
-    TString lead_classifier_jet_pt_title = "lead_classifier_jet_pt_" + to_string(i);
-    h_lead_classifier_jet_pt[i] = new TH1F(lead_classifier_jet_pt_title, lead_classifier_jet_pt_title, 20, 0, 600);
-    TString lead_classifier_jet_truth_flav_title = "h_lead_classifier_jet_truth_flav_" + to_string(i);
-    h_lead_classifier_jet_truth_flav[i] = new TH1F(lead_classifier_jet_truth_flav_title, lead_classifier_jet_truth_flav_title, 6, 0, 6);
+
+  // Hist for the additional bjets and btags
+  TH1 *h_add_truth_bjet_pt = new TH1F("add_truth_bjet_pt", "add_truth_bjet_pt", 20, 0, 1000);
+  TH1 *h_add_truth_btag_pt = new TH1F("add_truth_btag_pt", "add_truth_btag_pt", 20, 0, 1000);
+  TH1 *h_add_classifier_bjet_pt = new TH1F("add_classifier_bjet_pt", "add_classifier_bjet_pt", 20, 0, 1000);
+  TH1 *h_add_classifier_btag_pt = new TH1F("add_classifier_btag_pt", "add_classifier_btag_pt", 20, 0, 1000);
+  TH1 *h_add_bjet_missmatch = new TH1F("add_bjet_missmatch", "add_bjet_missmatch", 2, 0, 2);
+  TH1 *h_add_btag_missmatch = new TH1F("add_btag_missmatch", "add_btag_missmatch", 2, 0, 2);
+
+  // Missidentified vs. correctly identified additional btags
+  TH1 *h_mi_add_btag_pt = new TH1F("mi_btag_pt", "mi_btag_pt", 20, 0, 1000);
+  TH1 *h_ci_add_btag_pt = new TH1F("ci_btag_pt", "ci_btag_pt", 20, 0, 1000);
+  TH1 *h_mi_add_btag_classifier = new TH1F("mi_add_btag_classifier", "mi_add_btag_classifier", n_bins_classifier, x_min, x_max);
+  TH1 *h_ci_add_btag_classifier = new TH1F("ci_add_btag_classifier", "ci_add_btag_classifier", n_bins_classifier, x_min, x_max);
+  TH1 *h_mi_add_btag_DL1r_idx = new TH1F("mi_add_btag_DL1r_idx", "mi_add_btag_DL1r_idx", 4, 0, 4);
+  TH1 *h_ci_add_btag_DL1r_idx = new TH1F("ci_add_btag_DL1r_idx", "ci_add_btag_DL1r_idx", 4, 0, 4);
+  TH1 *h_mi_add_btag_classifier_idx = new TH1F("mi_add_btag_classifier_idx", "mi_add_btag_classifier_idx", 3, 0, 3);
+  TH1 *h_ci_add_btag_classifier_idx = new TH1F("ci_add_btag_classifier_idx", "ci_add_btag_classifier_idx", 3, 0 ,3);
+  TH1 *h_mi_add_btag_classifier_sliced[n_steps];
+  TH1 *h_ci_add_btag_classifier_sliced[n_steps];
+  for (int cut_iter=0; cut_iter<n_steps; cut_iter++) {
+    TString mi_title = "mi" + to_string(cut_iter);
+    TString ci_title = "ci" + to_string(cut_iter);
+    h_mi_add_btag_classifier_sliced[cut_iter] = new TH1F(mi_title, mi_title, n_bins_classifier, x_min, x_max);
+    h_ci_add_btag_classifier_sliced[cut_iter] = new TH1F(ci_title, ci_title, n_bins_classifier, x_min, x_max);
   }
-  
+
+  // Counters of event for the 3rd BDT btag studies
+  float n_ci_3rd[n_steps] = {0};
+  float n_mi_3rd[n_steps] = {0};
+  float n_all_3rd[n_steps] = {0};
+  float n_tot_3rd = 0;
+  float prob_3rd[n_steps] = {0};
+  float prob_3rd_err[n_steps] = {0};
+  float prob_3rd_err_h[n_steps] = {0};
+  float prob_3rd_err_l[n_steps]= {0};
+  float eff_3rd[n_steps] = {0};
+  float eff_3rd_err[n_steps] = {0};
+  float eff_3rd_err_h[n_steps] = {0};
+  float eff_3rd_err_l[n_steps] = {0};
+  float classifier_cuts_err[n_steps] = {0};
 
   // Declare counters of events
   float n1[n_steps] = {0}; // events with two b-tags from top according to classifier
@@ -180,89 +190,29 @@ void prepare_hists_classifier()
   Int_t nEntries = tree->GetEntries();
   cout << "\tnumber of entries = " << nEntries << endl;
   
+
   for (int entry=0; entry<nEntries; entry++) {
     if (entry%1000==0) { cout << "\t" << entry << "\r"; cout.flush(); }
     tree->GetEntry(entry);
 
-
-    // ///
-    // Fill jet_* and n_add_* hsts in classifier_cut slices
-    // ///
     
-    // Loop over different cuts in classifier
-    for (int cut_iter = 0; cut_iter < n_steps; cut_iter++) {
-      
-      // Counter for btags from top
-      int n_jets_from_top_classifier = 0;
-      int n_btags_from_top_classifier = 0;
-      int n_bjets_from_top_classifier = 0;
-      int n_jets_from_top_truth = 0;
-      int n_btags_from_top_truth = 0;
-      int n_bjets_from_top_truth = 0;
-      
-      // Loop over jets
-      for (int jet_i = 0; jet_i<jet_DL1r_tag_weight->size(); jet_i++) {
-	
-	if ( (*classifier)[jet_i]<classifier_cuts[cut_iter] ) {
-	  n_jets_from_top_classifier++;
-	  if ( (*jet_isbtagged_DL1r_77)[jet_i]==1 ) n_btags_from_top_classifier++;
-	  if ( (*jet_truthflav)[jet_i]==5 ) n_bjets_from_top_classifier++; }
-	
-	if ( (*topHOF)[jet_i]==4 ) {
-	  n_jets_from_top_truth++;
-	  if ( (*jet_isbtagged_DL1r_77)[jet_i] ) n_btags_from_top_truth++;
-	  if ( (*jet_truthflav)[jet_i]==5 ) n_bjets_from_top_truth++; }
-	
-	// Fill DL1r tag weight hist
-	if ( (*classifier)[jet_i] >= classifier_cuts[cut_iter] ) { h_dl1r_tag_weight_sig[cut_iter]->Fill( (*jet_DL1r_tag_weight)[jet_i], weight); }
-	else { h_dl1r_tag_weight_bkg[cut_iter]->Fill( (*jet_DL1r_tag_weight)[jet_i], weight); }
-	
-	// Fill jet_* hists
-	if ( (*topHOF)[jet_i] != 4 ) { 
-	  h_jet_pT_notfromtop_truth[cut_iter]->Fill( (*jet_pt)[jet_i]/1000, weight); 
-	  h_jet_eta_notfromtop_truth[cut_iter]->Fill( (*jet_eta)[jet_i], weight);
-	  h_jet_phi_notfromtop_truth[cut_iter]->Fill( (*jet_phi)[jet_i], weight); }
-	if ( (*classifier)[jet_i] >= classifier_cuts[cut_iter] ) {
-	  h_jet_pT_notfromtop_classifier[cut_iter]->Fill( (*jet_pt)[jet_i]/1000, weight);
-	  h_jet_eta_notfromtop_classifier[cut_iter]->Fill( (*jet_eta)[jet_i], weight);
-	  h_jet_phi_notfromtop_classifier[cut_iter]->Fill( (*jet_phi)[jet_i], weight); }
+    // Get order of jets wrt DL1r value from H to L
+    vector<pair<float, int>> jet_DL1r_jetnumber = {};
+    for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) {
+      jet_DL1r_jetnumber.push_back( make_pair( (*jet_DL1r_tag_weight)[jet_i], jet_i) );
+    } // [jet_i] - loop over jet
 
-      } // [jet_i] - loop over jets
-      
+    // Sort the vector of pairs wrt DL1r tag weight from the highest to the lowest
+    sort(jet_DL1r_jetnumber.rbegin(), jet_DL1r_jetnumber.rend());
 
-      // Fill additional jets hists
-      int n_add_jets_truth = jet_DL1r_tag_weight->size() - n_jets_from_top_truth;
-      h_n_add_jets_truth[cut_iter]->Fill(n_add_jets_truth, weight);
-      int n_add_jets_classifier = jet_DL1r_tag_weight->size() - n_jets_from_top_classifier;
-      h_n_add_jets_classifier[cut_iter]->Fill(n_add_jets_classifier, weight);
-      int n_add_btags_truth = jet_pt->size() - n_btags_from_top_truth;
-      h_n_add_btags_truth[cut_iter]->Fill(n_add_btags_truth, weight);
-      int n_add_btags_classifier = jet_pt->size() - n_btags_from_top_classifier;
-      h_n_add_btags_classifier[cut_iter]->Fill(n_add_btags_classifier, weight);
-      int n_add_bjets_truth = jet_pt->size() - n_bjets_from_top_truth;
-      h_n_add_bjets_truth[cut_iter]->Fill(n_add_bjets_truth, weight);
-      int n_add_bjets_classifier = jet_pt->size() - n_bjets_from_top_classifier;
-      h_n_add_bjets_classifier[cut_iter]->Fill(n_add_bjets_classifier, weight);
-
-        
-      // Update counters of events
-      if (n_jets_from_top_classifier==2) n1[cut_iter] += weight;
-      if (cut_iter==0 && n_jets_from_top_truth==2) n2 += weight;
-      
-    } // [cut_iter] - iteration over classifier slices
-    
-    
-    // Update the total number of events.
-    n3 += weight;
+    // Declare a vector of indeces from the original order for the jets "ordered" wrt the highest DL1r value
+    vector<int> JN_DL1r;
+    for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) {
+      JN_DL1r.push_back(jet_DL1r_jetnumber[jet_i].second);
+    } // [jet_i] - loop over jets
 
 
-
-    // ///
-    // Analyze the jet with the highest BDT value
-    // ///
-
-    // A trick to "arrange" jets wrt other than pT variable 
-    // create a vector of pairs that will consist of {classifier_val, jet_#} pairs 
+    // Get order of jets wrt classifier value from L to H 
     vector<pair<float, int>> jet_classifier_jetnumber = {};
     for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) {
       jet_classifier_jetnumber.push_back( make_pair( (*classifier)[jet_i], jet_i) );
@@ -276,98 +226,252 @@ void prepare_hists_classifier()
     for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) {
       JN.push_back(jet_classifier_jetnumber[jet_i].second);
     } // [jet_i] - loop over jets
+
+   
+
+    // ///
+    // Fill jet_* and n_add_* hsts in classifier_cut slices
+    // ///
     
-    int last_jet_index = (*jet_pt).size() - 1;
-     
-    for (int i=0; i<3; i++) {
-      int idx = last_jet_index - i;
-      h_lead_classifier_jet_tag[i]->Fill( (*jet_DL1r_tag_weight)[JN[idx]], weight );
-      h_lead_classifier_jet_pt[i]->Fill( (*jet_pt)[JN[idx]]/1000, weight );
-      h_lead_classifier_jet_truth_flav[i]->Fill( (*jet_truthflav)[JN[idx]], weight );
-    }
-
-
-
-    // jets from top spectrum
+    // Loop over different cuts in classifier
     for (int cut_iter = 0; cut_iter < n_steps; cut_iter++) {
-      int n_tagged_jets = 0;
-      for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) { if ( (*jet_isbtagged_DL1r_77)[JN[jet_i]] ) n_tagged_jets++ ; }
       
-      if (n_tagged_jets<3) continue;
-      n_tagged_jets = 0;
+      // Counter for btags and bjets from top
+      int n_jets_from_top_classifier = 0;
+      int n_btags_from_top_classifier = 0;
+      int n_bjets_from_top_classifier = 0;
+      int n_jets_from_top_truth = 0;
+      int n_btags_from_top_truth = 0;
+      int n_bjets_from_top_truth = 0;
+      int n_btags = 0;
+      int n_bjets = 0;     
+ 
+      // Loop over jets
+      for (int jet_i = 0; jet_i<jet_DL1r_tag_weight->size(); jet_i++) {
+	
+        // Additional btags and bjets wrt classifier
+	if ( (*classifier)[JN[jet_i]]<classifier_cuts[cut_iter] && n_btags_from_top_classifier<2) {
+	  n_jets_from_top_classifier++;
+	  if ( (*jet_isbtagged_DL1r_77)[JN[jet_i]]==1 ) n_btags_from_top_classifier++;
+	  if ( (*jet_truthflav)[JN[jet_i]]==5 ) n_bjets_from_top_classifier++; }
+	
+        // Additional btags and bjets on the truth level
+	if ( (*topHOF)[JN[jet_i]]==4 ) {
+	  n_jets_from_top_truth++;
+	  if ( (*jet_isbtagged_DL1r_77)[JN[jet_i]]==1 ) n_btags_from_top_truth++;
+	  if ( (*jet_truthflav)[JN[jet_i]]==5 ) n_bjets_from_top_truth++; }
+
+        // Total number of btags and bjets and index of the additional btag and bjet
+        if ( (*jet_isbtagged_DL1r_77)[JN[jet_i]]==1 ) n_btags++;
+        if ( (*jet_truthflav)[JN[jet_i]]==5 ) n_bjets++;
+
+      } // [jet_i] - loop over jets
       
-      for (int jet_i = 0; jet_i<(*jet_pt).size(); jet_i++) {
-	if ( (*jet_isbtagged_DL1r_77)[JN[jet_i]] ) {
-	  n_tagged_jets++ ;
-	  if (n_tagged_jets==1 && (*classifier)[JN[jet_i]]<classifier_cuts[cut_iter] ) h_btags_from_top_spectrum_classifier[cut_iter]->Fill(n_tagged_jets-0.5, weight);
-	  if (n_tagged_jets==2 && (*classifier)[JN[jet_i]]<classifier_cuts[cut_iter] ) h_btags_from_top_spectrum_classifier[cut_iter]->Fill(n_tagged_jets-0.5, weight);
-	  if ( (*topHOF)[JN[jet_i]] == 4) h_btags_from_top_spectrum_truth[cut_iter]->Fill(n_tagged_jets-0.5, weight); }
-      } // [jets_i] - loop over jets
-    } // [cut_iter] - loop over classifier slices
+
+      // Fill additional jets hists
+      int n_add_jets_truth = jet_pt->size() - n_btags_from_top_truth;
+      h_n_add_jets_truth[cut_iter]->Fill(n_add_jets_truth, weight);
+      int n_add_jets_classifier = jet_pt->size() - n_btags_from_top_classifier;
+      h_n_add_jets_classifier[cut_iter]->Fill(n_add_jets_classifier, weight);
+      int n_add_btags_truth = n_btags - n_btags_from_top_truth;
+      h_n_add_btags_truth[cut_iter]->Fill(n_add_btags_truth, weight);
+      int n_add_btags_classifier = n_btags - n_btags_from_top_classifier;
+      h_n_add_btags_classifier[cut_iter]->Fill(n_add_btags_classifier, weight);
+      int n_add_bjets_truth = n_bjets - n_bjets_from_top_truth;
+      h_n_add_bjets_truth[cut_iter]->Fill(n_add_bjets_truth, weight);
+      int n_add_bjets_classifier = n_bjets - n_bjets_from_top_classifier;
+      h_n_add_bjets_classifier[cut_iter]->Fill(n_add_bjets_classifier, weight);
+
+        
+      // Update counters of events
+      if (n_jets_from_top_classifier==2) n1[cut_iter] += weight;
+      if (cut_iter==0 && n_jets_from_top_truth==2) n2 += weight;
+      
+
+
+      // ///
+      // Analyze btag with the highest BDT value
+      // ///
+
+      
+      // Vector of indexes for btags only
+      vector<int> classifier_btags_idxes;
+      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
+	if ( (*jet_isbtagged_DL1r_77)[JN[jet_i]]==1 ) {
+	  classifier_btags_idxes.push_back(JN[jet_i]); } } // [jet_i] - loop over jets
+      
+      // N correctly identified and miss-identified additional btags in classifier cut slices
+      if (classifier_btags_idxes.size()==3) {
+	
+	if ( (*classifier)[classifier_btags_idxes[2]] >= classifier_cuts[cut_iter]) {
+	  n_all_3rd[cut_iter] += weight;
+	  if ( (*topHOF)[classifier_btags_idxes[2]]!=4 ) { 
+	    h_ci_add_btag_classifier_sliced[cut_iter]->Fill( (*classifier)[classifier_btags_idxes[2]], weight); 
+	    n_ci_3rd[cut_iter] += weight; }
+	  else { 
+	    h_mi_add_btag_classifier_sliced[cut_iter]->Fill( (*classifier)[classifier_btags_idxes[2]], weight); 
+	    n_mi_3rd[cut_iter] += weight; }
+	} // 3rd classifier btag with classifier >= cut
+	  
+	// total number of events with 3b excl.
+	if (cut_iter==0) n_tot_3rd += weight;
+      } // 3 btags only
+      
+
+      // Hypothesis: 3rd BDT == the lowest DL1r not from top
+      // test it
+      if (cut_iter==0) {
+
+        int add_DL1r_bjet_idx = 0; // in all jets array
+        int add_DL1r_btag_idx = 0; 
+	int add_DL1r_bjet_idx2 = 0; // in bjets array
+	int add_DL1r_btag_idx2 = 0;
+        bool add_DL1r_bjet_found = false;
+	bool add_DL1r_btag_found = false;
+        int add_classifier_bjet_idx = 0; // in all jets array
+	int add_classifier_btag_idx = 0;
+	int add_classifier_bjet_idx2 = 0; // in bjets array
+	int add_classifier_btag_idx2 = 0; 
+	bool add_classifier_bjet_found = false;
+	bool add_classifier_btag_found = false;
+        int n_bjets_DL1r_order = 0;
+        int n_btags_DL1r_order = 0;
+	int n_bjets_classifier_order = 0;
+	int n_btags_classifier_order = 0;
+
+	
+	// Lopp over jets
+        for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
+
+	  // Search for the highest DL1r bjets not from top
+          if ( (*jet_truthflav)[JN_DL1r[jet_i]]==5 ) {
+            n_bjets_DL1r_order++;
+            if ( (*topHOF)[JN_DL1r[jet_i]]!=4 && add_DL1r_bjet_found==false) {
+              add_DL1r_bjet_idx = JN_DL1r[jet_i]; 
+              add_DL1r_bjet_idx2 = n_bjets_DL1r_order-1;
+	      add_DL1r_bjet_found = true; }
+          } // truthflav==5          
+
+	  // Search for the highest DL1r btag not from top
+          if ( (*jet_isbtagged_DL1r_77)[JN_DL1r[jet_i]]==1 ) {
+            n_btags_DL1r_order++;
+            if ( (*topHOF)[JN_DL1r[jet_i]]!=4 && add_DL1r_btag_found==false) {
+              add_DL1r_btag_idx = JN_DL1r[jet_i]; 
+	      add_DL1r_btag_idx2 = n_btags_DL1r_order-1;
+              add_DL1r_btag_found = true; }
+          } // btagged
+          
+	  // Search for the highest BDT bjet and for the truth level not from top BDT ordered index
+          if ( (*jet_truthflav)[JN[jet_i]]==5 ) {
+	    add_classifier_bjet_idx = JN[jet_i];
+	    n_bjets_classifier_order++; 
+	    add_classifier_bjet_idx2 = n_bjets_classifier_order-1;
+	  } // truthflav == 5
+	    
+	  // Search for the highest BDT btag and for the truth level not from top BDT ordered index
+          if ( (*jet_isbtagged_DL1r_77)[JN[jet_i]]==1 ) {
+	    add_classifier_btag_idx = JN[jet_i];
+	    n_btags_classifier_order++;
+	    add_classifier_btag_idx2 = n_btags_classifier_order-1;
+	  } // btagged
+        
+	} // [jet_i] - loop over jets
+
+	
+        if (n_bjets_DL1r_order==3) {
+          h_add_truth_bjet_pt->Fill( (*jet_pt)[add_DL1r_bjet_idx]/1000, weight);
+          h_add_truth_btag_pt->Fill( (*jet_pt)[add_DL1r_btag_idx]/1000, weight);
+          if (add_DL1r_bjet_idx!=add_classifier_bjet_idx) { h_add_bjet_missmatch->Fill(0.5, weight); }
+          else { h_add_bjet_missmatch->Fill(1.5, weight); }
+        } // 3 bjets
+
+        if (n_btags_DL1r_order==3) {
+	  int classifier_idx = -1;
+	  auto it = find(classifier_btags_idxes.begin(), classifier_btags_idxes.end(), add_DL1r_btag_idx);
+	  if (it != classifier_btags_idxes.end() ) classifier_idx = it - classifier_btags_idxes.begin();
+	  
+          h_add_classifier_bjet_pt->Fill( (*jet_pt)[add_classifier_bjet_idx]/1000, weight);
+          h_add_classifier_btag_pt->Fill( (*jet_pt)[add_classifier_btag_idx]/1000, weight);
+          if (add_DL1r_btag_idx!=add_classifier_btag_idx) {
+	    h_add_btag_missmatch->Fill(0.5, weight); 
+	    h_mi_add_btag_pt->Fill( (*jet_pt)[add_classifier_bjet_idx]/1000, weight); 
+	    h_mi_add_btag_classifier->Fill( (*classifier)[add_classifier_bjet_idx], weight); 
+	    h_mi_add_btag_DL1r_idx->Fill(add_DL1r_btag_idx2, weight); 
+	    h_mi_add_btag_classifier_idx->Fill(classifier_idx, weight); }
+	  else { 
+	    h_add_btag_missmatch->Fill(1.5, weight); 
+	    h_ci_add_btag_pt->Fill( (*jet_pt)[add_classifier_btag_idx]/1000, weight); 
+	    h_ci_add_btag_classifier->Fill( (*classifier)[add_classifier_bjet_idx], weight); 
+	    h_ci_add_btag_DL1r_idx->Fill(add_DL1r_btag_idx2, weight); 
+	    h_ci_add_btag_classifier_idx->Fill(classifier_idx, weight); }
+        } // 3 btags
+     
+ 
+      } // if cut_iter=0
+
+    } // [cut_iter] - iteration over classifier slices
+        
     
+    // Update the total number of events.
+    n3 += weight;
 
   } // [entry] - loop over entries
 
 
 
-  // Number of events
-  int dl1r_tag_plots_tex_begin = write_latex_header("plots_dl1r_tag.tex");
-  int jet_pt_plots_tex_begin = write_latex_header("plots_jet_pt.tex");
-  int jet_eta_plots_begin = write_latex_header("plots_jet_eta.tex");
-  int jet_phi_plots_begin = write_latex_header("plots_jet_phi.tex");
+  // Efficiency of the cut for 3rd BDT btags
+  // Probability to identify the 3rd BDT as the additional btag
+  for (int cut_iter=0; cut_iter<n_steps; cut_iter++) {
+    
+    // Eff 3rd
+    eff_3rd[cut_iter] = n_all_3rd[cut_iter] / n_tot_3rd;
+    eff_3rd_err[cut_iter] = sqrt( n_all_3rd[cut_iter]*(n_tot_3rd-n_all_3rd[cut_iter]) / pow(n_tot_3rd,3) );
+    if ( (eff_3rd[cut_iter]+eff_3rd_err[cut_iter]) >= 1 ) { eff_3rd_err_h[cut_iter] = 1-eff_3rd[cut_iter]; } 
+    else { eff_3rd_err_h[cut_iter] = eff_3rd_err[cut_iter]; }
+    if ( (eff_3rd[cut_iter]-eff_3rd_err[cut_iter]) <= 0 ) { eff_3rd_err_l[cut_iter] = eff_3rd[cut_iter]; }
+    else { eff_3rd_err_l[cut_iter] = eff_3rd_err[cut_iter]; }
+
+    // P 3rd
+    prob_3rd[cut_iter] = n_ci_3rd[cut_iter] / n_all_3rd[cut_iter]; 
+    prob_3rd_err[cut_iter] = sqrt( n_ci_3rd[cut_iter]*(n_all_3rd[cut_iter]-n_ci_3rd[cut_iter]) / pow(n_all_3rd[cut_iter],3) );
+    if ( (prob_3rd[cut_iter]+prob_3rd_err[cut_iter]) >= 1 ) { prob_3rd_err_h[cut_iter] = 1 - prob_3rd[cut_iter]; }
+    else { prob_3rd_err_h[cut_iter] = prob_3rd_err[cut_iter]; }
+    if ( (prob_3rd[cut_iter]-prob_3rd_err[cut_iter]) <= 0 ) { prob_3rd_err_l[cut_iter] = prob_3rd[cut_iter]; }
+    else { prob_3rd_err_l[cut_iter] = prob_3rd_err[cut_iter]; }
+   
+
+    cout << "\n\n\n" << method_name << " cut = " << classifier_cuts[cut_iter] << endl;
+    
+    cout << "\nn_ci_3rd[" << cut_iter << "] = " << n_ci_3rd[cut_iter] << endl;
+    cout << "n_all_3rd[" << cut_iter << "] = " << n_all_3rd[cut_iter] << endl;
+    cout << "prob_3rd[" << cut_iter << "] = " << prob_3rd[cut_iter]-prob_3rd_err_l[cut_iter] << " - " << prob_3rd[cut_iter]+prob_3rd_err_h[cut_iter] << endl;
+    cout << "eff_3rd[" << cut_iter << "] = " << eff_3rd[cut_iter]-eff_3rd_err_l[cut_iter] << " - " << eff_3rd[cut_iter]+eff_3rd_err_h[cut_iter] << endl;
+    
+  } // [cut_iter] - loop over BDT slices
+
+  
+  TGraphAsymmErrors *gr_prob_3rd = new TGraphAsymmErrors(n_steps, &classifier_cuts[0], prob_3rd, classifier_cuts_err, classifier_cuts_err, prob_3rd_err_l, prob_3rd_err_h);
+  TGraphAsymmErrors *gr_eff_3rd  = new TGraphAsymmErrors(n_steps, &classifier_cuts[0], eff_3rd,  classifier_cuts_err, classifier_cuts_err, eff_3rd_err_l,  eff_3rd_err_h);
+  vector<TGraphAsymmErrors*> vec_gr_3rd = {gr_prob_3rd, gr_eff_3rd};
+  vector<TString> vec_gr_3rd_titles = {"P to identify the 3rd " + method_name + " correctly", "Eff of the " + method_name + " cut"};
+  int draw_3rd = draw_graphs(vec_gr_3rd, method_name, "P | Eff.", vec_gr_3rd_titles, method_name + "_3rd_P_and_Eff");
+  
+
+
+  // LaTeX headers
   int n_add_jets_plots_begin = write_latex_header("plots_n_add_jets.tex");
   int n_add_btags_plots_begin = write_latex_header("plots_n_add_btags.tex");
   int n_add_bjets_plots_begin = write_latex_header("plots_n_add_bjets.tex");
   int n_add_btags_vs_bjets_begin = write_latex_header("plots_n_add_btags_vs_bjets.tex");
-  int btags_from_top_spectrum_begin = write_latex_header("plots_btags_from_top_spectrum.tex");
-  
+  int prob_3rd_classifier_btag_begin = write_latex_header("plots_prob_3rd_"+method_name+"_btag.tex");  
+
   for (int cut_iter=0; cut_iter < n_steps; cut_iter++) {
     cout << "\n\nclassifier: " << n1[cut_iter]/n3 << "\ntopHOF: " << n2/n3 << endl << endl;
     
     // Draw plots:   
- 
-    TString dl1r_tag_weights_savename = "DL1r_tag_weight_tmva__" + to_string(cut_iter);
-    int draw_dl1r_tag_weights = draw_hists(h_dl1r_tag_weight_sig[cut_iter], h_dl1r_tag_weight_bkg[cut_iter], "#bf{DL1r tag weight}", dl1r_tag_weights_savename, classifier_cuts[cut_iter], {"Jets not from top\n", "Jets from top"}, true, 0, 0.1);
-    if (cut_iter%2==1) {
-      bool cont_float = true;
-      if (cut_iter==1) cont_float = false;
-      TString gr0_name = "DL1r_tag_weight_tmva__" + to_string(cut_iter-1);
-      TString gr1_name = "DL1r_tag_weight_tmva__" + to_string(cut_iter);
-      int add_plots = add_plots_to_tex_file("plots_dl1r_tag.tex", gr0_name, gr1_name, cont_float); }
-
-    
-    TString jet_pt_savename = "jets_notfromtop_pt__" + to_string(cut_iter);
-    int draw_jet_pt = draw_hists(h_jet_pT_notfromtop_classifier[cut_iter], h_jet_pT_notfromtop_truth[cut_iter], "#bf{jet p_{T}, MeV}", jet_pt_savename, classifier_cuts[cut_iter], {method_name, "true"}, true, 0, 0.6);
-    if (cut_iter%2==1) {
-      bool cont_float = true;
-      if (cut_iter==1) cont_float = false;
-      TString gr0_name = "jets_notfromtop_pt__" + to_string(cut_iter-1);
-      TString gr1_name = "jets_notfromtop_pt__" + to_string(cut_iter);
-      int add_plots = add_plots_to_tex_file("plots_jet_pt.tex", gr0_name, gr1_name, cont_float); }
-    
-    
-    TString jet_eta_savename = "jets_notfromtop_eta__" + to_string(cut_iter);
-    int draw_jet_eta = draw_hists(h_jet_eta_notfromtop_classifier[cut_iter], h_jet_eta_notfromtop_truth[cut_iter],  "#bf{jet #eta}", jet_eta_savename, classifier_cuts[cut_iter], {method_name, "true"}, true, 0, 0.07);
-    if (cut_iter%2==1) {
-      bool cont_float = true;
-      if (cut_iter==1) cont_float = false;
-      TString gr0_name = "jets_notfromtop_eta__" + to_string(cut_iter-1);
-      TString gr1_name = "jets_notfromtop_eta__" + to_string(cut_iter);
-      int add_plots = add_plots_to_tex_file("plots_jet_eta.tex", gr0_name, gr1_name, cont_float); }
-
-      
-    TString jet_phi_savename = "jets_notfromtop_phi__" + to_string(cut_iter);
-    int draw_jet_phi = draw_hists(h_jet_phi_notfromtop_classifier[cut_iter], h_jet_phi_notfromtop_truth[cut_iter], "#bf{jet #phi}", jet_phi_savename, classifier_cuts[cut_iter], {method_name, "true"}, true, 0, 0.06);
-    if (cut_iter%2==1) {
-      bool cont_float = true;
-      if (cut_iter==1) cont_float = false;
-      TString gr0_name = "jets_notfromtop_phi__" + to_string(cut_iter-1);
-      TString gr1_name = "jets_notfromtop_phi__" + to_string(cut_iter);
-      int add_plots = add_plots_to_tex_file("plots_jet_phi.tex", gr0_name, gr1_name, cont_float); }
-      
     
     TString n_add_jets_savename = "n_additional_jets__" + to_string(cut_iter);
-    int draw_n_add_jets = draw_hists(h_n_add_jets_classifier[cut_iter], h_n_add_jets_truth[cut_iter], "#bf{N_{jets}^{additional}}", n_add_jets_savename, classifier_cuts[cut_iter], {method_name, "true"}, true, 0, 0.6);
+    int draw_n_add_jets = draw_hists(h_n_add_jets_classifier[cut_iter], h_n_add_jets_truth[cut_iter], "#bf{N_{jets}^{additional}}", n_add_jets_savename, classifier_cuts[cut_iter], {method_name, "true"}, true, 0, 0.6, 0.5, 1.5);
     if (cut_iter%2==1) {
       bool cont_float = true;
       if (cut_iter==1) cont_float = false;
@@ -377,7 +481,7 @@ void prepare_hists_classifier()
     
   
     TString n_add_btags_savename = "n_additional_btags__" + to_string(cut_iter);
-    int draw_n_add_btags = draw_hists(h_n_add_btags_classifier[cut_iter], h_n_add_btags_truth[cut_iter], "#bf{N_{btags}^{additional}}", n_add_btags_savename, classifier_cuts[cut_iter], {method_name, "truth"}, true, 0, 0.6);
+    int draw_n_add_btags = draw_hists(h_n_add_btags_classifier[cut_iter], h_n_add_btags_truth[cut_iter], "#bf{N_{btags}^{additional}}", n_add_btags_savename, classifier_cuts[cut_iter], {method_name, "truth"}, true, 0, 1.0, 0.5, 1.5);
     if (cut_iter%2==1) {
       bool cont_float = true;
       if (cut_iter==1) cont_float = false;
@@ -387,7 +491,7 @@ void prepare_hists_classifier()
       
     
     TString n_add_bjets_savename = "n_additional_bjets__" + to_string(cut_iter);
-    int draw_n_add_bjets = draw_hists(h_n_add_bjets_classifier[cut_iter], h_n_add_bjets_truth[cut_iter], "#bf{N_{bjets}^{additional}}", n_add_bjets_savename, classifier_cuts[cut_iter], {method_name, "truth"}, true, 0, 0.6);
+    int draw_n_add_bjets = draw_hists(h_n_add_bjets_classifier[cut_iter], h_n_add_bjets_truth[cut_iter], "#bf{N_{bjets}^{additional}}", n_add_bjets_savename, classifier_cuts[cut_iter], {method_name, "truth"}, true, 0, 1.0, 0.5, 1.5);
     if (cut_iter%2==1) {
       bool cont_float = true;
       if (cut_iter==1) cont_float = false;
@@ -397,7 +501,7 @@ void prepare_hists_classifier()
     
   
     TString n_add_btags_vs_bjets_savename = "n_additional_btags_vs_bjets__" + to_string(cut_iter);
-    int draw_n_add_btags_vs_bjets = draw_hists(h_n_add_btags_classifier[cut_iter], h_n_add_bjets_classifier[cut_iter], "#bf{N_{b(tags/jets)}^{additional}}", n_add_btags_vs_bjets_savename, classifier_cuts[cut_iter], {"add. btags", "add. bjets"}, true, 0, 0.6);
+    int draw_n_add_btags_vs_bjets = draw_hists(h_n_add_btags_classifier[cut_iter], h_n_add_bjets_classifier[cut_iter], "#bf{N_{b(tags/jets)}^{additional}}", n_add_btags_vs_bjets_savename, classifier_cuts[cut_iter], {"add. btags", "add. bjets"}, true, 0, 0.6, 0, 4);
     if (cut_iter%2==1) {
       bool cont_float = true;
       if (cut_iter==1) cont_float = false;
@@ -406,56 +510,45 @@ void prepare_hists_classifier()
       int add_plots = add_plots_to_tex_file("plots_n_add_btags_vs_bjets.tex", gr0_name, gr1_name, cont_float); }
 
 
-    TString btags_from_top_spectrum_savename = "btags_from_top_spectrum__" + to_string(cut_iter);
-    int draw_btags_from_top_spectrum = draw_hists(h_btags_from_top_spectrum_classifier[cut_iter], h_btags_from_top_spectrum_truth[cut_iter], "#bf{lowest "+method_name+" b-tags}", btags_from_top_spectrum_savename, classifier_cuts[cut_iter], {method_name, "truth"}, true, 0, 0.6);
+    TString prob_3rd_classifier_btag_savename = "prob_3rd_"+method_name+"_btag" + to_string(cut_iter);
+    int draw_prob_3rd_classifier_btag = draw_hists(h_ci_add_btag_classifier_sliced[cut_iter], h_mi_add_btag_classifier_sliced[cut_iter], "#bf{"+method_name+"}", prob_3rd_classifier_btag_savename, classifier_cuts[cut_iter], {"Correctly identified 3rd add. btag", "Missidentified"}, true, 0, 0.2, 0, 10);
     if (cut_iter%2==1) {
       bool cont_float = true;
       if (cut_iter==1) cont_float = false;
-      TString gr0_name = "btags_from_top_spectrum__" + to_string(cut_iter-1);
-      TString gr1_name = "btags_from_top_spectrum__" + to_string(cut_iter);
-      int add_plots = add_plots_to_tex_file("plots_btags_from_top_spectrum.tex", gr0_name, gr1_name, cont_float); }
-
+      TString gr0_name =  "prob_3rd_"+method_name+"_btag" + to_string(cut_iter-1);
+      TString gr1_name =  "prob_3rd_"+method_name+"_btag" + to_string(cut_iter);
+      int add_plots = add_plots_to_tex_file("plots_prob_3rd_"+method_name+"_btag.tex", gr0_name, gr1_name, cont_float); }
+    
   } // [cut_iter] - loop over cut slices
 
 
-  int dl1r_tag_plots_tex_end = write_latex_end_of_the_file("plots_dl1r_tag.tex");
-  int jet_pt_plots_tex_end = write_latex_end_of_the_file("plots_jet_pt.tex");
-  int jet_eta_plots_end = write_latex_end_of_the_file("plots_jet_eta.tex");
-  int jet_phi_plots_end = write_latex_end_of_the_file("plots_jet_phi.tex");
+  // LaTeX endings
   int n_add_jets_plots_end = write_latex_end_of_the_file("plots_n_add_jets.tex");
   int n_add_btags_plots_end = write_latex_end_of_the_file("plots_n_add_btags.tex");
   int n_add_bjets_plots_end = write_latex_end_of_the_file("plots_n_add_bjets.tex");
   int n_add_btags_vs_bjets_end = write_latex_end_of_the_file("plots_n_add_btags_vs_bjets.tex");
-  int btags_from_top_spectrum_end = write_latex_end_of_the_file("plots_btags_from_top_spectrum.tex");
-  
-  
-
-  // Common title for the three leading classifier jets
-  vector<TString> lead_classifier_jets_titles = {"lead jet " + method_name, "2nd-lead jet " + method_name, "3rd-lead jet " + method_name}; 
-  
-  // DL1r tag weigth of the three leading classifier jets
-  vector<TH1*> collection_h_lead_classifier_jet_tag = {h_lead_classifier_jet_tag[0], h_lead_classifier_jet_tag[1], h_lead_classifier_jet_tag[2]};
-  int draw_lead_classifier_jet_tag = draw_n_hists(collection_h_lead_classifier_jet_tag, lead_classifier_jets_titles, "#bf{DL1r tag weight}", "lead_classifier_jet_tag", true, 0, 0.1);
-
-  // pT of the three leading classifier jets
-  vector<TH1*> collection_h_lead_classifier_jet_pt = {h_lead_classifier_jet_pt[0], h_lead_classifier_jet_pt[1], h_lead_classifier_jet_pt[2]};
-  int draw_lead_classifier_jet_pt = draw_n_hists(collection_h_lead_classifier_jet_pt, lead_classifier_jets_titles, "#bf{p_{T}^{jet}}", "lead_classifier_jet_pt", true, 0, 0.5);
-
-  // truth flav of the three leading classifier jets
-  vector<TH1*> collection_h_lead_classifier_jet_truth_flav = {h_lead_classifier_jet_truth_flav[0], h_lead_classifier_jet_truth_flav[1], h_lead_classifier_jet_truth_flav[2]};
-  int draw_lead_classifier_jet_truth_flav = draw_n_hists(collection_h_lead_classifier_jet_truth_flav, lead_classifier_jets_titles, "#bf{truth flav}", "lead_classifier_jet_truth_flav", true, 0, 1.3);
-  
-  
-  
+  int prob_3rd_classifier_btag_end = write_latex_end_of_the_file("plots_prob_3rd_"+method_name+"_btag.tex");
   
 
+
+  // Draw dditional bjets and btags pt
+  int draw_h_add_bjet_pt = draw_hists(h_add_classifier_bjet_pt, h_add_truth_bjet_pt, "#bf{p_{T}^{add. bjet}}", "additional_bjet_pt", -999, {"Highest " + method_name + " b", "highest DL1r b not from top"}, false, 1, pow(10,5), 0.5, 1.5);
+  int draw_h_add_btag_pt = draw_hists(h_add_classifier_btag_pt, h_add_truth_btag_pt, "#bf{p_{T}^{add. btag}}", "additional_btag_pt", -999, {"Highest " + method_name + " b", "highest DL1r b not from top"}, false, 1, pow(10,5), 0.5, 1.5);
+
+  // Draw add bjet/tag missmatch plots
+  vector<TH1*> h_add_bjet_missmatch_v = {h_add_bjet_missmatch};
+  int draw_h_add_bjet_missmatch = draw_n_hists(h_add_bjet_missmatch_v, {"add. bjets"}, "(miss)match", "N_(in)correctly_identified_additional_bjets", true, 0, 1);
+  vector<TH1*> h_add_btag_missmatch_v = {h_add_btag_missmatch};
+  int draw_h_add_btag_missmatch = draw_n_hists(h_add_btag_missmatch_v, {"add. btags"}, "(miss)match", "N_(in)correctly_identified_additional_btags", true, 0, 1);
+
+  // Draw miss/correctly-identified btags plots
+  int draw_ci_mi_add_btag_pt = draw_hists(h_ci_add_btag_pt, h_mi_add_btag_pt, "#bf{p_{T}^{add. btag}}", "ci_mi_add_btag_pt", -999, {"Correctly identified additional btag", "Missidentified"}, true, 0, 0.6, 0, 5);
+  int draw_ci_truth_add_btag_pt = draw_hists(h_ci_add_btag_pt, h_add_truth_bjet_pt, "#bf{p_{T}^{add. btag}}", "ci_truth_add_btag_pt", -999, {"Correctly identified additional btag", "Truth level"}, true, 0, 1, 0.5, 1.5);
+  int draw_mi_truth_add_btag_pt = draw_hists(h_mi_add_btag_pt, h_add_truth_btag_pt, "#bf{p_{T}^{add. btag}}", "mi_truth_add_btag_pt", -999, {"Missidentified additional btag", "Truth level"}, true, 0, 1, 0, 5);
+  int draw_ci_mi_add_btag_classifier = draw_hists(h_ci_add_btag_classifier, h_mi_add_btag_classifier, "#bf{" + method_name + "}", "ci_mi_add_btag_classifier", -999, {"Correctly identified additional btag", "Missidentified"}, true, 0, 0.2, 0, 6);
+  int draw_ci_mi_add_btag_DL1r_idx = draw_hists(h_ci_add_btag_DL1r_idx, h_mi_add_btag_DL1r_idx, "#bf{index in DL1r order (H->L)}", "ci_mi_add_btag_DL1r_idx", -999, {"Correctly identified additional btag", "Missidentified"}, true, 0, 1, 0.5, 1.5);
+  int draw_ci_mi_add_btag_classifier_idx = draw_hists(h_ci_add_btag_classifier_idx, h_mi_add_btag_classifier_idx, "#bf{index in " + method_name + " order (L->H)}", "ci_mi_add_btag_classifier_idx", -999, {"Correctly identified additional btag", "Missidentified"}, true, 0, 1.3, 0, 10);
   
-  // Draw jet_* hists
-  /*int draw_dl1r_tag_weights = draw_hists(h_dl1r_tag_weight_sig, h_dl1r_tag_weight_bkg, "#bf{DL1r tag weight}", "DL1r_tag_weight_tmva", {"Jets not from top", "Jets from top"});
-  int draw_jet_pt = draw_hists(h_jet_pT_notfromtop_classifier, h_jet_pT_notfromtop_topHOF, "#bf{jet p_{T}, MeV}", "jets_notfromtop_pt", {method_name, "topHOF"}, false);
-  int draw_jet_eta = draw_hists(h_jet_eta_notfromtop_classifier, h_jet_eta_notfromtop_topHOF, "#bf{jet #eta}", "jets_notfromtop_eta", {method_name, "topHOF"});
-  int draw_jet_phi = draw_hists(h_jet_phi_notfromtop_classifier, h_jet_phi_notfromtop_topHOF, "#bf{jet #phi}", "jets_notfromtop_phi", {method_name, "topHOF"});
-  */
 } // END OF MAIN
 
 
@@ -464,7 +557,7 @@ void prepare_hists_classifier()
 // ##############################
 // ##   DRAW "Sig/Bkg" HISTS   ##
 // ##############################
-int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float classifier_cut, vector<TString> legend_entries_titles= {"Sig", "Bkgd"}, bool norm_to_1 = true, double y_min = 0, double y_max = 1)
+int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float classifier_cut, vector<TString> legend_entries_titles= {"Sig", "Bkgd"}, bool norm_to_1 = true, double y_min = 0, double y_max = 1, double ratio_y_min = 0, double ratio_y_max = 4)
 {
   cout << "Drawing " << savename << endl;
 
@@ -482,6 +575,10 @@ int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float
   if (norm_to_1 == true) {
     h_s->Scale(1/h_s_int);
     h_b->Scale(1/h_b_int); }
+  else { 
+    gPad->SetLogy(); 
+    if (y_min==0) y_min = 1; 
+    if (y_max<=y_min) y_max = pow(10,5); }
 
 
   // Define two TPads for distributions and ratio
@@ -503,12 +600,11 @@ int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float
   h_s->SetLineWidth(4);
   h_s->Draw("hist");
   h_s->SetTitle("");
+  h_s->GetYaxis()->SetRangeUser(y_min, y_max);
   if (norm_to_1 == true) {
-    h_s->GetYaxis()->SetRangeUser(y_min, y_max);
     h_s->GetYaxis()->SetTitle("#bf{norm to 1.}"); }
   else {
     gPad->SetLogy();
-    h_s->GetYaxis()->SetRangeUser(1, pow(10,6) );
     h_s->GetYaxis()->SetTitle("#bf{Events}"); }
   h_s->GetYaxis()->SetTitleOffset(0.9);
   h_s->GetXaxis()->SetTitle("");
@@ -522,7 +618,8 @@ int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float
   int n_cut_digits = 0;
   if (classifier_cut >= 0) { n_cut_digits = 4; }
   else { n_cut_digits = 5; }
-  TString classifier_legend_entry = legend_entries_titles[0] + " (cut = " + to_string(classifier_cut).substr(0,n_cut_digits) + ")";
+  TString classifier_legend_entry = legend_entries_titles[0];
+  if (classifier_cut!=-999) classifier_legend_entry += " (cut = " + to_string(classifier_cut).substr(0,n_cut_digits) + ")";
   legend->AddEntry(h_s, classifier_legend_entry);
   legend->AddEntry(h_b, legend_entries_titles[1]);
   legend->SetTextSize(0.04);
@@ -543,7 +640,8 @@ int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float
   h_ratio->SetMarkerStyle(20);
   h_ratio->SetMarkerColor(1);
   h_ratio->SetMarkerSize(1.5);
-  h_ratio->SetLineWidth(0);
+  h_ratio->SetLineWidth(3);
+  h_ratio->SetLineColor(1);
   h_ratio->SetTitle("");
 
   h_ratio->GetYaxis()->SetTitle("Ratio");
@@ -553,13 +651,14 @@ int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float
   h_ratio->GetYaxis()->CenterTitle();
   h_ratio->GetYaxis()->SetRangeUser(0,4);
   h_ratio->GetYaxis()->SetNdivisions(8);
+  h_ratio->GetYaxis()->SetRangeUser(ratio_y_min, ratio_y_max);
 
   h_ratio->GetXaxis()->SetTitle(x_axis_title);
   h_ratio->GetXaxis()->SetTitleOffset(1.0);
   h_ratio->GetXaxis()->SetTitleSize(0.12);
   h_ratio->GetXaxis()->SetLabelSize(0.10);
 
-  h_ratio->Draw("E1");
+  h_ratio->Draw("E1P");
 
   // Draw a line along R=1
   TLine *line = new TLine(h_ratio->GetXaxis()->GetXmin(), 1, h_ratio->GetXaxis()->GetXmax(), 1);
@@ -568,7 +667,8 @@ int draw_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, float
   line->SetLineStyle(7);
   line->Draw("same");
 
-  c->Print("Plots/cut_iter_slices/"+savename+".png");
+  if (classifier_cut==-999) { c->Print("Plots/"+savename+".png"); }
+  else { c->Print("Plots/cut_iter_slices/"+savename+".png"); }
   cout << "Plotted " << savename << endl << endl << endl;
 
   return 0;
@@ -629,6 +729,49 @@ int draw_n_hists(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_tit
 
   c->Print("Plots/" + title + ".png");
   cout << "Drawn " + title + " !\n\n" << endl;
+
+  return 0;
+}
+
+
+
+// ##########################
+// ##     Draw TGraphs     ##
+// ##########################
+int draw_graphs(vector<TGraphAsymmErrors*> gr, TString x_axis_title, TString y_axis_title, vector<TString> legend_entries, TString savename)
+{
+  // Create a canvas
+  TCanvas *c = new TCanvas("c", "c", 1600, 1200);
+  gStyle->SetOptStat(0);
+  gPad->SetGrid();
+
+  // Create a legend 
+  TLegend *legend = new TLegend(0.60, 0.40, 0.85, 0.60);
+
+  // Draw everything nicely 
+  for (int i=0; i<gr.size(); i++) {
+    gr[i]->SetLineColor(colors[i]);
+    gr[i]->SetFillColor(colors[i]);
+    gr[i]->SetFillStyle(3005);
+    gr[i]->SetLineWidth(4);
+
+    if (i==0) {
+      gr[i]->Draw("A3C");
+      gr[i]->SetTitle("");
+      gr[i]->GetXaxis()->SetTitle(x_axis_title);
+      gr[i]->GetYaxis()->SetTitle(y_axis_title);
+      gr[i]->GetYaxis()->SetRangeUser(0, 1.1); }
+    else {
+      gr[i]->Draw("same"); }
+
+    legend->AddEntry(gr[i], legend_entries[i]);
+
+  } // [i] - loop over graphs
+
+  legend->Draw("save");
+
+  // Save the plot
+  c->Print("Plots/" + savename + ".png");
 
   return 0;
 }

@@ -13,12 +13,14 @@
   std::vector<Int_t> *jet_truthflav_out;
   std::vector<Int_t> *jet_truthPartonLabel_out;
   std::vector<Int_t> *jet_GBHInit_topHadronOriginFlag_out;
+  std::vector<Int_t> *jet_nGhosts_bHadron_out;
+  std::vector<Int_t> *jet_nGhosts_cHadron_out;
   std::vector<char> *jet_DL1r_77_out;
   std::vector<char> *jet_isTrueHS_out;
   std::vector<Float_t> *MVA_score;
   
   jet_pt_out = jet_DL1r_out = jet_eta_out = jet_phi_out = jet_e_out = jet_jvt_out = jet_tagWeightBin_DL1r_Continuous_out = MVA_score = 0;
-  jet_truthflav_out = jet_truthPartonLabel_out = jet_GBHInit_topHadronOriginFlag_out = 0;
+  jet_truthflav_out = jet_truthPartonLabel_out = jet_GBHInit_topHadronOriginFlag_out = jet_nGhosts_bHadron_out = jet_nGhosts_cHadron_out = 0;
   jet_DL1r_77_out = jet_isTrueHS_out = 0;
   
 
@@ -162,6 +164,7 @@
   
   // Weights
   Float_t w_mc_pl_out;
+  Float_t w_pu_pl_out;
   
 
   // Computable variables - MVA discriminating variables
@@ -192,6 +195,8 @@
   out_tree->Branch("jet_tagWeightBin_DL1r_Continuous", &jet_tagWeightBin_DL1r_Continuous_out);
   out_tree->Branch("jet_truthflav", &jet_truthflav_out);
   out_tree->Branch("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag_out);
+  out_tree->Branch("jet_nGhosts_bHadron", &jet_nGhosts_bHadron_out);
+  out_tree->Branch("jet_nGhosts_cHadron", &jet_nGhosts_cHadron_out);
   out_tree->Branch("jet_truthPartonLabel", &jet_truthPartonLabel_out);
   out_tree->Branch("jet_isTrueHS", &jet_isTrueHS_out);
   out_tree->Branch(tmva_config_info[0], &MVA_score);
@@ -292,6 +297,7 @@
   out_tree_pl->Branch("topHeavyFlavorFilterFlag", &topHeavyFlavorFilterFlag_pl_out, "topHeavyFlavorFilterFlag/I");
 
   out_tree_pl->Branch("weight_mc", &w_mc_pl_out, "weight_mc/F");
+  out_tree_pl->Branch("weight_pileup", &w_pu_pl_out, "weight_puliup/F");
 
   out_tree_pl->Branch("dR_jet_lep0", &dR_jet_lep0_pl_out);
   out_tree_pl->Branch("dR_jet_lep1", &dR_jet_lep1_pl_out);

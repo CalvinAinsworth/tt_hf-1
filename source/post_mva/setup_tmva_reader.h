@@ -16,32 +16,6 @@
   reader->AddVariable("m_min_jet_jet", &m_min_jet_jet_reader);
   reader->AddVariable("m_max_jet_jet", &m_max_jet_jet_reader);
 
-  // Add spectators from the training
-  /*int topHadronOriginFlag_reader, jet_isbtagged_DL1r_77_reader, jet_truthflav_reader;
-  int eventNumber_reader;
-  float jet_DL1r_reader, tot_event_weight_reader, met_reader, jet_phi_reader, jet_e_reader, mu_pt_reader, mu_eta_reader, mu_phi_reader, mu_e_reader, mu_charge_reader, el_pt_reader, el_eta_reader, el_phi_reader, el_e_reader, el_charge_reader;
-  reader->AddSpectator("topHadronOriginFlag", &topHadronOriginFlag_reader);
-  reader->AddSpectator("jet_isbtagged_DL1r_77", &jet_isbtagged_DL1r_77_reader);
-  reader->AddSpectator("jet_truthflav", &jet_truthflav_reader);
-  reader->AddSpectator("jet_DL1r", &jet_DL1r_reader);
-  reader->AddSpectator("event_number", &eventNumber_reader);
-  reader->AddSpectator("tot_event_weight", &tot_event_weight_reader);
-  reader->AddSpectator("met", &met_reader);
-  reader->AddSpectator("jet_phi", &jet_phi_reader);
-  reader->AddSpectator("jet_e", &jet_e_reader);
-  reader->AddSpectator("mu_pt", &mu_pt_reader);
-  reader->AddSpectator("mu_eta", &mu_eta_reader);
-  reader->AddSpectator("mu_phi", &mu_phi_reader);
-  reader->AddSpectator("mu_e", &mu_e_reader);
-  reader->AddSpectator("mu_charge", &mu_charge_reader);
-  reader->AddSpectator("el_pt", &el_pt_reader);
-  reader->AddSpectator("el_eta", &el_eta_reader);
-  reader->AddSpectator("el_phi", &el_phi_reader);
-  reader->AddSpectator("el_e", &el_e_reader);
-  reader->AddSpectator("el_charge", &el_charge_reader);
-  */
-  // Book MVA method
-  //TString dir = "../TMVA/dataset/weights/";
   TString dir = "dataset/weights/";
   reader->BookMVA(tmva_config_info[0], dir+"MVAnalysis_"+tmva_config_info[0]+".weights.xml");
   

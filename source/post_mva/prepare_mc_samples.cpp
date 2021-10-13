@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
       TString dir3 = dir2 + std::string("/") + argv[did_n];
       gSystem->Exec(std::string("mkdir ") + dir3);
       std::cout << "Created " << dir3 << std::endl;
-     
+
       
       
       // Only nominal ntuples
@@ -183,6 +183,7 @@ int main(int argc, char *argv[])
 	    bool jets_n_cut = false;
 	    bool btags_n2_cut = false;
 	    bool btags_n3_cut = false;
+	    bool btags_n3plus_cut = false;
 	    
 	    // Declare cuts themselves
 	    if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
@@ -195,6 +196,8 @@ int main(int argc, char *argv[])
 	    for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_DL1r_77)[i]==1) btags_n++; }
 	    if (btags_n >= 2) btags_n2_cut = true;
 	    if (btags_n == 3) btags_n3_cut = true;
+	    if (btags_n >= 3) btags_n3plus_cut = true;
+
 	    
 	    // TLorentzVector for leptons and jets
 	    TLorentzVector el_lvec;
@@ -229,9 +232,8 @@ int main(int argc, char *argv[])
 		m_min_jet_jet_out->push_back(m_min_jet_jet);
 		m_max_jet_jet_out->push_back(m_max_jet_jet);
 		min_dR_jet_bjet_out->push_back(min_dR_jet_bjet);
-		
-		
-		}  // [jet_i] - loop over jets
+				
+	      }  // [jet_i] - loop over jets
 
 	      // var_out = var_in for those that we don't need to change
 	      #include "var_out.h"
@@ -248,95 +250,95 @@ int main(int argc, char *argv[])
 	  // ///
 	  // Loop over entries - Partilce level tree
 
-	  if (tree_pl_exists==false) continue;
-
-	  Int_t nEntries_pl = tree_pl->GetEntries();
-	  std::cout << "\tEntris PL = " << nEntries_pl << std::endl;
-	  for (int entry=0; entry<nEntries_pl; entry++) {
+	  if (tree_pl_exists==true) {
 	    
-	    if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
-	    tree_pl->GetEntry(entry);
-	    
-
-	    // Zero vector for output file (particle level tree)
-	    dR_jet_lep0_pl_out->clear();
-            dR_jet_lep1_pl_out->clear();
-            min_dR_jet_lep_pl_out->clear();
-            m_jet_el_pl_out->clear();
-            m_jet_mu_pl_out->clear();
-            m_jet_lep_max_pl_out->clear();
-            jet_m_pl_out->clear();
-            m_min_jet_jet_pl_out->clear();
-            m_max_jet_jet_pl_out->clear();
-            min_dR_jet_bjet_pl_out->clear();
-            MVA_score_pl->clear();
-	    
-	    
-	    // Declare cuts names nad set to false as the default
-	    bool emu_cut = false;
-	    bool OS_cut = false;
-	    bool jets_n_cut = false;
-	    bool btags_n2_cut = false;
-
-	    
-	    // Declare cuts themselves
-	    if ((*el_pt_pl).size()==1 && (*mu_pt_pl).size()==1) emu_cut = true;
-	    if ((*el_charge_pl)[0]!=(*mu_charge_pl)[0]) OS_cut = true;
-	    
-	    int jets_n = (*jet_pt_pl).size();
-	    if (jets_n >= 3) jets_n_cut = true;
-	    
-	    int btags_n = 0;
-	    for (int i=0; i<(*jet_pt_pl).size(); i++) { if ( (*jet_truthPartonLabel_pl)[i]==5 ) btags_n++; }
-	    if (btags_n >= 2) btags_n2_cut = true;
-
-
-	    // TLorentzVector for leptons and jets
-            TLorentzVector el_lvec;
-            TLorentzVector mu_lvec;
-	    std::vector<TLorentzVector> jets_lvec;
-            el_lvec.SetPtEtaPhiE((*el_pt_pl)[0]*0.001, (*el_eta_pl)[0], (*el_phi_pl)[0], (*el_e_pl)[0]*0.001);
-            mu_lvec.SetPtEtaPhiE((*mu_pt_pl)[0]*0.001, (*mu_eta_pl)[0], (*mu_phi_pl)[0], (*mu_e_pl)[0]*0.001);
-            for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
-              TLorentzVector lvec;
-              lvec.SetPtEtaPhiE((*jet_pt_pl)[jet_i]*0.001, (*jet_eta_pl)[jet_i], (*jet_phi_pl)[jet_i], (*jet_e_pl)[jet_i]*0.001);
-	      jets_lvec.push_back(lvec); }
-
-	    
-	    
-	    // 2b (truth) inclusive, emu, OS
-	    if (emu_cut*OS_cut*jets_n_cut*btags_n2_cut == true) {
+	    Int_t nEntries_pl = tree_pl->GetEntries();
+	    std::cout << "\tEntris PL = " << nEntries_pl << std::endl;
+	    for (int entry=0; entry<nEntries_pl; entry++) {
 	      
-	      // Loop over jets
+	      if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
+	      tree_pl->GetEntry(entry);
+	      
+	      
+	      // Zero vector for output file (particle level tree)
+	      dR_jet_lep0_pl_out->clear();
+	      dR_jet_lep1_pl_out->clear();
+	      min_dR_jet_lep_pl_out->clear();
+	      m_jet_el_pl_out->clear();
+	      m_jet_mu_pl_out->clear();
+	      m_jet_lep_max_pl_out->clear();
+	      jet_m_pl_out->clear();
+	      m_min_jet_jet_pl_out->clear();
+	      m_max_jet_jet_pl_out->clear();
+	      min_dR_jet_bjet_pl_out->clear();
+	      MVA_score_pl->clear();
+	      
+	      
+	      // Declare cuts names nad set to false as the default
+	      bool emu_cut = false;
+	      bool OS_cut = false;
+	      bool jets_n_cut = false;
+	      bool btags_n2_cut = false;
+	      bool btags_n3plus_cut = false;
+	      
+	      // Declare cuts themselves
+	      if ((*el_pt_pl).size()==1 && (*mu_pt_pl).size()==1) emu_cut = true;
+	      if ((*el_charge_pl)[0]!=(*mu_charge_pl)[0]) OS_cut = true;
+	      
+	      int jets_n = (*jet_pt_pl).size();
+	      if (jets_n >= 3) jets_n_cut = true;
+	      
+	      int btags_n = 0;
+	      for (int i=0; i<(*jet_pt_pl).size(); i++) { if ( (*jet_truthPartonLabel_pl)[i]==5 ) btags_n++; }
+	      if (btags_n >= 2) btags_n2_cut = true;
+	      if (btags_n >= 3) btags_n3plus_cut = true;
+	      
+	      
+	      // TLorentzVector for leptons and jets
+	      TLorentzVector el_lvec;
+	      TLorentzVector mu_lvec;
+	      std::vector<TLorentzVector> jets_lvec;
+	      el_lvec.SetPtEtaPhiE((*el_pt_pl)[0]*0.001, (*el_eta_pl)[0], (*el_phi_pl)[0], (*el_e_pl)[0]*0.001);
+	      mu_lvec.SetPtEtaPhiE((*mu_pt_pl)[0]*0.001, (*mu_eta_pl)[0], (*mu_phi_pl)[0], (*mu_e_pl)[0]*0.001);
 	      for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
-
-		// Set localVar - treeVar for furthe mva score estimation
-		#include "get_mva_score_pl.h"
-		MVA_score_pl->push_back(mvaValue);
-
-		dR_jet_lep0_pl_out->push_back(dR_jet_lep0);
-                dR_jet_lep1_pl_out->push_back(dR_jet_lep1);
-                min_dR_jet_lep_pl_out->push_back(min_dR_jet_lep);
-                m_jet_el_pl_out->push_back(m_jet_el);
-                m_jet_mu_pl_out->push_back(m_jet_mu);
-                m_jet_lep_max_pl_out->push_back(m_jet_lep_max);
-                jet_m_pl_out->push_back(jet_m);
-                m_min_jet_jet_pl_out->push_back(m_min_jet_jet);
-                m_max_jet_jet_pl_out->push_back(m_max_jet_jet);
-                min_dR_jet_bjet_pl_out->push_back(min_dR_jet_bjet);
-		
-	      } // [jet_i] - loop over jets
-
-	      // var_out = var_in for those that we don't need to change
-	      #include "var_out_pl.h"
-
-	      out_tree_pl->Fill();
+		TLorentzVector lvec;
+		lvec.SetPtEtaPhiE((*jet_pt_pl)[jet_i]*0.001, (*jet_eta_pl)[jet_i], (*jet_phi_pl)[jet_i], (*jet_e_pl)[jet_i]*0.001);
+		jets_lvec.push_back(lvec); }
 	      
-	    } // if - 2b (truth) inclusive, emu, OS
+	      
+	      
+	      // 2b (truth) inclusive, emu, OS
+	      if (emu_cut*OS_cut*jets_n_cut*btags_n2_cut == true) {
+		
+		// Loop over jets
+		for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
+		  
+		  // Set localVar - treeVar for furthe mva score estimation
+		  #include "get_mva_score_pl.h"
+		  MVA_score_pl->push_back(mvaValue);
+		  dR_jet_lep0_pl_out->push_back(dR_jet_lep0);
+		  dR_jet_lep1_pl_out->push_back(dR_jet_lep1);
+		  min_dR_jet_lep_pl_out->push_back(min_dR_jet_lep);
+		  m_jet_el_pl_out->push_back(m_jet_el);
+		  m_jet_mu_pl_out->push_back(m_jet_mu);
+		  m_jet_lep_max_pl_out->push_back(m_jet_lep_max);
+		  jet_m_pl_out->push_back(jet_m);
+		  m_min_jet_jet_pl_out->push_back(m_min_jet_jet);
+		  m_max_jet_jet_pl_out->push_back(m_max_jet_jet);
+		  min_dR_jet_bjet_pl_out->push_back(min_dR_jet_bjet);
+		  
+		} // [jet_i] - loop over jets
+		
+		// var_out = var_in for those that we don't need to change
+		#include "var_out_pl.h"
+
+		out_tree_pl->Fill();
+		
+	      } // if - 2b (truth) inclusive, emu, OS
 	    
-	  } // [entry] - loop over entries, particle level tree
+	    } // [entry] - loop over entries, particle level tree
 	  
-	  
+	  } // if PL tree exists
 
 
 	  // ///
@@ -375,4 +377,5 @@ int main(int argc, char *argv[])
   } // [did_n] did number (1,2,3..) from the command line arguments
 
   std::cout << "\n\nGreat success!" << std::endl;
+  return 0;
 }

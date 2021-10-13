@@ -70,7 +70,7 @@ void study_tmva_perpormnce_results()
   
   
   // Open the tfile - mtva ouput
-  TFile *tmva_file = new TFile("TMVA.root");
+  TFile *tmva_file = new TFile("results/004/TMVA.root");
 
   
   // Open the test tree

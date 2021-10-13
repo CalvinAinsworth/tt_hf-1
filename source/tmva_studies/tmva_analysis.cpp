@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 
   
   // Create an output file
-  TFile *outputFile = new TFile("results/TMVA.root", "RECREATE");
+  TFile *outputFile = new TFile("/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/TMVA_pl.root", "RECREATE");
 
 
   // Create factory and dataloader
@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
   
   // Open an input file
-  TFile *input = TFile::Open("results/tt_hf_MVA_input.root");
+  TFile *input = TFile::Open("/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/tt_hf_MVA_input_pl.root");
   std::cout << "==> Opened an input file\n" << std::endl;
 
 

@@ -101,7 +101,7 @@ tmva_file.Close()
 
 # Create the file and a tree
 new_file = ROOT.TFile.Open("skimmed_test_ntuple.root", "RECREATE")
-new_tree = ROOT.TTree("test", "Tree with entries from test tmva tree")
+new_tree = ROOT.TTree("nominal", "Tree with entries from test tmva tree")
 
 # Create branches for "single" values per event
 weight_save    = array("f", [0.0])

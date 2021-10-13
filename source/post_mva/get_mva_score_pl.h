@@ -12,7 +12,7 @@
 
   float m_jet_el, m_jet_mu, m_jet_lep_max;
   m_jet_el = (jets_lvec[jet_i] + el_lvec).M();
-  m_jet_mu = (jets_lvec[jet_i] + mu_lvec).M();;
+  m_jet_mu = (jets_lvec[jet_i] + mu_lvec).M();
   m_jet_lep_max = std::max(m_jet_el, m_jet_mu);
 
   float jet_m = (jets_lvec[jet_i]).M();

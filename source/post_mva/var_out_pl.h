@@ -44,3 +44,4 @@
 
   // Weights
   w_mc_pl_out = w_mc_pl;
+  w_pu_pl_out = w_pu_pl;

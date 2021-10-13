@@ -3,6 +3,9 @@
 echo "Compiling prepare_hists_mc.cpp"
 gcc source/pre_mva_studies/prepare_hists_mc.cpp   source/common_functions.cpp -o run/prepare_hists_mc   -lstdc++ `root-config --cflags --glibs`
 
+echo "Compiling prepare_hists_mc_pl.cpp"
+gcc source/pre_mva_studies/prepare_hists_mc_pl.cpp source/common_functions.cpp -o run/prepare_hists_mc_pl -lstdc++ `root-config --cflags --glibs`
+
 echo "Compiling prepare_hists_data.cpp"
 gcc source/pre_mva_studies/prepare_hists_data.cpp source/common_functions.cpp -o run/prepare_hists_data -lstdc++ `root-config --cflags --glibs`
 
@@ -18,5 +21,11 @@ gcc source/tmva_studies/tmva_analysis.cpp source/common_functions.cpp -o run/tmv
 echo "Compiling draw_tmva_plots.cpp"
 gcc source/tmva_studies/draw_tmva_plots.cpp source/common_functions.cpp source/draw_functions.cpp -o run/draw_tmva_plots -lstdc++ `root-config --cflags --glibs`
 
-echo "Compiling prepare_bkg_samples.cpp"
-gcc source/post_mva/prepare_bkg_samples.cpp source/common_functions.cpp -o run/prepare_bkg_samples -lstdc++ `root-config --cflags --glibs` -lTMVA
+echo "Compiling prepare_mc_samples.cpp"
+gcc source/post_mva/prepare_mc_samples.cpp source/common_functions.cpp -o run/prepare_bkg_samples -lstdc++ `root-config --cflags --glibs` -lTMVA
+
+echo "Compiling prepare_data_samples.cpp"
+gcc source/post_mva/prepare_data_samples.cpp source/common_functions.cpp -o run/prepare_data_samples -lstdc++ `root-config --cflags --glibs` -lTMVA
+
+echo "Compiling jets_from_tops_stat.cpp"
+gcc source/post_mva/jets_from_tops_stat.cpp source/common_functions.cpp source/draw_functions.cpp -o run/jets_from_tops_stat -lstdc++ `root-config --cflags --glibs` -lTMVA

@@ -13,11 +13,13 @@
   std::vector<Int_t> *jet_truthflav;
   std::vector<Int_t> *jet_truthPartonLabel;
   std::vector<Int_t> *jet_GBHInit_topHadronOriginFlag;
+  std::vector<Int_t> *jet_nGhosts_bHadron;
+  std::vector<Int_t> *jet_nGhosts_cHadron;
   std::vector<char> *jet_DL1r_77;
   std::vector<char> *jet_isTrueHS;
 
   jet_pt = jet_DL1r = jet_eta = jet_phi = jet_e = jet_jvt = jet_tagWeightBin_DL1r_Continuous = 0;
-  jet_truthflav = jet_truthPartonLabel = jet_GBHInit_topHadronOriginFlag = 0;
+  jet_truthflav = jet_truthPartonLabel = jet_GBHInit_topHadronOriginFlag = jet_nGhosts_bHadron = jet_nGhosts_cHadron = 0;
   jet_DL1r_77 = jet_isTrueHS = 0;
 
   
@@ -161,6 +163,8 @@
   tree_nominal->SetBranchAddress("jet_tagWeightBin_DL1r_Continuous", &jet_tagWeightBin_DL1r_Continuous);
   tree_nominal->SetBranchAddress("jet_truthflav", &jet_truthflav);
   tree_nominal->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag);
+  tree_nominal->SetBranchAddress("jet_nGhosts_bHadron", &jet_nGhosts_bHadron);
+  tree_nominal->SetBranchAddress("jet_nGhosts_cHadron", &jet_nGhosts_cHadron);
   tree_nominal->SetBranchAddress("jet_truthPartonLabel", &jet_truthPartonLabel);
   tree_nominal->SetBranchAddress("jet_isTrueHS", &jet_isTrueHS);  
   
@@ -250,5 +254,6 @@
     tree_pl->SetBranchAddress("topHeavyFlavorFilterFlag", &topHeavyFlavorFilterFlag_pl);
     
     tree_pl->SetBranchAddress("weight_mc", &w_mc_pl);
+    tree_pl->SetBranchAddress("weight_pileup", &w_pu_pl);
     
   } // if tree_pl_exists == true
