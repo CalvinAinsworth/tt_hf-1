@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 
 
   // Setup MVA reader
-  #include "setup_tmva_reader.h"
+  #include "include/setup_tmva_reader.h"
 
 
   // Create a list of directories with ntuples
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
       TString savefile_name = dir2 + std::string("/") + std::to_string(job_number) + std::string(".root");
       TFile *out_ntuple = new TFile(savefile_name, "RECREATE");
       TTree *out_tree = new TTree("nominal", "nominal");
-      #include "savefile_data_declare_branches.h"
+      #include "include/savefile_data_declare_branches.h"
 
 
       // Open the input ntuple
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
       
       // Set all the needed branches
-      #include "branches_data.h"
+      #include "include/branches_data.h"
       
       
       // ///
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 	  for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
 	    
 	    // Set localVar = treeVar for further mva score estimation
-	    #include "get_mva_score.h"
+	    #include "include/get_mva_score.h"
 	    MVA_score->push_back(mvaValue);
 
 	    dR_jet_lep0_out->push_back(dR_jet_lep0);
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 	  } // [jet_i] - loop over jets
 
 	  // var_out = var_in for those that we don't need to change
-	  #include "var_out_data.h"
+	  #include "include/var_out_data.h"
 
 	  out_tree->Fill();
 	  

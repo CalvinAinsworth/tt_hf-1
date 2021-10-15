@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
 
 
   // Declare histograms
-  #include "declare_hists_data_mc.h"
-  #include "declare_hists_sig_bkg.h"
+  #include "include/declare_hists_data_mc.h"
+  #include "include/declare_hists_sig_bkg.h"
 
   
   // Declare TFile, TTree, TBranches and variables for MVA
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
   if (std::string(argv[1]) == "tt") MVA_tfile = new TFile("results/tt_hf_MVA_input.root", "RECREATE");
   TTree *MVA_sig_tree = new TTree("Signal", "inputS");
   TTree *MVA_bkg_tree = new TTree("Background", "inputB");
-  #include "set_mva_ntuple_branches.h"
+  #include "include/set_mva_ntuple_branches.h"
 
 
   
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 
 
 	// Set all the needed branches
-	#include "branches.h"
+	#include "include/branches.h"
       
 
 
@@ -151,8 +151,9 @@ int main(int argc, char *argv[])
 
 	  // Compute weights
 	  double weight = 1;
-	  #include "compute_weight.h"
-	    
+	  #include "include/compute_weight.h"
+	  weight = w_mc * w_pu * w_leptonSF * w_DL1r_77 * w_jvt * weight_lumi;
+
 	  
 	  // Declare cuts names
 	  bool emu_cut = false;
@@ -553,7 +554,7 @@ int main(int argc, char *argv[])
 	      // ///
 	      // Populate the MVA ntuple with values
               if (std::string(argv[1])=="tt") { 
-                #include "populate_mva_ntuple.h"
+                #include "include/populate_mva_ntuple.h"
 	      }
 	      
 	    } // [jet_i] - loop over jets (populating MVA input ntuple)
@@ -600,9 +601,9 @@ int main(int argc, char *argv[])
   TString savename = std::string("results/hists_") + std::string(argv[1]) + std::string("_test.root");
   TFile *hists_file = new TFile(savename, "RECREATE");
   hists_file->cd();
-  #include "write_hists_data_mc.h"
+  #include "include/write_hists_data_mc.h"
   if (std::string(argv[1])=="tt") {
-    #include "write_hists_sig_bkg.h"
+    #include "include/write_hists_sig_bkg.h"
   }
   hists_file->Close();
 	  

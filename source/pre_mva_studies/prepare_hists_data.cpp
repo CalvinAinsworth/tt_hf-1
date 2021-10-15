@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 
 
   // Declare histograms
-  #include "declare_hists_data_mc.h"
+  #include "include/declare_hists_data_mc.h"
 
 
   // Loop over directories with ntuples collections
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
       
       
       // Set all needed branches
-      #include "branches.h"
+      #include "include/branches.h"
       std::cout << "\nSome branches don't exists for data - that's normal and won't affect performance" << std::endl;
 
       
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
   // Save hists
   TFile *hists_file = new TFile("results/hists_data_test.root", "RECREATE");
   hists_file->cd();
-  #include "write_hists_data_mc.h"
+  #include "include/write_hists_data_mc.h"
   hists_file->Close();
 
   return 0;

@@ -21,6 +21,12 @@ gcc source/tmva_studies/tmva_analysis.cpp source/common_functions.cpp -o run/tmv
 echo "Compiling draw_tmva_plots.cpp"
 gcc source/tmva_studies/draw_tmva_plots.cpp source/common_functions.cpp source/draw_functions.cpp -o run/draw_tmva_plots -lstdc++ `root-config --cflags --glibs`
 
+echo "Compiling study_tmva_perpormnce_results.cpp"
+gcc source/tmva_studies/study_tmva_perpormnce_results.cpp source/common_functions.cpp source/draw_functions.cpp -o run/study_tmva_perpormnce_results -lstdc++ `root-config --cflags --glibs` -lTMVA
+
+echo "Compiling optimize_classifier_cut.cpp"
+gcc source/tmva_studies/optimize_classifier_cut.cpp source/common_functions.cpp source/draw_functions.cpp -o run/optimize_classifier_cut -lstdc++ `root-config --cflags --glibs` -lTMVA
+
 echo "Compiling prepare_mc_samples.cpp"
 gcc source/post_mva/prepare_mc_samples.cpp source/common_functions.cpp -o run/prepare_bkg_samples -lstdc++ `root-config --cflags --glibs` -lTMVA
 

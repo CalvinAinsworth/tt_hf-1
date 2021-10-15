@@ -21,7 +21,11 @@ int main(int argc, char *argv[])
     std::cout << "Try \"tt\" or \"singletop\" or \"ttV\" or \"ttH\" or \"diboson\" or \"z_jets\" or \"other\" (without quotes)\n" << std::endl;
     return 0;
   }
-  
+
+
+  // Set rand seed
+  srand(time(0));
+
   
   // Create directory for results
   gSystem->Exec("mkdir results");
@@ -33,19 +37,27 @@ int main(int argc, char *argv[])
   
   
   // Declare histograms
-  #include "declare_hists_sig_bkg.h"
+  #include "include/declare_hists_sig_bkg.h"
   
   
   // Declare TFile, TTree, TBranches and variables for MVA
   //TString tmva_file_name = std::string("results/") + std::string(argv[1]) + std::string("_MVA_input.root");
   //TFile *MVA_tfile =  new TFile(tmva_file_name, "RECREATE");
   TFile *MVA_tfile;
-  if (std::string(argv[1]) == "tt") MVA_tfile = new TFile("results/tt_hf_MVA_input_pl.root", "RECREATE");
+  if (std::string(argv[1]) == "tt") MVA_tfile = new TFile("results/tt_hf_MVA_input_pl_small.root", "RECREATE");
   TTree *MVA_sig_tree = new TTree("Signal", "inputS");
   TTree *MVA_bkg_tree = new TTree("Background", "inputB");
-  #include "set_mva_ntuple_branches.h"
-  
-  
+  #include "include/set_mva_ntuple_branches.h"
+
+
+  // Declare events counters for each mc16 campaign
+  TString job_dids_str[4] = {"410472", "411076", "411077", "411078"};
+  TString mc16_str[3] = {"mc16a", "mc16d", "mc16e"};
+  int n_entries[3][4] = {0};
+  int limit[3][4] = {{105039, 6936, 6430, 7433}, {130823, 8768, 8026, 9253}, {183073, 11407, 10594, 12219}}; // target 250k
+  int total[3][4] = {{8084630, 533836, 494911, 572080}, {10069100, 674811, 617779, 712204}, {14090700, 877935, 815403, 940430}};
+  int processed[3][4] = {0};
+
   
   // Loop over directories with ntuples collections
   for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++) {
@@ -71,6 +83,10 @@ int main(int argc, char *argv[])
     
     // We work with mc only
     if (is_data == true) continue;
+
+
+    // Test option
+    //if (is_mc16a!=true) continue;
 
     
     // Only nominal trees
@@ -134,10 +150,10 @@ int main(int argc, char *argv[])
 
 
 	// Set all the needed branches
-	#include "branches_pl.h"
+	#include "include/branches_pl.h"
       
 
-
+	
 	// Loop over entries
 	Int_t nEntries = tree_pl->GetEntries();
         std::cout << "\tEntries = " << nEntries << std::endl;
@@ -149,7 +165,9 @@ int main(int argc, char *argv[])
 
 
 	  // Compute weights
-	  double weight = 1;//w_mc*w_pu;
+	  double weight = 1;
+	  #include "include/compute_weight.h"
+	  weight = w_mc*weight_lumi;
 	    
 	  
 	  // Declare cuts names
@@ -202,7 +220,7 @@ int main(int argc, char *argv[])
 	  // ///
 	  if (emu_cut*OS_cut*bjets_n2_cut*topHFFF_cut*jets_n_cut == true) {	    
 
-
+	    
 	    // ///
 	    // Variables for min dR (sub)leaning bjets and leptons, and dR between bjet and 1st/2nd leptons - sig/bkg and data/mc
 	    double min_dR0_top = 999999.; // leading lepton
@@ -508,15 +526,42 @@ int main(int argc, char *argv[])
 	      // ///
 	      // Populate the MVA ntuple with values
               if (std::string(argv[1])=="tt") {
-		#include "populate_mva_ntuple.h"
-	      }
+
+		for (int i=0; i<3; i++) {
+		  for (int j=0; j<4; j++){
+		    if (mc16_str[i]==dir_path_components[last_element_index] && job_DID==job_dids_str[j]) {
+		      
+		      int randomval = rand()%6; // random in the range of  [0,5] (throw a dice! :) )
+		      // Select events if: 
+		      // 1. random==1 and limit hasn't been reached
+		      // 2. or when there is almost no room left to reach the limit. 
+		      // Give it factor of 4 headroom: we have 3 flavors of dilepton events (ee(25%), emu(50%), mumu(25%)) randomly saved
+		      if ( randomval==0 && n_entries[i][j]<5*limit[i][j]) {
+			n_entries[i][j]++;      
+			#include "include/populate_mva_ntuple.h"
+		      } // if - an event was selected (randomly) and the limit is not exeeded
+		      
+		    } // if - figuring out the actual mc16+DID pair
+		  } // [j] - loop over 4 DIDs
+		} // [i] - loop over mc16X
+
+	      } // if - tt samples
 	      
 	    } // [jet_i] - loop over jets (populating MVA input ntuple)
 	    
 	    
 	  } // 2b (jets), emu, OS cuts
+
+
+	  // Increment the number of precessed entries per mc16+did
+	  for (int i=0; i<3; i++) {
+	    for (int j=0; j<4; j++) {
+	      if (mc16_str[i]==dir_path_components[last_element_index] && job_DID==job_dids_str[j]) processed[i][j]++;
+	    }
+	  }
+
 	  
-	} // [entry] - loop over entries
+	} // [entry] - loop over PL entries
 	
 	ntuple->Close();
 	
@@ -526,12 +571,12 @@ int main(int argc, char *argv[])
     
   } // [dir_counter] - loop over mc16/data campaigns
 	  
-
+  
   // Write hists
   TString savename = std::string("results/hists_") + std::string(argv[1]) + std::string("_test_pl.root");
   TFile *hists_file = new TFile(savename, "RECREATE");
   hists_file->cd();
-  #include "write_hists_sig_bkg.h"
+  #include "include/write_hists_sig_bkg.h"
 
   
   // Save trees to the MVA ntuple
@@ -543,6 +588,15 @@ int main(int argc, char *argv[])
     MVA_bkg_tree->Write("Background", TTree::kOverwrite);
     MVA_tfile->Close();
   }
-	  
+  
+  for (int i=0; i<3; i++) {
+    std::cout << mc16_str << std::endl;
+    for (int j=0; j<4; j++)
+      {
+	std::cout << job_dids_str[j] << ", n_saved: " << n_entries[i][j] << " ,\t limit: " << limit[i][j] << std::endl;
+       }
+  }
+  
+
   return 0;
 } // END OF MAIN

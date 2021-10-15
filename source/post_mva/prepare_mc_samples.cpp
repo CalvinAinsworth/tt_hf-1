@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
   
 
   // Seup MVA reader
-  #include "setup_tmva_reader.h"
+  #include "include/setup_tmva_reader.h"
   
   
   // Loop over provided DIDs:
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	  TFile *out_ntuple = new TFile(savefile_name, "RECREATE");
 	  TTree *out_tree_pl = new TTree("particleLevel", "particleLevel");
 	  TTree *out_tree = new TTree("nominal", "nominal");
-          #include "savefile_declare_branches.h"
+          #include "include/savefile_declare_branches.h"
 
 	  
 	  // Open the ntuple
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 	  
 	  
 	  // Set all the needed branches
-          #include "branches.h"
+          #include "include/branches.h"
 	  
 	  
 	  // Ignore the "ReadStreamerInfo, class:string, illegal uid=-2" error
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 	    
 	    // Compute weights
 	    double weight = 1;
-	    #include "compute_weight.h"
+	    #include "include/compute_weight.h"
 	    
 
 	    // Decalre cuts names and set to false as the defualt
@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
 	      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
 	          
 		// Set localVar = treeVar for further mva score estimation
-                #include "get_mva_score.h"
+                #include "include/get_mva_score.h"
 		MVA_score->push_back(mvaValue);
 		
 		dR_jet_lep0_out->push_back(dR_jet_lep0);
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
 	      }  // [jet_i] - loop over jets
 
 	      // var_out = var_in for those that we don't need to change
-	      #include "var_out.h"
+	      #include "include/var_out.h"
 
 	      out_tree->Fill();
 	      
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
 		for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
 		  
 		  // Set localVar - treeVar for furthe mva score estimation
-		  #include "get_mva_score_pl.h"
+		  #include "include/get_mva_score_pl.h"
 		  MVA_score_pl->push_back(mvaValue);
 		  dR_jet_lep0_pl_out->push_back(dR_jet_lep0);
 		  dR_jet_lep1_pl_out->push_back(dR_jet_lep1);
@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
 		} // [jet_i] - loop over jets
 		
 		// var_out = var_in for those that we don't need to change
-		#include "var_out_pl.h"
+		#include "include/var_out_pl.h"
 
 		out_tree_pl->Fill();
 		

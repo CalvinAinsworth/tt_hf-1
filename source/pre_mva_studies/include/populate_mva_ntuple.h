@@ -16,7 +16,7 @@
     jet_pt_MVA_sig = (*jet_pt)[jet_i];
     jet_eta_MVA_sig = (*jet_eta)[jet_i];
     jet_m_MVA_sig = jet_m*1000; // GeV --> MeV
-    
+    topHOF_sig = (*topHadronOriginFlag)[jet_i];
     
     MVA_sig_tree->Fill();
   }
@@ -39,6 +39,7 @@
     jet_eta_MVA_bkg = (*jet_eta)[jet_i];
     jet_m_MVA_bkg = (*jet_eta)[jet_i];
     jet_m_MVA_bkg = jet_m*1000; // GeV --> MeV
-    
+    topHOF_bkg = (*topHadronOriginFlag)[jet_i];
+
     MVA_bkg_tree->Fill();
   }

@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
   
   // Open an input file
-  TFile *input = TFile::Open("/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/tt_hf_MVA_input_pl.root");
+  TFile *input = TFile::Open("/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/tt_hf_MVA_input_pl_small.root");
   std::cout << "==> Opened an input file\n" << std::endl;
 
 
@@ -30,18 +30,19 @@ int main(int argc, char *argv[])
   dataloader->AddVariable("min_dR_jet_lep", 'F');
   dataloader->AddVariable("m_jet_el", 'F');
   dataloader->AddVariable("m_jet_mu", 'F');
-  dataloader->AddVariable("m_jet_lep_max", 'F');
+  //dataloader->AddVariable("m_jet_lep_max", 'F');
   dataloader->AddVariable("min_dR_jet_bjet", 'F');
   dataloader->AddVariable("jet_pt", 'F');
   dataloader->AddVariable("jet_eta", 'F');
-  dataloader->AddVariable("jet_m", 'F');
-  dataloader->AddVariable("m_min_jet_jet", 'F');
-  dataloader->AddVariable("m_max_jet_jet", 'F');
+  //dataloader->AddVariable("jet_m", 'F');
+  //dataloader->AddVariable("m_min_jet_jet", 'F');
+  //dataloader->AddVariable("m_max_jet_jet", 'F');
   std::cout << "==> Added variables\n" << std::endl;
 
 
-  // We're not adding any spectators
-  std::cout << "==> Skipping spectators\n" << std::endl;
+  // Add one spectator
+  dataloader->AddSpectator("jet_GBHInit_topHadronOriginFlag", 'I');
+  std::cout << "==> Added a spectator\n" << std::endl;
 
   
   // Add weights

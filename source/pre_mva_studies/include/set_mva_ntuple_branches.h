@@ -14,6 +14,7 @@
   Float_t jet_pt_MVA_sig; 
   Float_t jet_eta_MVA_sig; 
   Float_t jet_m_MVA_sig;
+  Int_t topHOF_sig;
 
   // Bkg tree variables
   Float_t dR_jet_lep0_MVA_bkg;
@@ -31,6 +32,7 @@
   Float_t jet_pt_MVA_bkg;
   Float_t jet_eta_MVA_bkg;
   Float_t jet_m_MVA_bkg;
+  Int_t topHOF_bkg;
 
   // Sig branches
   MVA_sig_tree->Branch("dR_jet_lep0", &dR_jet_lep0_MVA_sig, "dR_jet_lep0_MVA_sig/F");
@@ -48,6 +50,7 @@
   MVA_sig_tree->Branch("jet_pt", &jet_pt_MVA_sig, "jet_pt/F");
   MVA_sig_tree->Branch("jet_eta", &jet_eta_MVA_sig, "jet_eta/F");
   MVA_sig_tree->Branch("jet_m", &jet_m_MVA_sig, "jet_m_MVA_sig/F");
+  MVA_sig_tree->Branch("jet_GBHInit_topHadronOriginFlag", &topHOF_sig, "jet_GBHInit_topHadronOriginFlag/I");
 
   
   // Bkg branches
@@ -66,3 +69,4 @@
   MVA_bkg_tree->Branch("jet_pt", &jet_pt_MVA_bkg, "jet_pt/F");
   MVA_bkg_tree->Branch("jet_eta", &jet_eta_MVA_bkg, "jet_eta/F");
   MVA_bkg_tree->Branch("jet_m", &jet_m_MVA_bkg, "jet_m_MVA_bkg/F");
+  MVA_bkg_tree->Branch("jet_GBHInit_topHadronOriginFlag", &topHOF_bkg, "jet_GBHInit_topHadronOriginFlag/I");

@@ -160,7 +160,7 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
 
   std::vector<Int_t> colors = {632, 416+1, 600, 800-3, 432+2, 616+1, 400+1};
 
-  gStyle->SetPaintTextFormat("0.3f");
+  //gStyle->SetPaintTextFormat("0.3f");
 
   TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 1200);
   gStyle->SetOptStat(0);
@@ -186,8 +186,8 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
     if (normalize==true) h_vec[i]->Scale(sf);
 
     if (i==0) {
-      h_vec[i]->Draw("hist text00");
-      //h_vec[i]->Draw("hist"); 
+      //h_vec[i]->Draw("hist text00");
+      h_vec[i]->Draw("hist"); 
       h_vec[i]->SetTitle(title);
 
       if (normalize==true) {
@@ -200,8 +200,8 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
 
       h_vec[i]->GetXaxis()->SetTitle(x_axis_title); }
 
-    else { h_vec[i]->Draw("hist same text00"); }
-    //else { h_vec[i]->Draw("hist same"); }
+    //else { h_vec[i]->Draw("hist same text00"); }
+    else { h_vec[i]->Draw("hist same"); }
     legend->AddEntry(h_vec[i], h_title[i]); }
   legend->Draw("same");
   
@@ -284,10 +284,152 @@ int draw_correlations(TH2 *h_corr, TString title, std::vector<TString> axis_labe
   h_corr->GetXaxis()->SetLabelSize(0.04);
   h_corr->GetYaxis()->SetLabelSize(0.04);
 
-  c->Print("results/tmva_plots/"+savename+".png");
+  c->Print("results/plots/tmva_plots/"+savename+".png");
 
   std::cout << "Plotted " << title << "\n\n" << std::endl;
 
   return 0;
 
 } // END OF draw_correlations
+
+
+
+
+// ################################
+// ##   Draw Sig/Bkgd Comparison ##
+// ################################
+int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString savename, std::vector<TString> legend_entries_titles, bool norm_to_1)
+{
+  std::cout << "Drawing " << title << std::endl;
+
+  // Create a canvas
+  TCanvas *c = new TCanvas("c", "c", 1600, 1200);
+  gStyle->SetOptStat(0);
+
+
+  // Normalize if needed
+  double h_s_int = h_s->Integral(0, h_s->GetNbinsX()+1);
+  double h_b_int = h_b->Integral(0, h_b->GetNbinsX()+1);
+  if (norm_to_1 == true) {
+    h_s->Scale(1/h_s_int);
+    h_b->Scale(1/h_b_int); }
+
+
+  // Define two TPads for distributions and ratio
+  TPad *tPad = new TPad("tPad", "tPad", 0, 0.3, 1, 1);
+  TPad *bPad = new TPad("bPad", "bPad", 0, 0,   1, 0.3);
+  tPad->Draw();
+  bPad->Draw("same");
+
+
+  // Top pad: hists
+  tPad->cd();
+  tPad->SetGrid();
+  tPad->SetRightMargin(0.05);
+  tPad->SetLeftMargin(0.07);
+  tPad->SetBottomMargin(0.02);
+  tPad->SetTopMargin(0.03);
+
+  h_s->SetLineColor(2);
+  h_s->SetLineWidth(4);
+  h_s->Draw("hist");
+  h_s->SetTitle("");
+  h_s->GetXaxis()->SetTitle("");
+  h_s->GetXaxis()->SetLabelSize(0);
+  if (norm_to_1 == true) {
+    h_s->GetYaxis()->SetTitle("#bf{norm.}");
+    h_s->GetYaxis()->SetRangeUser(0, 0.2); }
+  else {
+    //gPad->SetLogY();
+    h_s->GetYaxis()->SetTitle("#bf{Jets}"); }
+  h_s->GetYaxis()->SetTitleOffset(0.9);
+
+  h_b->SetLineColor(4);
+  h_b->SetLineWidth(4);
+  h_b->Draw("same hist");
+
+  TLegend *legend = new TLegend(0.7, 0.7, 0.9, 0.9);
+  legend->AddEntry(h_s, legend_entries_titles[0]);
+  legend->AddEntry(h_b, legend_entries_titles[1]);
+  legend->SetTextSize(0.04);
+  legend->Draw("same");
+
+
+  // Bottom pad: ratio
+  bPad->cd();
+  bPad->SetGrid();
+  bPad->SetRightMargin(0.05);
+  bPad->SetLeftMargin(0.07);
+  bPad->SetTopMargin(0.02);
+  bPad->SetBottomMargin(0.3);
+
+  h_r->SetTitle("");
+  h_r->SetLineColor(1);
+  h_r->SetLineWidth(4);
+
+  h_r->GetXaxis()->SetLabelSize(0.10);
+  h_r->GetXaxis()->SetTitle(title);
+  h_r->GetXaxis()->SetTitleOffset(1.2);
+  h_r->GetXaxis()->SetTitleSize(0.1);
+
+  h_r->GetYaxis()->SetLabelSize(0.05);
+  h_r->GetYaxis()->SetTitle("#int^{max}_{bin}Sig  #bf{/} #sqrt{#int^{max}_{bin}Bkg}");
+  h_r->GetYaxis()->SetTitleOffset(0.4);
+  h_r->GetYaxis()->SetTitleSize(0.07);
+  h_r->GetYaxis()->CenterTitle();
+  h_r->GetYaxis()->SetRangeUser(0,30);
+  h_r->GetYaxis()->SetNdivisions(8);
+  h_r->Draw("hist");
+
+
+  // Save the plot
+  c->Print("results/plots/tmva_plots/"+savename+".png");
+    
+
+  return 0;
+} // END of Draw Sig/Bkgd Comparison
+
+
+
+
+// ######################
+// ##   Draw TGraphs   ##
+// ######################
+int draw_graphs(std::vector<TGraph*> gr, TString x_axis_title, TString y_axis_title, std::vector<TString> legend_entries, TString savename)
+{
+  // Define colors
+  std::vector<Int_t> colors = {4, 417, 617, 433, 2};
+
+  // Create a canvas
+  TCanvas *c = new TCanvas("c", "c", 1600, 1200);
+  gStyle->SetOptStat(0);
+  gPad->SetGrid();
+  
+  // Create a legend
+  TLegend *legend = new TLegend(0.7, 0.6, 0.9, 0.8);
+
+  // Draw everything nicely
+  for (int i=0; i<gr.size(); i++) {
+    gr[i]->SetLineColor(colors[i]);
+    gr[i]->SetLineWidth(4);
+
+    if (i==0) {
+      gr[i]->Draw("AC");
+      gr[i]->SetTitle("");
+      gr[i]->GetXaxis()->SetTitle(x_axis_title);
+      gr[i]->GetYaxis()->SetTitle(y_axis_title); }
+    else {
+      gr[i]->Draw("same"); }
+
+    legend->AddEntry(gr[i], legend_entries[i]);
+
+  } // [i] - loop over graphs
+
+  legend->Draw("save");
+
+  // Save the plot
+  c->Print("results/plots/tmva_plots/" + savename + ".png");
+  
+
+  return 0;
+} // END of draw_graphs
