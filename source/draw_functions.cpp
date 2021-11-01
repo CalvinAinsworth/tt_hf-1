@@ -33,6 +33,15 @@ int draw_data_mc_plot(TH1 *h_data, std::vector<TH1*> h_mc, TString title, TStrin
   tPad->Draw();
   bPad->Draw("same");
 
+
+  // Draw "ATLAS Internal" and lumi
+  TLatex *ltx = new TLatex();
+  ltx->SetNDC();
+  ltx->SetTextFont(42);
+  ltx->SetTextSize(0.04);
+  ltx->DrawLatex(0.07, 0.94, "#it{#bf{ATLAS Internal}}");
+  ltx->DrawLatex(0.68, 0.94, "#sqrt{s}=13 TeV, 139.0 fb^{-1}");
+
   
   // Get integrals and normalize if needed
   double data_int = h_data->Integral(0, h_data->GetNbinsX()+1);
@@ -79,14 +88,6 @@ int draw_data_mc_plot(TH1 *h_data, std::vector<TH1*> h_mc, TString title, TStrin
     mc_stack->SetMinimum(1);
   }
   c->Update();
-
-  TLatex *ltx = new TLatex();
-  ltx->SetNDC();
-  ltx->SetTextFont(42);
-  ltx->SetTextSize(0.05);
-  ltx->DrawLatex(0.07, 0.93, "#it{#bf{ATLAS}}");
-  ltx->DrawLatex(0.25, 0.93, "Work in progress");
-  ltx->DrawLatex(0.72, 0.93, "#sqrt{s}=13 TeV, 139.0 fb^{-1}");
   
   h_data->Draw("same E1P");
   h_data->SetMarkerStyle(20);
@@ -160,12 +161,12 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
 
   std::vector<Int_t> colors = {632, 416+1, 600, 800-3, 432+2, 616+1, 400+1};
 
-  //gStyle->SetPaintTextFormat("0.3f");
+  gStyle->SetPaintTextFormat("0.3f");
 
   TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 1200);
   gStyle->SetOptStat(0);
   gPad->SetGrid();
-  if (normalize==false) gPad->SetLogy();
+  if (normalize==false && y_min!=0) gPad->SetLogy();
   double legend_height = 0.09*h_vec.size();
   double legend_y1 = 0.90 - legend_height;
   TLegend *legend = new TLegend(0.70, legend_y1, 0.90, 0.90);
@@ -188,13 +189,12 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
     if (i==0) {
       //h_vec[i]->Draw("hist text00");
       h_vec[i]->Draw("hist"); 
-      h_vec[i]->SetTitle(title);
+      h_vec[i]->SetTitle("");
 
       if (normalize==true) {
         h_vec[i]->GetYaxis()->SetRangeUser(y_min, y_max);
         h_vec[i]->GetYaxis()->SetTitle("#bf{Events, norm to 1}"); }
       else {
-        if (y_min==0) y_min = 1;
         h_vec[i]->GetYaxis()->SetRangeUser(y_min, y_max);
         h_vec[i]->GetYaxis()->SetTitle("#bf{Events}"); }
 
@@ -205,7 +205,14 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
     legend->AddEntry(h_vec[i], h_title[i]); }
   legend->Draw("same");
   
-  c->Print("results/plots/mc/" + title + ".png");
+  TLatex *ltx = new TLatex();
+  ltx->SetNDC();
+  ltx->SetTextFont(42);
+  ltx->SetTextSize(0.04);
+  ltx->DrawLatex(0.11, 0.91, "#it{#bf{ATLAS Internal}}");
+  ltx->DrawLatex(0.65, 0.91, "#sqrt{s}=13 TeV, 139.0 fb^{-1}");
+
+  c->Print("results/plots/" + title + ".png");
   std::cout << "Drawn " + title + " !\n\n" << std::endl;
 
   return 0;
@@ -251,6 +258,13 @@ int draw_tmva_hists(TH1 *h_s, TH1 *h_b, TString x_axis_title, TString savename, 
   legend->SetTextSize(0.04);
   legend->Draw("same");
 
+  TLatex *ltx = new TLatex();
+  ltx->SetNDC();
+  ltx->SetTextFont(42);
+  ltx->SetTextSize(0.04);
+  ltx->DrawLatex(0.11, 0.91, "#bf{#it{ATLAS} Internal}");
+  ltx->DrawLatex(0.65, 0.91, "#sqrt{s}=13 TeV, 139.0 fb^{-1}");
+
   c->Print("results/plots/tmva_plots/"+savename+".png");
   std::cout << "Plotted " << savename << "\n\n" << std::endl;
 
@@ -284,6 +298,13 @@ int draw_correlations(TH2 *h_corr, TString title, std::vector<TString> axis_labe
   h_corr->GetXaxis()->SetLabelSize(0.04);
   h_corr->GetYaxis()->SetLabelSize(0.04);
 
+  TLatex *ltx = new TLatex();
+  ltx->SetNDC();
+  ltx->SetTextFont(42);
+  ltx->SetTextSize(0.04);
+  ltx->DrawLatex(0.20, 0.91, "#it{#bf{ATLAS Internal}}");
+  ltx->DrawLatex(0.68, 0.91, "#sqrt{s}=13 TeV, 139.0 fb^{-1}");
+  
   c->Print("results/plots/tmva_plots/"+savename+".png");
 
   std::cout << "Plotted " << title << "\n\n" << std::endl;
@@ -295,9 +316,9 @@ int draw_correlations(TH2 *h_corr, TString title, std::vector<TString> axis_labe
 
 
 
-// ################################
-// ##   Draw Sig/Bkgd Comparison ##
-// ################################
+// ##################################
+// ##   Draw Sig/Bkgd Comparison   ##
+// ##################################
 int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString savename, std::vector<TString> legend_entries_titles, bool norm_to_1)
 {
   std::cout << "Drawing " << title << std::endl;
@@ -320,6 +341,15 @@ int draw_sig_bkgd_plot(TH1 *h_s, TH1 *h_b, TH1 *h_r, TString title, TString save
   TPad *bPad = new TPad("bPad", "bPad", 0, 0,   1, 0.3);
   tPad->Draw();
   bPad->Draw("same");
+
+  
+  // Draw "ATLAS Internal" and lumi
+  TLatex *ltx = new TLatex();
+  ltx->SetNDC();
+  ltx->SetTextFont(42);
+  ltx->SetTextSize(0.04);
+  ltx->DrawLatex(0.11, 0.95, "#it{#bf{ATLAS Internal}}");
+  ltx->DrawLatex(0.65, 0.95, "#sqrt{s}=13 TeV, 139.0 fb^{-1}");
 
 
   // Top pad: hists
@@ -426,6 +456,13 @@ int draw_graphs(std::vector<TGraph*> gr, TString x_axis_title, TString y_axis_ti
   } // [i] - loop over graphs
 
   legend->Draw("save");
+
+  TLatex *ltx = new TLatex();
+  ltx->SetNDC();
+  ltx->SetTextFont(42);
+  ltx->SetTextSize(0.04);
+  ltx->DrawLatex(0.11, 0.92, "#it{#bf{ATLAS Internal}}");
+  ltx->DrawLatex(0.65, 0.92, "#sqrt{s}=13 TeV, 139.0 fb^{-1}");
 
   // Save the plot
   c->Print("results/plots/tmva_plots/" + savename + ".png");

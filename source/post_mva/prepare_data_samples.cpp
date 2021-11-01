@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
     // We work with data
     if (is_data != true) continue;
     std::cout << dir_path_components[last_element_index-1] << std::endl;
+    //if (data_year_dir!="grp17") continue; // TEST
     
     
     // Create a directory for the output file
@@ -60,11 +61,18 @@ int main(int argc, char *argv[])
 
     // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
     std::vector<TString> paths_to_jobs = get_list_of_files(dir_paths[dir_counter]);
-
+    
 
     // Loop over files
     for (int job_number=0; job_number<paths_to_jobs.size(); job_number++) {
-
+      
+      //if (job_number!=645) continue; // TEST
+      std::vector<TString> paths_to_jobs_components = split(paths_to_jobs[job_number], '/');
+      std::vector<TString> ntuple_name_components = split(paths_to_jobs_components[paths_to_jobs_components.size()-1], '.'); // TEST
+      bool tmp_bool = false;
+      //if (ntuple_name_components[3]=="_000435") tmp_bool = true; // TEST
+      //if (tmp_bool == false) continue; // TEST
+      
       // Declare the output file and set all branches
       TString savefile_name = dir2 + std::string("/") + std::to_string(job_number) + std::string(".root");
       TFile *out_ntuple = new TFile(savefile_name, "RECREATE");
@@ -139,7 +147,7 @@ int main(int argc, char *argv[])
         mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
         for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
           TLorentzVector lvec;
-          lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.0001);
+          lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
 	  jets_lvec.push_back(lvec); }
 
 	
@@ -152,6 +160,12 @@ int main(int argc, char *argv[])
 	    
 	    // Set localVar = treeVar for further mva score estimation
 	    #include "include/get_mva_score.h"
+	    for (int i=0; i<(*MVA_score).size(); i++) {
+	      if (mvaValue==(*MVA_score)[i]) {
+		if (min_dR_jet_lep >= (*min_dR_jet_lep_out)[i]) { mvaValue = mvaValue + 0.000001; }
+		else { mvaValue = mvaValue - 0.000001; }
+	      }
+	    }
 	    MVA_score->push_back(mvaValue);
 
 	    dR_jet_lep0_out->push_back(dR_jet_lep0);

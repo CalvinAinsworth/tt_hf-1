@@ -120,15 +120,17 @@ int main(int argc, char *argv[])
 	// PL
 	std::vector<Int_t> *jet_truthPartonLabel_pl;
 	std::vector<Int_t> *jet_GBHInit_topHadronOriginFlag_pl;
+	std::vector<Int_t> *jet_nGhosts_bHadron;
 	std::vector<Float_t> *el_charge_pl;
 	std::vector<Float_t> *mu_charge_pl;
-	jet_truthPartonLabel_pl = jet_GBHInit_topHadronOriginFlag_pl = 0;
+	jet_truthPartonLabel_pl = jet_GBHInit_topHadronOriginFlag_pl = jet_nGhosts_bHadron = 0;
 	el_charge_pl = mu_charge_pl = 0;
 	Float_t w_mc_pl;
 	Float_t w_pu_pl;
 	Int_t topHFFF_pl;
 
 	tree_pl->SetBranchAddress("jet_truthPartonLabel", &jet_truthPartonLabel_pl);
+	tree_pl->SetBranchAddress("jet_nGhosts_bHadron", &jet_nGhosts_bHadron);
 	tree_pl->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag_pl);
 	tree_pl->SetBranchAddress("el_charge", &el_charge_pl);
 	tree_pl->SetBranchAddress("mu_charge", &mu_charge_pl);
@@ -319,7 +321,7 @@ int main(int argc, char *argv[])
 	  if (jets_n >=3) jets_n_cut = true;
 
 	  int bjets_n = 0;
-	  for (int i=0; i<(*MVA_score_pl).size(); i++) { if ((*jet_truthPartonLabel_pl)[i]==5) bjets_n++; }
+	  for (int i=0; i<(*MVA_score_pl).size(); i++) { if ((*jet_nGhosts_bHadron)[i]>=1) bjets_n++; }
 	  if (bjets_n >=2) bjets_n2_cut = true;
 	  if (bjets_n >=3) bjets_n3_cut = true;
 
@@ -332,8 +334,8 @@ int main(int argc, char *argv[])
 	    int n_bjets_from_top = 0; // could be 2, 1, or 0
 	    int n_jets_from_top = 0; // should be 2, will skip events with !=2
 
-	    for (int jet_i=0; jet_i<(*jet_truthPartonLabel).size(); jet_i++) {
-	      if ((*jet_truthPartonLabel)[jet_i]==5 && (*jet_GBHInit_topHadronOriginFlag_pl)[jet_i]==4) n_bjets_from_top++;
+	    for (int jet_i=0; jet_i<(*jet_nGhosts_bHadron).size(); jet_i++) {
+	      if ((*jet_nGhosts_bHadron)[jet_i]>=1 && (*jet_GBHInit_topHadronOriginFlag_pl)[jet_i]==4) n_bjets_from_top++;
 	      if ((*jet_GBHInit_topHadronOriginFlag_pl)[jet_i]==4) n_jets_from_top++;
 	    }
 
@@ -356,7 +358,7 @@ int main(int argc, char *argv[])
   // Draw the stats hists
   std::vector<TH1*> h_vec = {h_jets_trom_top_pl, h_jets_trom_top_reco};
   std::vector<TString> h_title = {"particle level", "reco level"};
-  int draw_stats = draw_n_hists(h_vec, h_title, "number of bjets/btags from top (truth info)", "number_of_b_from_top_study", true, 0, 1);
+  int draw_stats = draw_n_hists(h_vec, h_title, "number of bjets/btags from top (truth info)", "mc/number_of_b_from_top_study", true, 0, 1);
 
   return 0;
 }

@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
       
       // We work with MC only
       if (is_data == true) continue;
+      //if (is_mc16e != true) continue; // TEST
       
       
       // Create directory for the output file      
@@ -108,6 +109,10 @@ int main(int argc, char *argv[])
 	// Loop over ntuples for one mc16 campaign for one DID (for each mc campaign consequently)
 	for (int ntuple_number=0; ntuple_number<paths_to_ntuples.size(); ntuple_number++) {
 
+	  bool tmp_bool = false;
+	  //if (ntuple_number==0 || ntuple_number==1 || ntuple_number==10) tmp_bool = true;
+	  //if (tmp_bool==false) continue;
+	  
 	  // Declare the output file and set all branches
 	  TString savefile_name = dir3 + std::string("/") + std::to_string(ntuple_number) + std::string(".root");
 	  TFile *out_ntuple = new TFile(savefile_name, "RECREATE");
@@ -220,6 +225,12 @@ int main(int argc, char *argv[])
 	          
 		// Set localVar = treeVar for further mva score estimation
                 #include "include/get_mva_score.h"
+		for (int i=0; i<(*MVA_score).size(); i++) {
+		  if (mvaValue==(*MVA_score)[i]) {
+		    if (min_dR_jet_lep >= (*min_dR_jet_lep_out)[i]) { mvaValue = mvaValue + 0.000001; }
+		    else { mvaValue = mvaValue - 0.000001; }
+		  }
+	        }
 		MVA_score->push_back(mvaValue);
 		
 		dR_jet_lep0_out->push_back(dR_jet_lep0);
@@ -289,7 +300,7 @@ int main(int argc, char *argv[])
 	      if (jets_n >= 3) jets_n_cut = true;
 	      
 	      int btags_n = 0;
-	      for (int i=0; i<(*jet_pt_pl).size(); i++) { if ( (*jet_truthPartonLabel_pl)[i]==5 ) btags_n++; }
+	      for (int i=0; i<(*jet_pt_pl).size(); i++) { if ( (*jet_nGhosts_bHadron)[i]>=1 ) btags_n++; }
 	      if (btags_n >= 2) btags_n2_cut = true;
 	      if (btags_n >= 3) btags_n3plus_cut = true;
 	      
@@ -315,7 +326,14 @@ int main(int argc, char *argv[])
 		  
 		  // Set localVar - treeVar for furthe mva score estimation
 		  #include "include/get_mva_score_pl.h"
+		  for (int i=0; i<(*MVA_score_pl).size(); i++) {
+		    if (mvaValue==(*MVA_score_pl)[i]) {
+		      if (min_dR_jet_lep >= (*min_dR_jet_lep_pl_out)[i]) { mvaValue = mvaValue + 0.000001; }
+		      else { mvaValue = mvaValue - 0.000001; }
+		    }
+		  }
 		  MVA_score_pl->push_back(mvaValue);
+
 		  dR_jet_lep0_pl_out->push_back(dR_jet_lep0);
 		  dR_jet_lep1_pl_out->push_back(dR_jet_lep1);
 		  min_dR_jet_lep_pl_out->push_back(min_dR_jet_lep);

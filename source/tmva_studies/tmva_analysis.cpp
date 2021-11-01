@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
   dataloader->AddVariable("m_jet_el", 'F');
   dataloader->AddVariable("m_jet_mu", 'F');
   //dataloader->AddVariable("m_jet_lep_max", 'F');
-  dataloader->AddVariable("min_dR_jet_bjet", 'F');
-  dataloader->AddVariable("jet_pt", 'F');
+  //dataloader->AddVariable("min_dR_jet_bjet", 'F');
+  //dataloader->AddVariable("jet_pt", 'F');
   dataloader->AddVariable("jet_eta", 'F');
   //dataloader->AddVariable("jet_m", 'F');
   //dataloader->AddVariable("m_min_jet_jet", 'F');

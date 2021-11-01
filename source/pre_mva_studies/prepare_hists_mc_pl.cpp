@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
           int bjets_n = 0;
           for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_nGhosts_bHadron)[i]>0) bjets_n++; }
           if (bjets_n >=2) bjets_n2_cut = true;
-          if (bjets_n ==3) bjets_n3_cut = true;
+          if (bjets_n >=3) bjets_n3_cut = true;
 	  
           if ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) topHFFF_cut = true;
 	  if (std::string(argv[1])!="tt") topHFFF_cut = true;
@@ -216,9 +216,9 @@ int main(int argc, char *argv[])
 	  
 	  
 	  // ///
-	  // 2b (jet) incl, emu, OS
+	  // 3b (jet) incl, emu, OS
 	  // ///
-	  if (emu_cut*OS_cut*bjets_n2_cut*topHFFF_cut*jets_n_cut == true) {	    
+	  if (emu_cut*OS_cut*bjets_n3_cut*topHFFF_cut*jets_n_cut == true) {	    
 
 	    
 	    // ///
@@ -302,19 +302,19 @@ int main(int argc, char *argv[])
 		    double dR_bjet_not_from_top_to_bjet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
 		    if (dR_bjet_not_from_top_to_bjet < min_dR_bjet_not_from_top_to_bjet) min_dR_bjet_not_from_top_to_bjet = dR_bjet_not_from_top_to_bjet; }
 		  
-		  if ((*jet_nGhosts_bHadron)[jet_i]!=5 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_nGhosts_bHadron)[jet_j]>0) {
+		  if ((*jet_nGhosts_bHadron)[jet_i]==0 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_nGhosts_bHadron)[jet_j]>0) {
 		    double dR_not_bjet_to_bjet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
 		    if (dR_not_bjet_to_bjet < min_dR_not_bjet_to_bjet) min_dR_not_bjet_to_bjet = dR_not_bjet_to_bjet; }
 		  
-		  if ((*jet_nGhosts_bHadron)[jet_i]>0 && (*topHadronOriginFlag)[jet_i]==4 && (*jet_nGhosts_bHadron)[jet_j]!=5) {
+		  if ((*jet_nGhosts_bHadron)[jet_i]>0 && (*topHadronOriginFlag)[jet_i]==4 && (*jet_nGhosts_bHadron)[jet_j]==0) {
 		    double dR_bjet_from_top_to_jet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
 		    if (dR_bjet_from_top_to_jet < min_dR_bjet_from_top_to_jet) min_dR_bjet_from_top_to_jet = dR_bjet_from_top_to_jet; }
 		  
-		  if ((*jet_nGhosts_bHadron)[jet_i]>0 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_nGhosts_bHadron)[jet_j]!=5) {
+		  if ((*jet_nGhosts_bHadron)[jet_i]>0 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_nGhosts_bHadron)[jet_j]==0) {
 		    double dR_bjet_not_from_top_to_jet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
 		    if (dR_bjet_not_from_top_to_jet < min_dR_bjet_not_from_top_to_jet) min_dR_bjet_not_from_top_to_jet = dR_bjet_not_from_top_to_jet; }
 		  
-		  if ((*jet_nGhosts_bHadron)[jet_i]!=5 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_nGhosts_bHadron)[jet_j]!=5) {
+		  if ((*jet_nGhosts_bHadron)[jet_i]==0 && (*topHadronOriginFlag)[jet_i]!=4 && (*jet_nGhosts_bHadron)[jet_j]==0) {
 		    double dR_not_bjet_to_jet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
 		    if (dR_not_bjet_to_jet < min_dR_not_bjet_to_jet) min_dR_not_bjet_to_jet = dR_not_bjet_to_jet; }
 		} // loop over [jet_j]
@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 		  double dR_bjet_not_from_top_to_lep = std::min(dR_bjet_not_from_top_to_el, dR_bjet_not_from_top_to_mu);
 		  if (dR_bjet_not_from_top_to_lep < min_dR_bjet_not_from_top_to_lep) min_dR_bjet_not_from_top_to_lep = dR_bjet_not_from_top_to_lep; }
 		
-		if ((*jet_nGhosts_bHadron)[jet_i]!=5 && (*topHadronOriginFlag)[jet_i]!=4) {
+		if ((*jet_nGhosts_bHadron)[jet_i]==0 && (*topHadronOriginFlag)[jet_i]!=4) {
 		  double dR_not_bjet_to_el = jets_lvec[jet_i].DeltaR(el_lvec);
 		  double dR_not_bjet_to_mu = jets_lvec[jet_i].DeltaR(mu_lvec);;
 		  double dR_not_bjet_to_lep = std::min(dR_not_bjet_to_el, dR_not_bjet_to_mu);
@@ -436,7 +436,7 @@ int main(int argc, char *argv[])
 	      
 	      if (std::string(argv[1])=="tt") {
 		
-		if ( (*jet_nGhosts_bHadron)[jet_i]!=5) {
+		if ( (*jet_nGhosts_bHadron)[jet_i]>=1) {
 		  n_bjets_tmp++ ;
 		  if ( (*topHadronOriginFlag)[jet_i]==4 ) { h_m_btag_top->Fill(m_jet, weight); }
 		  else { h_m_btag_other->Fill(m_jet, weight); } }
@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
 		  m_min_jet_jet = std::min(m_min_jet_jet, m_jet_jet);
 		  m_max_jet_jet = std::max(m_max_jet_jet, m_jet_jet);
 		  
-		  if ( (*jet_nGhosts_bHadron)[jet_j]!=5 ) continue;
+		  if ( (*jet_nGhosts_bHadron)[jet_j]==0 ) continue;
 		  
 		  if ( (*topHadronOriginFlag)[jet_i]==4 && (*topHadronOriginFlag)[jet_j]==4) {
 		    h_m_btag_top_btag_top->Fill(m_jet_jet, weight);
@@ -525,7 +525,7 @@ int main(int argc, char *argv[])
 	      
 	      // ///
 	      // Populate the MVA ntuple with values
-              if (std::string(argv[1])=="tt") {
+              if (std::string(argv[1])=="tt" && (*jet_nGhosts_bHadron)[jet_i]>=1) {
 
 		for (int i=0; i<3; i++) {
 		  for (int j=0; j<4; j++){
@@ -536,10 +536,10 @@ int main(int argc, char *argv[])
 		      // 1. random==1 and limit hasn't been reached
 		      // 2. or when there is almost no room left to reach the limit. 
 		      // Give it factor of 4 headroom: we have 3 flavors of dilepton events (ee(25%), emu(50%), mumu(25%)) randomly saved
-		      if ( randomval==0 && n_entries[i][j]<5*limit[i][j]) {
+		      //if ( randomval==0 && n_entries[i][j]<5*limit[i][j]) {
 			n_entries[i][j]++;      
 			#include "include/populate_mva_ntuple.h"
-		      } // if - an event was selected (randomly) and the limit is not exeeded
+			//} // if - an event was selected (randomly) and the limit is not exeeded
 		      
 		    } // if - figuring out the actual mc16+DID pair
 		  } // [j] - loop over 4 DIDs
@@ -548,17 +548,16 @@ int main(int argc, char *argv[])
 	      } // if - tt samples
 	      
 	    } // [jet_i] - loop over jets (populating MVA input ntuple)
-	    
-	    
-	  } // 2b (jets), emu, OS cuts
 
-
-	  // Increment the number of precessed entries per mc16+did
-	  for (int i=0; i<3; i++) {
-	    for (int j=0; j<4; j++) {
-	      if (mc16_str[i]==dir_path_components[last_element_index] && job_DID==job_dids_str[j]) processed[i][j]++;
+	    
+	    // Increment the number of processed entries per mc16+did
+	    for (int i=0; i<3; i++) {
+	      for (int j=0; j<4; j++) {
+		if (mc16_str[i]==dir_path_components[last_element_index] && job_DID==job_dids_str[j]) processed[i][j]++;
+	      }
 	    }
-	  }
+
+	  } // 3b, emu-OS
 
 	  
 	} // [entry] - loop over PL entries
@@ -570,7 +569,18 @@ int main(int argc, char *argv[])
     } // [job_number] - loop over given DIDs
     
   } // [dir_counter] - loop over mc16/data campaigns
-	  
+
+
+
+  // Show statistics for ftations
+  for (int i=0; i<3; i++) {
+    std::cout << "\nTotal " << mc16_str[i] << " = " << processed[i][0]+processed[i][1]+processed[i][2]+processed[i][3] << std::endl;
+    for (int j=0; j<4; j++) {
+      std::cout << mc16_str[i] << " , " << job_dids_str[j] << " = " << processed[i][j] << std::endl;
+    }
+  }
+
+
   
   // Write hists
   TString savename = std::string("results/hists_") + std::string(argv[1]) + std::string("_test_pl.root");
@@ -590,7 +600,7 @@ int main(int argc, char *argv[])
   }
   
   for (int i=0; i<3; i++) {
-    std::cout << mc16_str << std::endl;
+    std::cout << mc16_str[i] << std::endl;
     for (int j=0; j<4; j++)
       {
 	std::cout << job_dids_str[j] << ", n_saved: " << n_entries[i][j] << " ,\t limit: " << limit[i][j] << std::endl;

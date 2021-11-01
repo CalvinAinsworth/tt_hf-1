@@ -38,12 +38,12 @@
   min_dR_jet_lep_reader = min_dR_jet_lep;
   m_jet_el_reader = m_jet_el;
   m_jet_mu_reader = m_jet_mu;
-  m_jet_lep_max_reader = m_jet_lep_max;
-  min_dR_jet_bjet_reader = min_dR_jet_bjet;
-  jet_pt_reader = (*jet_pt)[jet_i];
+//m_jet_lep_max_reader = m_jet_lep_max;
+//min_dR_jet_bjet_reader = min_dR_jet_bjet;
+//jet_pt_reader = (*jet_pt)[jet_i];
   jet_eta_reader = (*jet_eta)[jet_i];
-  jet_m_reader = jet_m;
-  m_min_jet_jet_reader = m_min_jet_jet;
-  m_max_jet_jet_reader = m_max_jet_jet;
+//jet_m_reader = jet_m;
+//m_min_jet_jet_reader = m_min_jet_jet;
+//m_max_jet_jet_reader = m_max_jet_jet;
 
   float mvaValue = reader->EvaluateMVA(tmva_config_info[0]); 

@@ -27,11 +27,20 @@ gcc source/tmva_studies/study_tmva_perpormnce_results.cpp source/common_function
 echo "Compiling optimize_classifier_cut.cpp"
 gcc source/tmva_studies/optimize_classifier_cut.cpp source/common_functions.cpp source/draw_functions.cpp -o run/optimize_classifier_cut -lstdc++ `root-config --cflags --glibs` -lTMVA
 
+echo "Compiling bjets_from_tops_stat.cpp"
+gcc source/tmva_studies/bjets_from_tops_stat.cpp source/common_functions.cpp source/draw_functions.cpp -o run/bjets_from_tops_stat -lstdc++ `root-config --cflags --glibs` -lTMVA
+
+echo "Compiling btags_from_tops_data.cpp"
+gcc source/tmva_studies/btags_from_tops_data.cpp source/common_functions.cpp source/draw_functions.cpp -o run/btags_from_tops_data.cpp -lstdc++ `root-config --cflags --glibs` -lTMVA
+
+echo "Compiling draw_from_top_stats.cpp"
+gcc source/tmva_studies/draw_from_top_stats.cpp source/common_functions.cpp source/draw_functions.cpp -o run/draw_from_top_stats -lstdc++ `root-config --cflags --glibs` -lTMVA
+
+echo "Compiling bdt_performance_study.cpp"
+gcc source/post_mva/bdt_performance_study.cpp source/common_functions.cpp source/draw_functions.cpp -o run/bdt_performance_study -lstdc++ `root-config --cflags --glibs` -lTMVA 
+
 echo "Compiling prepare_mc_samples.cpp"
 gcc source/post_mva/prepare_mc_samples.cpp source/common_functions.cpp -o run/prepare_bkg_samples -lstdc++ `root-config --cflags --glibs` -lTMVA
 
 echo "Compiling prepare_data_samples.cpp"
 gcc source/post_mva/prepare_data_samples.cpp source/common_functions.cpp -o run/prepare_data_samples -lstdc++ `root-config --cflags --glibs` -lTMVA
-
-echo "Compiling jets_from_tops_stat.cpp"
-gcc source/post_mva/jets_from_tops_stat.cpp source/common_functions.cpp source/draw_functions.cpp -o run/jets_from_tops_stat -lstdc++ `root-config --cflags --glibs` -lTMVA

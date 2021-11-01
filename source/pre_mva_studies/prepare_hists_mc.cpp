@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     // Testing option: run over mc16a only
     //if (is_mc16a != true) continue;
 
-
+    
     // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
     std::vector<TString> paths_to_jobs = get_list_of_files(dir_paths[dir_counter]);
 
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
           int btags_n = 0;
           for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_DL1r_77)[i]==1) btags_n++; }
           if (btags_n >=2) btags_n2_cut = true;
-          if (btags_n ==3) btags_n3_cut = true;
+          if (btags_n >=3) btags_n3_cut = true;
 	  
           if ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) topHFFF_cut = true;
 	  if (std::string(argv[1])!="tt") topHFFF_cut = true;
@@ -187,9 +187,9 @@ int main(int argc, char *argv[])
           el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
           mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
           for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
-	  TLorentzVector lvec;
-	  lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
-	  jets_lvec.push_back(lvec); }
+	    TLorentzVector lvec;
+	    lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
+	    jets_lvec.push_back(lvec); }
 
 	  // TLorentzVectors for systems with 3 and 4 jets
 	  TLorentzVector four_btags_lvecs; // excl

@@ -1,7 +1,7 @@
 TMVA Method: BDT
-NTrees: 400
+NTrees: 800
 MinNodeSize: 5%
-MaxDepth: 3
+MaxDepth: 4
 BoostType: AdaBoost
 SeparationType: GiniIndex
 nCuts: 20

@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 	int btags_n = 0;
 	for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_DL1r_77)[i]==1) btags_n++; }
 	if (btags_n >=2) btags_n2_cut = true;
-	if (btags_n ==3) btags_n3_cut = true;
+	if (btags_n >=3) btags_n3_cut = true;
 
 
 

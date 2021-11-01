@@ -30,6 +30,7 @@
 #include "TMVA/Tools.h"
 
 #include <vector>
+#include <map>
 #include <iostream>
 #include <sstream>
 #include <fstream>
