@@ -7,7 +7,7 @@
 int main(int argc, char *argv[])
 {
   // Check for the request: sig (tt) or bkg (others)?
-  if (argc == 1) {
+  if (argc >= 1) {
     std::cout << "\nError: I don't know what to do =(\n" << std::endl;
     std::cout << "Aks for a process:" << std::endl;
     std::cout << "./run/prepare_hists_mc PROCESS\n" << std::endl;
@@ -21,6 +21,14 @@ int main(int argc, char *argv[])
     std::cout << "Try \"tt\" or \"singletop\" or \"ttV\" or \"ttH\" or \"diboson\" or \"z_jets\" or \"other\" (without quotes)\n" << std::endl;
     return 0;
   }
+
+  
+  // Check for the generator and mc16a_only choises
+  std::string generator = ttbar_generator();
+  if (generator=="" && std::string(argv[1])=="tt") {
+    generator="nominal";
+    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
+  bool mc16a_only_test = mc16a_only_choise();
   
   
   // Create directory for results
@@ -38,8 +46,6 @@ int main(int argc, char *argv[])
 
   
   // Declare TFile, TTree, TBranches and variables for MVA
-  //TString tmva_file_name = std::string("results/") + std::string(argv[1]) + std::string("_MVA_input.root");
-  //TFile *MVA_tfile =  new TFile(tmva_file_name, "RECREATE");
   TFile *MVA_tfile;
   if (std::string(argv[1]) == "tt") MVA_tfile = new TFile("results/tt_hf_MVA_input.root", "RECREATE");
   TTree *MVA_sig_tree = new TTree("Signal", "inputS");
@@ -72,14 +78,12 @@ int main(int argc, char *argv[])
     
     // We work with mc only
     if (is_data == true) continue;
+    if (mc16a_only_test==true && is_mc16a!=true) continue;
 
     
     // Only nominal ntuples
-    dir_paths[dir_counter] += "nominal/";
-
-
-    // Testing option: run over mc16a only
-    //if (is_mc16a != true) continue;
+    if (generator=="nominal") { dir_paths[dir_counter] += "nominal/"; }
+    else {  dir_paths[dir_counter] += "newSamples/"; }
 
     
     // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
@@ -100,9 +104,10 @@ int main(int argc, char *argv[])
       // Select only jobs/physics_processes of our interest
       // (1) regular, not alternative samples
       // (2) the process of our interest
-      if (campaign_info[1]!="s3126") continue; // (1)
+      if (campaign_info[1]!="s3126" && generator=="nominal") continue; // (1)
       
       bool correct_did = false;
+      // 410472 - incl; 411076 - ttbb, 411077 - ttb, 411078 - ttc
       if (std::string(argv[1])=="tt" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
       if (std::string(argv[1])=="singletop" && (job_DID=="410648" || job_DID=="410649" || job_DID=="410644" || job_DID=="410645" || job_DID=="410658" || job_DID=="410659") ) correct_did = true;
       if (std::string(argv[1])=="ttV" && (job_DID=="410155" || job_DID=="410156" || job_DID=="410157" || job_DID=="410218" || job_DID=="410219" || job_DID=="410220" || job_DID=="410276" || job_DID=="410277" || job_DID=="410278") ) correct_did = true;
@@ -110,6 +115,8 @@ int main(int argc, char *argv[])
       if (std::string(argv[1])=="diboson" && (job_DID=="364250" || job_DID=="364253" || job_DID=="364254" || (std::stoi(job_DID)>=364283 && std::stoi(job_DID)<=364290 && job_DID!="364286") || job_DID=="345705" || job_DID=="345706" || job_DID=="345723" || job_DID=="363356" || job_DID=="363358") ) correct_did = true;
       if (std::string(argv[1])=="z_jets" && (std::stoi(job_DID)>=364100 && std::stoi(job_DID)<=364141) ) correct_did = true;
       if (std::string(argv[1])=="other" && (job_DID=="410560" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676" || job_DID=="412043") ) correct_did = true;
+      // 411234 - inclusive, 411332 - ttbb, 411333 - ttb, 411334 - ttc
+      if (std::string(argv[1])=="tt" && (/*job_DID=="411233" ||*/ job_DID=="411234" || job_DID=="411332" || job_DID=="411333" || job_DID=="411334" /*|| job_DID=="600791" || job_DID=="700122" || job_DID=="700123" || job_DID=="700124" || job_DID=="700167"*/)) correct_did = true;
       
       if (correct_did==false) continue;
       else { std::cout << "\n\nDID: " << job_DID << std::endl; }
@@ -176,7 +183,7 @@ int main(int argc, char *argv[])
           if (btags_n >=2) btags_n2_cut = true;
           if (btags_n >=3) btags_n3_cut = true;
 	  
-          if ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) topHFFF_cut = true;
+          if ( only_410472==true || ( (topHFFF==1 && (job_DID=="411076" || job_DID=="411332")) || (topHFFF==2 && (job_DID=="411077" || job_DID=="411333")) || (topHFFF==3 && (job_DID=="411078" || job_DID=="411334")) || (topHFFF==0 && (job_DID=="410472" || job_DID=="411234")) ) ) topHFFF_cut = true;
 	  if (std::string(argv[1])!="tt") topHFFF_cut = true;
 	  
 	  

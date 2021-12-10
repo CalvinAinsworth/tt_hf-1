@@ -23,6 +23,14 @@ int main(int argc, char *argv[])
   }
 
 
+  // Check for the generator and mc16a_only choises
+  std::string generator = ttbar_generator();
+  if (generator=="" && std::string(argv[1])=="tt") {
+    generator="nominal";
+    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
+  bool mc16a_only_test = mc16a_only_choise();
+
+
   // Set rand seed
   srand(time(0));
 
@@ -51,7 +59,9 @@ int main(int argc, char *argv[])
 
 
   // Declare events counters for each mc16 campaign
-  TString job_dids_str[4] = {"410472", "411076", "411077", "411078"};
+  TString job_dids_str[4];
+  if (generator=="nominal") { job_dids_str[0] = "410472"; job_dids_str[1] = "411076"; job_dids_str[2] = "411077"; job_dids_str[3] = "411078"; }
+  else {  job_dids_str[0] = "411234"; job_dids_str[1] = "411332"; job_dids_str[2] = "411333"; job_dids_str[3] = "411334"; }
   TString mc16_str[3] = {"mc16a", "mc16d", "mc16e"};
   int n_entries[3][4] = {0};
   int limit[3][4] = {{105039, 6936, 6430, 7433}, {130823, 8768, 8026, 9253}, {183073, 11407, 10594, 12219}}; // target 250k
@@ -83,18 +93,12 @@ int main(int argc, char *argv[])
     
     // We work with mc only
     if (is_data == true) continue;
-
-
-    // Test option
-    //if (is_mc16a!=true) continue;
-
+    if (mc16a_only_test==true && is_mc16a!=true) continue;
+    
     
     // Only nominal trees
-    dir_paths[dir_counter] += "nominal/";
-
-
-    // Testing option: run over mc16a only
-    //if (is_mc16a != true) continue;
+    if (generator=="nominal") { dir_paths[dir_counter] += "nominal/"; }
+    else {  dir_paths[dir_counter] += "newSamples/"; }
 
 
     // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
@@ -115,9 +119,10 @@ int main(int argc, char *argv[])
       // Select only jobs/physics_processes of our interest
       // (1) regular, not alternative samples
       // (2) the process of our interest
-      if (campaign_info[1]!="s3126") continue; // (1)
+      if (campaign_info[1]!="s3126" && generator=="nominal") continue; // (1)
       
       bool correct_did = false;
+      // 410472 - incl; 411076 - ttbb, 411077 - ttb, 411078 - ttc
       if (std::string(argv[1])=="tt" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
       if (std::string(argv[1])=="singletop" && (job_DID=="410648" || job_DID=="410649" || job_DID=="410644" || job_DID=="410645" || job_DID=="410658" || job_DID=="410659") ) correct_did = true;
       if (std::string(argv[1])=="ttV" && (job_DID=="410155" || job_DID=="410156" || job_DID=="410157" || job_DID=="410218" || job_DID=="410219" || job_DID=="410220" || job_DID=="410276" || job_DID=="410277" || job_DID=="410278") ) correct_did = true;
@@ -125,6 +130,8 @@ int main(int argc, char *argv[])
       if (std::string(argv[1])=="diboson" && (job_DID=="364250" || job_DID=="364253" || job_DID=="364254" || (std::stoi(job_DID)>=364283 && std::stoi(job_DID)<=364290 && job_DID!="364286") || job_DID=="345705" || job_DID=="345706" || job_DID=="345723" || job_DID=="363356" || job_DID=="363358") ) correct_did = true;
       if (std::string(argv[1])=="z_jets" && (std::stoi(job_DID)>=364100 && std::stoi(job_DID)<=364141) ) correct_did = true;
       if (std::string(argv[1])=="other" && (job_DID=="410560" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676" || job_DID=="412043") ) correct_did = true;
+      // 411234 - inclusive, 411332 - ttbb, 411333 - ttb, 411334 - ttc
+      if (std::string(argv[1])=="tt" && (/*job_DID=="411233" ||*/ job_DID=="411234" || job_DID=="411332" || job_DID=="411333" || job_DID=="411334"/* || job_DID=="600791" || job_DID=="700122" || job_DID=="700123" || job_DID=="700124" || job_DID=="700167"*/)) correct_did = true;
       
       if (correct_did==false) continue;
       else { std::cout << "\n\nDID: " << job_DID << std::endl; }
@@ -191,7 +198,7 @@ int main(int argc, char *argv[])
           if (bjets_n >=2) bjets_n2_cut = true;
           if (bjets_n >=3) bjets_n3_cut = true;
 	  
-          if ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) topHFFF_cut = true;
+          if ( only_410472==true || ( (topHFFF==1 && (job_DID=="411076" || job_DID=="411332")) || (topHFFF==2 && (job_DID=="411077" || job_DID=="411333")) || (topHFFF==3 && (job_DID=="411078" || job_DID=="411334")) || (topHFFF==0 && (job_DID=="410472" || job_DID=="411234")) ) ) topHFFF_cut = true;
 	  if (std::string(argv[1])!="tt") topHFFF_cut = true;
 	  
 	  
@@ -214,7 +221,7 @@ int main(int argc, char *argv[])
 	  int n_bjets_tmp = 0;
 	  
 	  
-	  
+
 	  // ///
 	  // 3b (jet) incl, emu, OS
 	  // ///

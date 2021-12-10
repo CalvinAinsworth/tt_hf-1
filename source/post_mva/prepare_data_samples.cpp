@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     // We work with data
     if (is_data != true) continue;
     std::cout << dir_path_components[last_element_index-1] << std::endl;
-    //if (data_year_dir!="grp17") continue; // TEST
+    if (data_year_dir!="grp17") continue; // TEST
     
     
     // Create a directory for the output file
@@ -66,12 +66,11 @@ int main(int argc, char *argv[])
     // Loop over files
     for (int job_number=0; job_number<paths_to_jobs.size(); job_number++) {
       
-      //if (job_number!=645) continue; // TEST
       std::vector<TString> paths_to_jobs_components = split(paths_to_jobs[job_number], '/');
       std::vector<TString> ntuple_name_components = split(paths_to_jobs_components[paths_to_jobs_components.size()-1], '.'); // TEST
       bool tmp_bool = false;
-      //if (ntuple_name_components[3]=="_000435") tmp_bool = true; // TEST
-      //if (tmp_bool == false) continue; // TEST
+      if (ntuple_name_components[3]=="_000175") tmp_bool = true; // TEST
+      if (tmp_bool == false) continue; // TEST
       
       // Declare the output file and set all branches
       TString savefile_name = dir2 + std::string("/") + std::to_string(job_number) + std::string(".root");
@@ -153,8 +152,10 @@ int main(int argc, char *argv[])
 	
 	
 	// 2b (tags) inclusive, emu, OS
-	if (emu_cut*OS_cut*btags_n2_cut*jets_n_cut == true) {
-
+	//if (emu_cut*OS_cut*btags_n2_cut*jets_n_cut == true) {
+	// TETS: get all events
+	if (btags_n2_cut == true) {
+	
 	  // Loop over jets
 	  for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
 	    

@@ -385,7 +385,23 @@ if (job_DID=="411078") {
 
 if (job_DID=="410472") {
   campaign_xsection_x_genFiltEff = 76.95;
-  kFactor = 1.13975636159; } 
+  kFactor = 1.13975636159; }
+
+if (job_DID=="411234") {
+  campaign_xsection_x_genFiltEff = 77.01622;
+  kFactor = 1.1391; } 
+
+if (job_DID=="411332") {
+  campaign_xsection_x_genFiltEff = 0.713;
+  kFactor = 1.1392; }
+
+if (job_DID=="411333") {
+  campaign_xsection_x_genFiltEff = 4.84;
+  kFactor = 1.1392; }
+
+if (job_DID=="411334") {
+  campaign_xsection_x_genFiltEff = 3.19;
+  kFactor = 1.1392; }
 
 
 // mc16a
@@ -476,7 +492,11 @@ if (runNumber==284500) {
   if (job_DID=="411077") sumWeights = 3.61088*pow(10, 9);
   if (job_DID=="411078") sumWeights = 3.61598*pow(10, 9);
   if (job_DID=="410472") sumWeights = 5.82869*pow(10, 10);
- }
+  if (job_DID=="411234") sumWeights = 1.46019*pow(10,10);
+  if (job_DID=="411332") sumWeights = 7.20547*pow(10,9);
+  if (job_DID=="411333") sumWeights = 6.9191*pow(10,9);
+  if (job_DID=="411334") sumWeights = 7.27183*pow(10,9);
+}
 
 
 // mc16d
@@ -563,11 +583,15 @@ if (runNumber==300000) {
   if (job_DID=="364111") sumWeights = 4.6748*pow(10,6);
   if (job_DID=="364112") sumWeights = 3.72533*pow(10,6);
   if (job_DID=="364113") sumWeights = 1.27407*pow(10,6); 
-  if (job_DID=="411076") sumWeights = 4.21891*pow(10, 9);
-  if (job_DID=="411077") sumWeights = 4.49595*pow(10, 9);
-  if (job_DID=="411078") sumWeights = 4.49400*pow(10, 9);
-  if (job_DID=="410472") sumWeights = 7.26510*pow(10, 10);
- }
+  if (job_DID=="411076") sumWeights = 4.21891*pow(10,9);
+  if (job_DID=="411077") sumWeights = 4.49595*pow(10,9);
+  if (job_DID=="411078") sumWeights = 4.49400*pow(10,9);
+  if (job_DID=="410472") sumWeights = 7.26510*pow(10,10);
+  if (job_DID=="411234") sumWeights = 1.81515*pow(10,10);
+  if (job_DID=="411332") sumWeights = 9.0294*pow(10,9);
+  if (job_DID=="411333") sumWeights = 8.82188*pow(10,9);
+  if (job_DID=="411334") sumWeights = 9.00115*pow(10,9);
+}
 
 
 // mc16e
@@ -658,7 +682,11 @@ if (runNumber==310000) {
   if (job_DID=="411077") sumWeights = 5.94763*pow(10,9);
   if (job_DID=="411078") sumWeights = 5.94190*pow(10,9);
   if (job_DID=="410472") sumWeights = 1.01641*pow(10,11);
- }
+  if (job_DID=="411234") sumWeights = 2.44336*pow(10,10);
+  if (job_DID=="411332") sumWeights = 1.20387*pow(10,10);
+  if (job_DID=="411333") sumWeights = 1.2078*pow(10,10);
+  if (job_DID=="411334") sumWeights = 1.20945*pow(10,10);
+}
 
     
 // Actual computation:

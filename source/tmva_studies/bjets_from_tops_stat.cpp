@@ -6,6 +6,14 @@
 //////////////
 int main(int argc, char *argv[])
 {
+  // Check for the generator and mc16a_only choises
+  std::string generator = ttbar_generator();
+  if (generator=="" && std::string(argv[1])=="tt") {
+    generator="nominal";
+    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
+  bool mc16a_only_test = mc16a_only_choise();
+  
+
   // Get config info about MVA setup
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
   
@@ -63,15 +71,15 @@ int main(int argc, char *argv[])
   
   
   // Declare pT if the jets from top and not from top
-  Double_t pt_bins_edges[7] = {50,70,100,150,200,300,400};
-  TH1F *h_bTop_1_bdt_reco = new TH1F("h_bTop_1_bdt_reco", "h_bTop_1_bdt_reco", 6, pt_bins_edges);
-  TH1F *h_bTop_2_bdt_reco = new TH1F("h_bTop_2_bdt_reco", "h_bTop_2_bdt_reco", 6, pt_bins_edges);
-  TH1F *h_bAdd_1_bdt_reco = new TH1F("h_bAdd_1_bdt_reco", "h_bAdd_1_bdt_reco", 6, pt_bins_edges);
-  TH1F *h_bAdd_2_bdt_reco = new TH1F("h_bAdd_2_bdt_reco", "h_bAdd_2_bdt_reco", 6, pt_bins_edges);
-  TH1F *h_bTop_1_bdt_pl = new TH1F("h_bTop_1_bdt_pl", "h_bTop_1_bdt_pl", 6, pt_bins_edges);
-  TH1F *h_bTop_2_bdt_pl = new TH1F("h_bTop_2_bdt_pl", "h_bTop_2_bdt_pl", 6, pt_bins_edges);
-  TH1F *h_bAdd_1_bdt_pl = new TH1F("h_bAdd_1_bdt_pl", "h_bAdd_1_bdt_pl", 6, pt_bins_edges);
-  TH1F *h_bAdd_2_bdt_pl = new TH1F("h_bAdd_2_bdt_pl", "h_bAdd_2_bdt_pl", 6, pt_bins_edges);
+  //Double_t pt_bins_edges[7] = {50,70,100,150,200,300,400};
+  TH1F *h_bTop_1_bdt_reco = new TH1F("h_bTop_1_bdt_reco", "h_bTop_1_bdt_reco", 100, 0, 1000);
+  TH1F *h_bTop_2_bdt_reco = new TH1F("h_bTop_2_bdt_reco", "h_bTop_2_bdt_reco", 100, 0, 1000);
+  TH1F *h_bAdd_1_bdt_reco = new TH1F("h_bAdd_1_bdt_reco", "h_bAdd_1_bdt_reco", 100, 0, 1000);
+  TH1F *h_bAdd_2_bdt_reco = new TH1F("h_bAdd_2_bdt_reco", "h_bAdd_2_bdt_reco", 100, 0, 1000);
+  TH1F *h_bTop_1_bdt_pl = new TH1F("h_bTop_1_bdt_pl", "h_bTop_1_bdt_pl", 100, 0, 1000);
+  TH1F *h_bTop_2_bdt_pl = new TH1F("h_bTop_2_bdt_pl", "h_bTop_2_bdt_pl", 100, 0, 1000);
+  TH1F *h_bAdd_1_bdt_pl = new TH1F("h_bAdd_1_bdt_pl", "h_bAdd_1_bdt_pl", 100, 0, 1000);
+  TH1F *h_bAdd_2_bdt_pl = new TH1F("h_bAdd_2_bdt_pl", "h_bAdd_2_bdt_pl", 100, 0, 1000);
 
   
   // Declare n_bjets hists 
@@ -154,11 +162,12 @@ int main(int argc, char *argv[])
     
     // We work with mc only
     if (is_data == true) continue;
-    //if (is_mc16a!=true) continue; // TEST
+    if (mc16a_only_test==true && is_mc16a!=true) continue;
     
     
     // Only nominal ntuples
-    dir_paths[dir_counter] += "nominal/";
+    if (generator=="nominal") { dir_paths[dir_counter] += "nominal/"; }
+    else {  dir_paths[dir_counter] += "newSamples/"; }
     
     
     // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
@@ -179,10 +188,10 @@ int main(int argc, char *argv[])
       // Select only jobs/physics_processes of our interest
       // (1) regular, not alternative samples
       // (2) ttbar only
-      if (campaign_info[1]!="s3126") continue; // (1)
+      if (generator=="nominal" && campaign_info[1]!="s3126") continue; // (1)
       
       bool correct_did = false;
-      if (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") correct_did=true;
+      if ( (generator=="nominal" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078")) || (generator!="nominal" && (job_DID=="411234" || job_DID=="411332" || job_DID=="411333" || job_DID=="411334")) ) correct_did=true;
       if (correct_did==false) continue; // (2)
       else { std::cout << "\n\nDID: " << job_DID << std::endl; }
       
@@ -338,6 +347,18 @@ int main(int argc, char *argv[])
 	  if (job_DID=="410472") {
 	    campaign_xsection_x_genFiltEff = 76.95;
 	    kFactor = 1.13975636159; }
+	  if (job_DID=="411234") {
+	    campaign_xsection_x_genFiltEff = 77.01622;
+	    kFactor = 1.1391;}
+	  if (job_DID=="411332") {
+	    campaign_xsection_x_genFiltEff = 0.713;
+	    kFactor = 1.1392; }
+	  if (job_DID=="411333") {
+	    campaign_xsection_x_genFiltEff = 4.84;
+	    kFactor = 1.1392; }
+	  if (job_DID=="411334") {
+	    campaign_xsection_x_genFiltEff = 3.19;
+	    kFactor = 1.1392; }
 
 	  if (runNumber==284500) {
 	    campaign_lumi = 3.21956 + 32.9881;
@@ -345,6 +366,10 @@ int main(int argc, char *argv[])
 	    if (job_DID=="411077") sumWeights = 3.61088*pow(10, 9);
 	    if (job_DID=="411078") sumWeights = 3.61598*pow(10, 9);
 	    if (job_DID=="410472") sumWeights = 5.82869*pow(10, 10);
+	    if (job_DID=="411234") sumWeights = 1.46019*pow(10,10);
+	    if (job_DID=="411332") sumWeights = 7.20547*pow(10,9);
+	    if (job_DID=="411333") sumWeights = 6.9191*pow(10,9);
+	    if (job_DID=="411334") sumWeights = 7.27183*pow(10,9);
 	  }
 
 	  if (runNumber==300000) {
@@ -353,6 +378,10 @@ int main(int argc, char *argv[])
 	    if (job_DID=="411077") sumWeights = 4.49595*pow(10, 9);
 	    if (job_DID=="411078") sumWeights = 4.49400*pow(10, 9);
 	    if (job_DID=="410472") sumWeights = 7.26510*pow(10, 10);
+	    if (job_DID=="411234") sumWeights = 1.81515*pow(10,10);
+	    if (job_DID=="411332") sumWeights = 9.0294*pow(10,9);
+	    if (job_DID=="411333") sumWeights = 8.82188*pow(10,9);
+	    if (job_DID=="411334") sumWeights = 9.00115*pow(10,9);
 	  }
 
 	  if (runNumber==310000) {
@@ -361,6 +390,10 @@ int main(int argc, char *argv[])
 	    if (job_DID=="411077") sumWeights = 5.94763*pow(10,9);
 	    if (job_DID=="411078") sumWeights = 5.94190*pow(10,9);
 	    if (job_DID=="410472") sumWeights = 1.01641*pow(10,11);
+	    if (job_DID=="411234") sumWeights = 2.44336*pow(10,10);
+	    if (job_DID=="411332") sumWeights = 1.20387*pow(10,10);
+	    if (job_DID=="411333") sumWeights = 1.2078*pow(10,10);
+	    if (job_DID=="411334") sumWeights = 1.20945*pow(10,10);
 	  }
 
 	  weight_lumi = campaign_lumi * pow(10,3) * campaign_xsection_x_genFiltEff * kFactor / sumWeights;
@@ -388,7 +421,7 @@ int main(int argc, char *argv[])
 	  if (btags_n >=2) btags_n2_cut = true;
 	  if (btags_n >=3) btags_n3_cut = true;
 
-	  if ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) topHFFF_cut = true;
+	  if ( (topHFFF==1 && (job_DID=="411076" || job_DID=="411332")) || (topHFFF==2 && (job_DID=="411077" || job_DID=="411333")) || (topHFFF==3 && (job_DID=="411078" || job_DID=="411334")) || (topHFFF==0 && (job_DID=="410472" || job_DID=="411234")) ) topHFFF_cut = true;
 	
 	  
 	  // TLorentzVector for leptons and jets
@@ -647,6 +680,18 @@ int main(int argc, char *argv[])
 	  if (job_DID=="410472") {
 	    campaign_xsection_x_genFiltEff = 76.95;
 	    kFactor = 1.13975636159; }
+	  if (job_DID=="411234") {
+            campaign_xsection_x_genFiltEff = 77.01622;
+            kFactor = 1.1391;}
+          if (job_DID=="411332") {
+            campaign_xsection_x_genFiltEff = 0.713;
+            kFactor = 1.1392; }
+          if (job_DID=="411333") {
+            campaign_xsection_x_genFiltEff = 4.84;
+            kFactor = 1.1392; }
+          if (job_DID=="411334") {
+            campaign_xsection_x_genFiltEff = 3.19;
+            kFactor = 1.1392; }
 
 	  if (runNumber==284500) {
 	    campaign_lumi = 3.21956 + 32.9881;
@@ -654,6 +699,10 @@ int main(int argc, char *argv[])
 	    if (job_DID=="411077") sumWeights = 3.61088*pow(10, 9);
 	    if (job_DID=="411078") sumWeights = 3.61598*pow(10, 9);
 	    if (job_DID=="410472") sumWeights = 5.82869*pow(10, 10);
+	    if (job_DID=="411234") sumWeights = 1.46019*pow(10,10);
+            if (job_DID=="411332") sumWeights = 7.20547*pow(10,9);
+            if (job_DID=="411333") sumWeights = 6.9191*pow(10,9);
+            if (job_DID=="411334") sumWeights = 7.27183*pow(10,9);
 	  }
 
 	  if (runNumber==300000) {
@@ -662,6 +711,10 @@ int main(int argc, char *argv[])
 	    if (job_DID=="411077") sumWeights = 4.49595*pow(10, 9);
 	    if (job_DID=="411078") sumWeights = 4.49400*pow(10, 9);
 	    if (job_DID=="410472") sumWeights = 7.26510*pow(10, 10);
+	    if (job_DID=="411234") sumWeights = 1.81515*pow(10,10);
+            if (job_DID=="411332") sumWeights = 9.0294*pow(10,9);
+            if (job_DID=="411333") sumWeights = 8.82188*pow(10,9);
+            if (job_DID=="411334") sumWeights = 9.00115*pow(10,9);
 	  }
 
 	  if (runNumber==310000) {
@@ -670,6 +723,10 @@ int main(int argc, char *argv[])
 	    if (job_DID=="411077") sumWeights = 5.94763*pow(10,9);
 	    if (job_DID=="411078") sumWeights = 5.94190*pow(10,9);
 	    if (job_DID=="410472") sumWeights = 1.01641*pow(10,11);
+	    if (job_DID=="411234") sumWeights = 2.44336*pow(10,10);
+            if (job_DID=="411332") sumWeights = 1.20387*pow(10,10);
+            if (job_DID=="411333") sumWeights = 1.2078*pow(10,10);
+            if (job_DID=="411334") sumWeights = 1.20945*pow(10,10);
 	  }
 
 	  weight_lumi = campaign_lumi * pow(10,3) * campaign_xsection_x_genFiltEff * kFactor / sumWeights;
@@ -697,7 +754,7 @@ int main(int argc, char *argv[])
 	  if (bjets_n >=2) bjets_n2_cut = true;
 	  if (bjets_n >=3) bjets_n3_cut = true;
 
-	  if ( (topHFFF_pl==1 && job_DID=="411076") || (topHFFF_pl==2 && job_DID=="411077") || (topHFFF_pl==3 && job_DID=="411078") || (topHFFF_pl==0 && job_DID=="410472") ) topHFFF_cut = true;
+	  if ( (topHFFF==1 && (job_DID=="411076" || job_DID=="411332")) || (topHFFF==2 && (job_DID=="411077" || job_DID=="411333")) || (topHFFF==3 && (job_DID=="411078" || job_DID=="411334")) || (topHFFF==0 && (job_DID=="410472" || job_DID=="411234")) ) topHFFF_cut = true;
 	  
 
 	  // TLorentzVector for leptons and jets

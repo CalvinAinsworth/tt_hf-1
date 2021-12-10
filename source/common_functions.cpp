@@ -2,6 +2,72 @@
 
 
 
+// ###############################
+// ## ttbar Generator Selection ##
+// ###############################
+std::string ttbar_generator()
+{
+  std::string sel_gen_yn;
+  bool proper_yn = false;
+  std::string generator = "";
+  std::string confirm_selection = "no";
+  std::cout << "\n\nNeed to select a generator?\nNeeded for ttbar and TMVA.\nChoise yes/no for other than ttbar and TMVA makes no difference.\nType \"yes\" or \"no\": ";
+  std::cin >> sel_gen_yn;
+  std::cout << std::endl;
+  
+  if (sel_gen_yn=="yes" || sel_gen_yn=="no") proper_yn = true;
+  while (proper_yn==false) {
+    std::cout << "Invalid input, type \"yes\" or \"no\": ";
+    std::cin >> sel_gen_yn;
+    std::cout << std::endl;
+    if (sel_gen_yn=="yes" || sel_gen_yn=="no") proper_yn = true;
+  }
+
+  if (sel_gen_yn == "no") return generator;
+
+  std::cout << "\nNominal or Alternative generator?\nType \"nominal\" for the nominal or anything else for the alternative: ";
+  std::cin >> generator;
+
+  while (confirm_selection!="yes") {
+    std::cout << "\n\nYou've selected \"" << generator << "\" generator.\nTo confirm type \"yes\", to change your choise of the generator type your new choise (\"nominal\" or anything else): ";
+    std::cin >> confirm_selection;
+    if (confirm_selection!="yes") generator = confirm_selection;
+  }
+
+  std::cout << "\n\nWorking with the " << generator << " generator\n" << std::endl;
+
+  return generator;
+}
+
+
+
+// #############################
+// ## MC16a Only? Test option ##
+// #############################
+bool mc16a_only_choise() {
+  std::string sel_mc16a_yn;
+  bool proper_yn = false;
+  bool selection = false;
+  
+  std::cout << "\n\nDo you want to run over mc16a only?\nThat's a useful option for debugging runs.\nType \"yes\" or \"no\": ";
+  std::cin >> sel_mc16a_yn;
+  std::cout << std::endl;
+  
+  if (sel_mc16a_yn=="yes" || sel_mc16a_yn=="no") proper_yn = true;
+  while (proper_yn==false) {
+    std::cout << "Invalid input, type \"yes\" or \"no\": ";
+    std::cin >> sel_mc16a_yn;
+    std::cout << std::endl;
+    if (sel_mc16a_yn=="yes" || sel_mc16a_yn=="no") proper_yn = true;
+  }
+
+  if (sel_mc16a_yn=="yes") selection = true;
+  
+  return selection;
+}
+
+
+
 // ##################################
 // ## Split string into components ##
 // ##################################

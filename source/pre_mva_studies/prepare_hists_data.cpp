@@ -6,6 +6,10 @@
 // ///
 int main(int argc, char *argv[])
 {
+  // Get config info about MVA setup
+  bool mc16a_only_test = mc16a_only_choise();
+
+
   // Create directory for results
   gSystem->Exec("mkdir results");
   
@@ -53,11 +57,8 @@ int main(int argc, char *argv[])
 
     // We work with data
     if (is_data != true) continue;
+    if (mc16a_only_test==true && (is_2017==true || is_2018==true)) continue;
     std::cout << dir_path_components[last_element_index-1] << std::endl;
-    
-
-    // Testing option: data15-17 only (mc16a)
-    //if (is_2017==true || is_2018==true) continue;
 
 
     // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)

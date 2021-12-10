@@ -12,7 +12,7 @@
 //reader->AddVariable("m_jet_lep_max", &m_jet_lep_max_reader);
 //reader->AddVariable("min_dR_jet_bjet", &min_dR_jet_bjet_reader);
 //reader->AddVariable("jet_pt", &jet_pt_reader);
-  reader->AddVariable("jet_eta", &jet_eta_reader);
+//reader->AddVariable("jet_eta", &jet_eta_reader);
 //reader->AddVariable("jet_m", &jet_m_reader);
 //reader->AddVariable("m_min_jet_jet", &m_min_jet_jet_reader);
 //reader->AddVariable("m_max_jet_jet", &m_max_jet_jet_reader);

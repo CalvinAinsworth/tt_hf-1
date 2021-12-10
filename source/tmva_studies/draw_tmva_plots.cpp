@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   //TH1 *h_m_bjet_lep_max_S = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_lep_max__Signal");
   //TH1 *h_min_dR_jet_bjet_S = (TH1F*)tmva_file->Get(var_hists_address+"min_dR_jet_bjet__Signal");
   //TH1 *h_jet_pt_S = (TH1F*)tmva_file->Get(var_hists_address+"jet_pt__Signal");
-  TH1 *h_jet_eta_S = (TH1F*)tmva_file->Get(var_hists_address+"jet_eta__Signal");
+  //TH1 *h_jet_eta_S = (TH1F*)tmva_file->Get(var_hists_address+"jet_eta__Signal");
   TH2 *h_corr_mtrx_S = (TH2F*)tmva_file->Get("dataset/CorrelationMatrixS");
   
   // Background hists
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   //TH1 *h_m_bjet_lep_max_B = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_lep_max__Background");
   //TH1 *h_min_dR_jet_bjet_B = (TH1F*)tmva_file->Get(var_hists_address+"min_dR_jet_bjet__Background");
   //TH1 *h_jet_pt_B = (TH1F*)tmva_file->Get(var_hists_address+"jet_pt__Background");
-  TH1 *h_jet_eta_B =(TH1F*)tmva_file->Get(var_hists_address+"jet_eta__Background");
+  //TH1 *h_jet_eta_B =(TH1F*)tmva_file->Get(var_hists_address+"jet_eta__Background");
   TH2 *h_corr_mtrx_B = (TH2F*)tmva_file->Get("dataset/CorrelationMatrixB");
   
   // Other hists
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
   //int m_bjet_lep_max = draw_tmva_hists(h_m_bjet_lep_max_S, h_m_bjet_lep_max_B, "#bf{m_{inv}^{max}(jet, lep)}", "m_jet_lep_max");
   //int min_dR_jet_bjet_draw = draw_tmva_hists(h_min_dR_jet_bjet_S, h_min_dR_jet_bjet_B, "#bf{#DeltaR_{min}(jet, bjet)}", "min_dR_jet_bjet");
   //int jet_pt_draw = draw_tmva_hists(h_jet_pt_S, h_jet_pt_B, "#bf{p_{T}^{jet}}", "jet_pt");
-  int jet_eta_draw = draw_tmva_hists(h_jet_eta_S, h_jet_eta_B, "#bf{#eta^{jet}}", "jet_eta");
+  //int jet_eta_draw = draw_tmva_hists(h_jet_eta_S, h_jet_eta_B, "#bf{#eta^{jet}}", "jet_eta");
 
   // Draw correlation matrices
   std::vector<TString> axis_labels = {"#bf{#DeltaR(jet - lep0)}", "#bf{#DeltaR(jet - lep1)}", "#bf{#DeltaR_{min}(jet, lep)}", "#bf{m_{inv}(jet, el)}", "#bf{m_{inv}(jet, mu)}", "#bf{m_{inv}^{max}(jet, lep)}", "#bf{#DeltaR_{min}(jet, bjet)}"};

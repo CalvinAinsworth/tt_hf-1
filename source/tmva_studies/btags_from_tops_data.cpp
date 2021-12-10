@@ -8,6 +8,10 @@ int main(int argc, char *argv[])
   // Get config info about MVA setup
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
 
+
+  // Do we ran only mc16a -- data15-16?
+  bool mc16a_only_test = mc16a_only_choise();
+  
   
   // Declare hists discriminative variables and bdt, 0 - all, 1- ft, 2- nft 
   TH1 *h_dR_jet_lep0[3];
@@ -33,10 +37,11 @@ int main(int argc, char *argv[])
 
   // btags pTs
   Double_t pt_bins_edges[7] = {50,70,100,150,200,300,400};
-  TH1F *h_bTop_1_bdt = new TH1F("h_bTop_1_bdt", "h_bTop_1_bdt", 6, pt_bins_edges);
-  TH1F *h_bTop_2_bdt = new TH1F("h_bTop_2_bdt", "h_bTop_2_bdt", 6, pt_bins_edges);
-  TH1F *h_bAdd_1_bdt = new TH1F("h_bAdd_1_bdt", "h_bAdd_1_bdt", 6, pt_bins_edges);
-  TH1F *h_bAdd_2_bdt = new TH1F("h_bAdd_2_bdt", "h_bAdd_2_bdt", 6, pt_bins_edges);
+  // TH1F *hist = new TH1F("", "", int bins_n, float bins_edges[bins_n+1]);
+  TH1F *h_bTop_1_bdt = new TH1F("h_bTop_1_bdt", "h_bTop_1_bdt", 100, 0, 1000);
+  TH1F *h_bTop_2_bdt = new TH1F("h_bTop_2_bdt", "h_bTop_2_bdt", 100, 0, 1000);
+  TH1F *h_bAdd_1_bdt = new TH1F("h_bAdd_1_bdt", "h_bAdd_1_bdt", 100, 0, 1000);
+  TH1F *h_bAdd_2_bdt = new TH1F("h_bAdd_2_bdt", "h_bAdd_2_bdt", 100, 0, 1000);
 
 
   // Seup MVA reader
@@ -82,6 +87,7 @@ int main(int argc, char *argv[])
 
     // We work with data
     if (is_data != true) continue;
+    if (mc16a_only_test==true && (is_2017==true || is_2018==true)) continue;
     std::cout << dir_path_components[last_element_index-1] << std::endl;
 
     

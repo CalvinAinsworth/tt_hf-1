@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 	for (int ntuple_number=0; ntuple_number<paths_to_ntuples.size(); ntuple_number++) {
 
 	  bool tmp_bool = false;
-	  //if (ntuple_number==0 || ntuple_number==1 || ntuple_number==10) tmp_bool = true;
+	  //if (ntuple_number==22) tmp_bool = true;
 	  //if (tmp_bool==false) continue;
 	  
 	  // Declare the output file and set all branches
@@ -218,8 +218,10 @@ int main(int argc, char *argv[])
 	    
 	    
 	    // 2b (tags) inclusive, emu, OS
-	    if (emu_cut*OS_cut*btags_n2_cut*jets_n_cut == true) {
-	      
+	    //if (emu_cut*OS_cut*btags_n2_cut*jets_n_cut == true) {
+	    // TEST: get all events
+	    if (btags_n2_cut == true) {
+
 	      // Loop over jets
 	      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
 	          
@@ -319,8 +321,10 @@ int main(int argc, char *argv[])
 	      
 	      
 	      // 2b (truth) inclusive, emu, OS
-	      if (emu_cut*OS_cut*jets_n_cut*btags_n2_cut == true) {
-		
+	      //if (emu_cut*OS_cut*jets_n_cut*btags_n2_cut == true) {
+	      // TEST: get all events
+	      if (btags_n2_cut == true) {
+
 		// Loop over jets
 		for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
 		  

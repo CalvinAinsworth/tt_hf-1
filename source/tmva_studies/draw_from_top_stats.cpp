@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
   
   
   // Open the hists files
-  TFile *hists_file = TFile::Open("results/hists_bdt_eff_study_mc16a.root");
+  TFile *hists_file = TFile::Open("results/hists_bdt_eff_study.root");
 
 
   // ///
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
   TH1 *h_min_dR_jet_lep_mc[10];
   TH1 *h_m_jet_el_mc[10];
   TH1 *h_m_jet_mu_mc[10];
-  TH1 *h_min_dR_jet_bjet_mc[10];
+  //TH1 *h_min_dR_jet_bjet_mc[10];
   TH1 *h_jet_eta_mc[10];
   TH1 *h_mva_score_mc[10];
   for (int i=0; i<10; i++) {
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     h_min_dR_jet_lep_mc[i] = (TH1*)hists_file->Get("3b_incl_min_dR_jet_lep" + discr_vars_str_mc[i]);
     h_m_jet_el_mc[i] = (TH1*)hists_file->Get("3b_incl_m_jet_el" + discr_vars_str_mc[i]);
     h_m_jet_mu_mc[i] = (TH1*)hists_file->Get("3b_incl_m_jet_mu" + discr_vars_str_mc[i]);
-    h_min_dR_jet_bjet_mc[i] = (TH1*)hists_file->Get("3b_incl_min_dR_jet_bjet" + discr_vars_str_mc[i]);
+    //h_min_dR_jet_bjet_mc[i] = (TH1*)hists_file->Get("3b_incl_min_dR_jet_bjet" + discr_vars_str_mc[i]);
     h_jet_eta_mc[i] = (TH1*)hists_file->Get("3b_incl_jet_eta" + discr_vars_str_mc[i]);
     h_mva_score_mc[i] = (TH1*)hists_file->Get("3b_incl_mva_score" + discr_vars_str_mc[i]);
   }
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
   TH1 *h_min_dR_jet_lep_data[3];
   TH1 *h_m_jet_el_data[3];
   TH1 *h_m_jet_mu_data[3];
-  TH1 *h_min_dR_jet_bjet_data[3];
+  //TH1 *h_min_dR_jet_bjet_data[3];
   TH1 *h_jet_eta_data[3];
   TH1 *h_mva_score_data[3];
   for (int i=0; i<3; i++) {
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     h_min_dR_jet_lep_data[i] = (TH1*)hists_file->Get("3b_incl_min_dR_jet_lep" + discr_vars_str_data[i]);
     h_m_jet_el_data[i] = (TH1*)hists_file->Get("3b_incl_m_jet_el" + discr_vars_str_data[i]);
     h_m_jet_mu_data[i] = (TH1*)hists_file->Get("3b_incl_m_jet_mu" + discr_vars_str_data[i]);
-    h_min_dR_jet_bjet_data[i] = (TH1*)hists_file->Get("3b_incl_min_dR_jet_bjet" + discr_vars_str_data[i]);
+    //h_min_dR_jet_bjet_data[i] = (TH1*)hists_file->Get("3b_incl_min_dR_jet_bjet" + discr_vars_str_data[i]);
     h_jet_eta_data[i] = (TH1*)hists_file->Get("3b_incl_jet_eta" + discr_vars_str_data[i]);
     h_mva_score_data[i] = (TH1*)hists_file->Get("3b_incl_mva_score" + discr_vars_str_data[i]);
   }
@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
   std::vector<TH1*> h_m_jet_mu_reco_vec = {h_m_jet_mu_mc[1], h_m_jet_mu_mc[2], h_m_jet_mu_mc[3], h_m_jet_mu_mc[4]};
   int draw_m_jet_mu_reco = draw_n_hists(h_m_jet_mu_reco_vec, mc_origin_legend, "#bf{m(btag, mu)}", "tmva_plots/discr_vars/m_jet_mu_reco_vec", true, 0, 1);
   
-  std::vector<TH1*> h_min_dR_jet_bjet_reco_vec = {h_min_dR_jet_bjet_mc[1], h_min_dR_jet_bjet_mc[2], h_min_dR_jet_bjet_mc[3], h_min_dR_jet_bjet_mc[4]};
-  int draw_min_dR_jet_bjet_reco = draw_n_hists(h_min_dR_jet_bjet_reco_vec, mc_origin_legend, "#bf{#DeltaR(btag, closest btag)}", "tmva_plots/discr_vars/min_dR_jet_bjet_reco", true, 0, 0.25);
+  //std::vector<TH1*> h_min_dR_jet_bjet_reco_vec = {h_min_dR_jet_bjet_mc[1], h_min_dR_jet_bjet_mc[2], h_min_dR_jet_bjet_mc[3], h_min_dR_jet_bjet_mc[4]};
+  //int draw_min_dR_jet_bjet_reco = draw_n_hists(h_min_dR_jet_bjet_reco_vec, mc_origin_legend, "#bf{#DeltaR(btag, closest btag)}", "tmva_plots/discr_vars/min_dR_jet_bjet_reco", true, 0, 0.25);
   
   std::vector<TH1*> h_jet_eta_reco_vec = {h_jet_eta_mc[1], h_jet_eta_mc[2], h_jet_eta_mc[3], h_jet_eta_mc[4]};
   int draw_jet_eta_reco = draw_n_hists(h_jet_eta_reco_vec, mc_origin_legend, "#bf{btag eta}", "tmva_plots/discr_vars/jet_eta_reco", true, 0, 0.07);
@@ -109,8 +109,8 @@ int main(int argc, char *argv[])
   std::vector<TH1*> h_m_jet_mu_pl_vec = {h_m_jet_mu_mc[6], h_m_jet_mu_mc[7], h_m_jet_mu_mc[8], h_m_jet_mu_mc[9]};
   int draw_m_jet_mu_pl = draw_n_hists(h_m_jet_mu_pl_vec, mc_origin_legend, "#bf{m(bjet, mu)}", "tmva_plots/discr_vars/m_jet_mu_pl", true, 0, 1);
 
-  std::vector<TH1*> h_min_dR_jet_bjet_pl_vec = {h_min_dR_jet_bjet_mc[6], h_min_dR_jet_bjet_mc[7], h_min_dR_jet_bjet_mc[8], h_min_dR_jet_bjet_mc[9]};
-  int draw_min_dR_jet_bjet_pl = draw_n_hists(h_min_dR_jet_bjet_pl_vec, mc_origin_legend, "#bf{#DeltaR(bjet, closest bjet)}", "tmva_plots/discr_vars/min_dR_jet_bjet_pl", true, 0, 0.3);
+  //std::vector<TH1*> h_min_dR_jet_bjet_pl_vec = {h_min_dR_jet_bjet_mc[6], h_min_dR_jet_bjet_mc[7], h_min_dR_jet_bjet_mc[8], h_min_dR_jet_bjet_mc[9]};
+  //int draw_min_dR_jet_bjet_pl = draw_n_hists(h_min_dR_jet_bjet_pl_vec, mc_origin_legend, "#bf{#DeltaR(bjet, closest bjet)}", "tmva_plots/discr_vars/min_dR_jet_bjet_pl", true, 0, 0.3);
 
   std::vector<TH1*> h_jet_eta_pl_vec = {h_jet_eta_mc[6], h_jet_eta_mc[7], h_jet_eta_mc[8], h_jet_eta_mc[9]};
   int draw_jet_eta_pl = draw_n_hists(h_jet_eta_pl_vec, mc_origin_legend, "#bf{bjet eta}", "tmva_plots/discr_vars/jet_eta_pl", true, 0, 0.07);
@@ -137,8 +137,8 @@ int main(int argc, char *argv[])
   std::vector<TH1*> h_m_jet_mu_data_vec = {h_m_jet_mu_data[1], h_m_jet_mu_data[2]};
   int draw_m_jet_mu_data = draw_n_hists(h_m_jet_mu_data_vec, data_origin_legend, "#bf{m(btag, mu)}", "tmva_plots/discr_vars/m_jet_mu_data", true, 0, 1);
 
-  std::vector<TH1*> h_min_dR_jet_bjet_data_vec = {h_min_dR_jet_bjet_data[1], h_min_dR_jet_bjet_data[2]};
-  int draw_min_dR_jet_bjet_data = draw_n_hists(h_min_dR_jet_bjet_data_vec, data_origin_legend, "#bf{#DeltaR(btag, closest btag)}", "tmva_plots/discr_vars/min_dR_jet_bjet_data", true, 0, 0.25);
+  //std::vector<TH1*> h_min_dR_jet_bjet_data_vec = {h_min_dR_jet_bjet_data[1], h_min_dR_jet_bjet_data[2]};
+  //int draw_min_dR_jet_bjet_data = draw_n_hists(h_min_dR_jet_bjet_data_vec, data_origin_legend, "#bf{#DeltaR(btag, closest btag)}", "tmva_plots/discr_vars/min_dR_jet_bjet_data", true, 0, 0.25);
 
   std::vector<TH1*> h_jet_eta_data_vec = {h_jet_eta_data[1], h_jet_eta_data[2]};
   int draw_jet_eta_data = draw_n_hists(h_jet_eta_data_vec, data_origin_legend, "#bf{btag eta}", "tmva_plots/discr_vars/jet_eta_data", true, 0, 0.08);
@@ -165,8 +165,8 @@ int main(int argc, char *argv[])
   std::vector<TH1*> h_m_jet_mu_datamc_vec = {h_m_jet_mu_data[0], h_m_jet_mu_mc[1], h_m_jet_mu_mc[5]};
   int draw_m_jet_mu_datamc = draw_n_hists(h_m_jet_mu_datamc_vec, data_mc_legend, "#bf{m(btag, mu)}", "tmva_plots/discr_vars/m_jet_mu_datamc", true, 0, 1);
 
-  std::vector<TH1*> h_min_dR_jet_bjet_datamc_vec = {h_min_dR_jet_bjet_data[0], h_min_dR_jet_bjet_mc[0], h_min_dR_jet_bjet_mc[5]};
-  int draw_min_dR_jet_bjet_datamc = draw_n_hists(h_min_dR_jet_bjet_datamc_vec, data_mc_legend, "#bf{#DeltaR(btag, closest btag)}", "tmva_plots/discr_vars/min_dR_jet_bjet_datamc", true, 0, 0.25);
+  //std::vector<TH1*> h_min_dR_jet_bjet_datamc_vec = {h_min_dR_jet_bjet_data[0], h_min_dR_jet_bjet_mc[0], h_min_dR_jet_bjet_mc[5]};
+  //int draw_min_dR_jet_bjet_datamc = draw_n_hists(h_min_dR_jet_bjet_datamc_vec, data_mc_legend, "#bf{#DeltaR(btag, closest btag)}", "tmva_plots/discr_vars/min_dR_jet_bjet_datamc", true, 0, 0.25);
 
   std::vector<TH1*> h_jet_eta_datamc_vec = {h_jet_eta_data[0], h_jet_eta_mc[0], h_jet_eta_mc[5]};
   int draw_jet_eta_datamc = draw_n_hists(h_jet_eta_datamc_vec, data_mc_legend, "#bf{btag eta}", "tmva_plots/discr_vars/jet_eta_datamc", true, 0, 0.08);
