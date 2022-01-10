@@ -7,7 +7,7 @@
 int main(int argc, char *argv[])
 {
   // Check for the request: sig (tt) or bkg (others)?
-  if (argc >= 1) {
+  if (argc == 1) {
     std::cout << "\nError: I don't know what to do =(\n" << std::endl;
     std::cout << "Aks for a process:" << std::endl;
     std::cout << "./run/prepare_hists_mc PROCESS\n" << std::endl;
@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
   
   // Check for the generator and mc16a_only choises
   std::string generator = ttbar_generator();
+  if (generator=="quit") return 0;
   if (generator=="" && std::string(argv[1])=="tt") {
     generator="nominal";
     std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
@@ -47,7 +48,7 @@ int main(int argc, char *argv[])
   
   // Declare TFile, TTree, TBranches and variables for MVA
   TFile *MVA_tfile;
-  if (std::string(argv[1]) == "tt") MVA_tfile = new TFile("results/tt_hf_MVA_input.root", "RECREATE");
+  if (std::string(argv[1]) == "tt") MVA_tfile = new TFile("results/tt_hf_MVA_input_reco.root", "RECREATE");
   TTree *MVA_sig_tree = new TTree("Signal", "inputS");
   TTree *MVA_bkg_tree = new TTree("Background", "inputB");
   #include "include/set_mva_ntuple_branches.h"
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
 
     
     // Only nominal ntuples
-    if (generator=="nominal") { dir_paths[dir_counter] += "nominal/"; }
+    if (generator=="nominal" || generator=="3mtop") { dir_paths[dir_counter] += "nominal/"; }
     else {  dir_paths[dir_counter] += "newSamples/"; }
 
     
@@ -107,16 +108,31 @@ int main(int argc, char *argv[])
       if (campaign_info[1]!="s3126" && generator=="nominal") continue; // (1)
       
       bool correct_did = false;
-      // 410472 - incl; 411076 - ttbb, 411077 - ttb, 411078 - ttc
-      if (std::string(argv[1])=="tt" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
+
+      // ttbar Powheg+Pythia8: 410472 - incl; 411076 - ttbb, 411077 - ttb, 411078 - ttc
+      if (std::string(argv[1])=="tt" && generator=="nominal" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
+      // ttbar Powheg+Pythia8 (hdamp=3*mtop): 410482 (incl)
+      if (std::string(argv[1])=="tt" && generator=="3mtop" && job_DID=="410482") correct_did = true;
+      // ttbar Powheg+Herwig7.1.3: inclusive, 411332 - ttbb, 411333 - ttb, 411334 - ttc 
+      if (std::string(argv[1])=="tt" && generator=="phhw713" && (job_DID=="411234" || job_DID=="411332" || job_DID=="411333" || job_DID=="411334")) correct_did = true;
+
+      // Singletop
       if (std::string(argv[1])=="singletop" && (job_DID=="410648" || job_DID=="410649" || job_DID=="410644" || job_DID=="410645" || job_DID=="410658" || job_DID=="410659") ) correct_did = true;
+      
+      // ttV
       if (std::string(argv[1])=="ttV" && (job_DID=="410155" || job_DID=="410156" || job_DID=="410157" || job_DID=="410218" || job_DID=="410219" || job_DID=="410220" || job_DID=="410276" || job_DID=="410277" || job_DID=="410278") ) correct_did = true;
+      
+      // ttH
       if (std::string(argv[1])=="ttH" && (job_DID=="346345") ) correct_did = true;
+      
+      // Diboson
       if (std::string(argv[1])=="diboson" && (job_DID=="364250" || job_DID=="364253" || job_DID=="364254" || (std::stoi(job_DID)>=364283 && std::stoi(job_DID)<=364290 && job_DID!="364286") || job_DID=="345705" || job_DID=="345706" || job_DID=="345723" || job_DID=="363356" || job_DID=="363358") ) correct_did = true;
+      
+      // Z+jets
       if (std::string(argv[1])=="z_jets" && (std::stoi(job_DID)>=364100 && std::stoi(job_DID)<=364141) ) correct_did = true;
+
+      // Other
       if (std::string(argv[1])=="other" && (job_DID=="410560" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676" || job_DID=="412043") ) correct_did = true;
-      // 411234 - inclusive, 411332 - ttbb, 411333 - ttb, 411334 - ttc
-      if (std::string(argv[1])=="tt" && (/*job_DID=="411233" ||*/ job_DID=="411234" || job_DID=="411332" || job_DID=="411333" || job_DID=="411334" /*|| job_DID=="600791" || job_DID=="700122" || job_DID=="700123" || job_DID=="700124" || job_DID=="700167"*/)) correct_did = true;
       
       if (correct_did==false) continue;
       else { std::cout << "\n\nDID: " << job_DID << std::endl; }
@@ -183,7 +199,9 @@ int main(int argc, char *argv[])
           if (btags_n >=2) btags_n2_cut = true;
           if (btags_n >=3) btags_n3_cut = true;
 	  
-          if ( only_410472==true || ( (topHFFF==1 && (job_DID=="411076" || job_DID=="411332")) || (topHFFF==2 && (job_DID=="411077" || job_DID=="411333")) || (topHFFF==3 && (job_DID=="411078" || job_DID=="411334")) || (topHFFF==0 && (job_DID=="410472" || job_DID=="411234")) ) ) topHFFF_cut = true;
+          if (std::string(argv[1])=="tt" && generator=="nominal" && ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) ) topHFFF_cut = true;
+	  if (std::string(argv[1])=="tt" && generator=="phhw713" && ( (topHFFF==1 && job_DID=="411332") || (topHFFF==2 && job_DID=="411333") || (topHFFF==3 && job_DID=="411334") || (topHFFF==0 && job_DID=="411234") ) ) topHFFF_cut = true;
+	  if (std::string(argv[1])=="tt" && generator=="3mtop" && job_DID=="410482") topHFFF_cut = true;
 	  if (std::string(argv[1])!="tt") topHFFF_cut = true;
 	  
 	  
@@ -208,9 +226,9 @@ int main(int argc, char *argv[])
 	  
 	  
 	  // ///
-	  // 2b (tag) incl, emu, OS
+	  // 3b (tag) incl, emu, OS
 	  // ///
-	  if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
+	  if (emu_cut*OS_cut*btags_n3_cut*topHFFF_cut*jets_n_cut == true) {
 	   
 	    // ///
 	    // jets_n - data/mc
@@ -274,7 +292,7 @@ int main(int argc, char *argv[])
 		    min_dR1_top = std::min(min_dR1_top, dR1);}
 		  else {
 		    min_dR0_not_top = std::min(min_dR0_not_top, dR0);
-		    min_dR1_not_top = std::min(min_dR1_not_top, dR0); }
+		    min_dR1_not_top = std::min(min_dR1_not_top, dR1); }
 		} // if "tt" 
               } // [if] DL1r tag
 	    
@@ -533,6 +551,19 @@ int main(int argc, char *argv[])
 	      if ( (*jet_DL1r_77)[jet_i]==1 ) {
                 h_m_btag_el->Fill( (jets_lvec[jet_i] + el_lvec).M() , weight);
                 h_m_btag_mu->Fill( (jets_lvec[jet_i] + mu_lvec).M() , weight); }
+
+
+	      // ///
+	      // M of btag and el/mu: Sig/Bkg
+	      if ( (*jet_DL1r_77)[jet_i]==1 ) {
+		if ( (*topHadronOriginFlag)[jet_i]==4 ) {
+		  h_m_btag_el_from_top->Fill( (jets_lvec[jet_i] + el_lvec).M() , weight);
+		  h_m_btag_mu_from_top->Fill( (jets_lvec[jet_i] + mu_lvec).M() , weight);
+		} else {
+		  h_m_btag_el_not_from_top->Fill( (jets_lvec[jet_i] + el_lvec).M() , weight);
+		  h_m_btag_mu_not_from_top->Fill( (jets_lvec[jet_i] + mu_lvec).M() , weight);
+		}
+	      }
 	      
 	      
 	      // ///
@@ -578,7 +609,7 @@ int main(int argc, char *argv[])
 	    if (n_btags_tmp==3) h_m_three_tags->Fill(m_three_tags, weight);
 	    if (n_btags_tmp>=4) h_m_four_tags->Fill(m_four_tags, weight);
 	    
-	  } // 2b (tags), emu, OS cuts
+	  } // 3b (tags), emu, OS cuts
 	  
 	  
 	} // [entry] - loop over entries
@@ -605,7 +636,7 @@ int main(int argc, char *argv[])
   
   
   // Save hists
-  TString savename = std::string("results/hists_") + std::string(argv[1]) + std::string("_test.root");
+  TString savename = std::string("results/hists_") + std::string(argv[1]) + std::string("_test_reco.root");
   TFile *hists_file = new TFile(savename, "RECREATE");
   hists_file->cd();
   #include "include/write_hists_data_mc.h"

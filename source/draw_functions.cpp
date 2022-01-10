@@ -166,7 +166,10 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
   TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 1200);
   gStyle->SetOptStat(0);
   gPad->SetGrid();
-  if (normalize==false && y_min!=0) gPad->SetLogy();
+  if (normalize==true) {
+    if (y_min<=0) y_min = y_max/1000;
+    gPad->SetLogy();
+  }
   double legend_height = 0.09*h_vec.size();
   double legend_y1 = 0.90 - legend_height;
   TLegend *legend = new TLegend(0.70, legend_y1, 0.90, 0.90);

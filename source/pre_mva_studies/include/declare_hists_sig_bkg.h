@@ -35,6 +35,12 @@
   TH1 *h_max_m_lep_btag_not_from_top = new TH1F("h_max_m_lep_btag_not_from_top", "h_max_m_lep_btag_not_from_top", 200, 0, 1000);
   TH1 *h_min_m_lep_other_jet = new TH1F("h_min_m_lep_other_jet", "h_min_m_lep_other_jet", 200, 0, 1000);
   TH1 *h_max_m_lep_other_jet = new TH1F("h_max_m_lep_other_jet", "h_max_m_lep_other_jet", 200, 0, 1000);
+  TH1 *h_m_btag_el_from_top = new TH1F("m_btag_el_from_top", "m_btag_el_from_top", 25, 0, 500);
+  TH1 *h_m_btag_el_not_from_top = new TH1F("m_btag_el_not_from_top", "m_btag_el_not_from_top", 25, 0, 500);
+  TH1 *h_m_btag_mu_from_top = new TH1F("m_btag_mu_from_top", "m_btag_mu_from_top", 25, 0, 500);
+  TH1 *h_m_btag_mu_not_from_top = new TH1F("m_btag_mu_not_from_top", "m_btag_mu_not_from_top", 25, 0, 500);
+
+
 
   // Invariant mass of btags (and bjets) combinations - sig/bkg discrimination
   TH1 *h_m_btag_top = new TH1F("h_m_btag_top", "h_m_btag_top", 100, 0, 100);

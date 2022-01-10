@@ -33,7 +33,11 @@
   h_max_m_lep_btag_not_from_top->Write("2b_emu_OS_h_max_m_lep_btag_not_from_top");
   h_min_m_lep_other_jet->Write("2b_emu_OS_h_min_m_lep_other_jet");
   h_max_m_lep_other_jet->Write("2b_emu_OS_h_max_m_lep_other_jet");
-  
+  h_m_btag_el_from_top->Write("2b_emu_OS_h_m_btag_el_from_top");
+  h_m_btag_el_not_from_top->Write("2b_emu_OS_h_m_btag_el_not_from_top");
+  h_m_btag_mu_from_top->Write("2b_emu_OS_h_m_btag_mu_from_top");
+  h_m_btag_mu_not_from_top->Write("2b_emu_OS_h_m_btag_mu_not_from_top");
+
   // Invariant mass of btags (and bjets) combinations - sig/bkg discrimination
   h_m_btag_top->Write("2b_emu_OS_m_btag_from_top");
   h_m_btag_other->Write("2b_emu_OS_m_btag_not_from_top");

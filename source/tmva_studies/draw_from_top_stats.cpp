@@ -151,19 +151,19 @@ int main(int argc, char *argv[])
   std::vector<TString> data_mc_legend = {"Data", "Reco", "PL"};
 
   std::vector<TH1*> h_dR_jet_lep0_datamc_vec = {h_dR_jet_lep0_data[0], h_dR_jet_lep0_mc[0], h_dR_jet_lep0_mc[5]};
-  int draw_dR_jet_lep0_datamc = draw_n_hists(h_dR_jet_lep0_datamc_vec, data_mc_legend, "#bf{#DeltaR(btag, lead. p_{T} lepton)}", "tmva_plots/discr_vars/dR_jet_lep0_datamc", true, 0, 0.25);
+  int draw_dR_jet_lep0_datamc = draw_n_hists(h_dR_jet_lep0_datamc_vec, data_mc_legend, "#bf{#DeltaR(btag, lead. p_{T} lepton)}", "tmva_plots/discr_vars/dR_jet_lep0_datamc", true, 0.001, 1.0);
 
   std::vector<TH1*> h_dR_jet_lep1_datamc_vec = {h_dR_jet_lep1_data[0], h_dR_jet_lep1_mc[0], h_dR_jet_lep1_mc[5]};
-  int draw_dR_jet_lep1_datamc = draw_n_hists(h_dR_jet_lep1_datamc_vec, data_mc_legend, "#bf{#DeltaR(btag, sub-lead. p_{T} lepton)}", "tmva_plots/discr_vars/dR_jet_lep1_datamc", true, 0, 0.25);
+  int draw_dR_jet_lep1_datamc = draw_n_hists(h_dR_jet_lep1_datamc_vec, data_mc_legend, "#bf{#DeltaR(btag, sub-lead. p_{T} lepton)}", "tmva_plots/discr_vars/dR_jet_lep1_datamc", true, 0.001, 1.0);
 
   std::vector<TH1*> h_min_dR_jet_lep_datamc_vec = {h_min_dR_jet_lep_data[0], h_min_dR_jet_lep_mc[0], h_min_dR_jet_lep_mc[5]};
-  int draw_min_dR_jet_lep_datamc = draw_n_hists(h_min_dR_jet_lep_datamc_vec, data_mc_legend, "#bf{#DeltaR(btag, closest lepton)}", "tmva_plots/discr_vars/min_dR_jet_lep_datamc", true, 0, 0.3);
+  int draw_min_dR_jet_lep_datamc = draw_n_hists(h_min_dR_jet_lep_datamc_vec, data_mc_legend, "#bf{#DeltaR(btag, closest lepton)}", "tmva_plots/discr_vars/min_dR_jet_lep_datamc", true, 0.001, 1.0);
 
   std::vector<TH1*> h_m_jet_el_datamc_vec = {h_m_jet_el_data[0], h_m_jet_el_mc[1], h_m_jet_el_mc[5]};
-  int draw_m_jet_el_datamc = draw_n_hists(h_m_jet_el_datamc_vec, data_mc_legend, "#bf{m(btag, e)}", "tmva_plots/discr_vars/m_jet_el_datamc", true, 0, 1);
+  int draw_m_jet_el_datamc = draw_n_hists(h_m_jet_el_datamc_vec, data_mc_legend, "#bf{m(btag, e)}", "tmva_plots/discr_vars/m_jet_el_datamc", true, 0.001, 1.0);
   
   std::vector<TH1*> h_m_jet_mu_datamc_vec = {h_m_jet_mu_data[0], h_m_jet_mu_mc[1], h_m_jet_mu_mc[5]};
-  int draw_m_jet_mu_datamc = draw_n_hists(h_m_jet_mu_datamc_vec, data_mc_legend, "#bf{m(btag, mu)}", "tmva_plots/discr_vars/m_jet_mu_datamc", true, 0, 1);
+  int draw_m_jet_mu_datamc = draw_n_hists(h_m_jet_mu_datamc_vec, data_mc_legend, "#bf{m(btag, mu)}", "tmva_plots/discr_vars/m_jet_mu_datamc", true, 0.001, 1.0);
 
   //std::vector<TH1*> h_min_dR_jet_bjet_datamc_vec = {h_min_dR_jet_bjet_data[0], h_min_dR_jet_bjet_mc[0], h_min_dR_jet_bjet_mc[5]};
   //int draw_min_dR_jet_bjet_datamc = draw_n_hists(h_min_dR_jet_bjet_datamc_vec, data_mc_legend, "#bf{#DeltaR(btag, closest btag)}", "tmva_plots/discr_vars/min_dR_jet_bjet_datamc", true, 0, 0.25);

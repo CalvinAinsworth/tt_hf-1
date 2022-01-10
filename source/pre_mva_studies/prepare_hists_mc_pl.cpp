@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 
   // Check for the generator and mc16a_only choises
   std::string generator = ttbar_generator();
+  if (generator=="quit") return 0;
   if (generator=="" && std::string(argv[1])=="tt") {
     generator="nominal";
     std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
@@ -59,9 +60,19 @@ int main(int argc, char *argv[])
 
 
   // Declare events counters for each mc16 campaign
-  TString job_dids_str[4];
-  if (generator=="nominal") { job_dids_str[0] = "410472"; job_dids_str[1] = "411076"; job_dids_str[2] = "411077"; job_dids_str[3] = "411078"; }
-  else {  job_dids_str[0] = "411234"; job_dids_str[1] = "411332"; job_dids_str[2] = "411333"; job_dids_str[3] = "411334"; }
+  std::vector<TString> job_dids_str = {};
+  if (generator=="nominal") { 
+    job_dids_str.push_back("410472"); 
+    job_dids_str.push_back("411076"); 
+    job_dids_str.push_back("411077"); 
+    job_dids_str.push_back("411078"); }
+  if (generator=="3mtop") { 
+    job_dids_str.push_back("410482"); }
+  if (generator=="phhw713") { 
+    job_dids_str.push_back("411234"); 
+    job_dids_str.push_back("411332"); 
+    job_dids_str.push_back("411333"); 
+    job_dids_str.push_back("411334"); }
   TString mc16_str[3] = {"mc16a", "mc16d", "mc16e"};
   int n_entries[3][4] = {0};
   int limit[3][4] = {{105039, 6936, 6430, 7433}, {130823, 8768, 8026, 9253}, {183073, 11407, 10594, 12219}}; // target 250k
@@ -97,7 +108,7 @@ int main(int argc, char *argv[])
     
     
     // Only nominal trees
-    if (generator=="nominal") { dir_paths[dir_counter] += "nominal/"; }
+    if (generator=="nominal" || generator=="3mtop") { dir_paths[dir_counter] += "nominal/"; }
     else {  dir_paths[dir_counter] += "newSamples/"; }
 
 
@@ -122,16 +133,30 @@ int main(int argc, char *argv[])
       if (campaign_info[1]!="s3126" && generator=="nominal") continue; // (1)
       
       bool correct_did = false;
-      // 410472 - incl; 411076 - ttbb, 411077 - ttb, 411078 - ttc
-      if (std::string(argv[1])=="tt" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
+      // ttbar Powheg+Pythia8: 410472 - incl; 411076 - ttbb, 411077 - ttb, 411078 - ttc
+      if (std::string(argv[1])=="tt" && generator=="nominal" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
+      // ttbar Powheg+Pythia8 (hdamp=3*mtop): 410482 (incl)
+      if (std::string(argv[1])=="tt" && generator=="3mtop" && job_DID=="410482") correct_did = true;
+      // ttbar Powheg+Herwig7.1.3: inclusive, 411332 - ttbb, 411333 - ttb, 411334 - ttc
+      if (std::string(argv[1])=="tt" && generator=="phhw713" && (job_DID=="411234" || job_DID=="411332" || job_DID=="411333" || job_DID=="411334")) correct_did = true;
+
+      // Singletop
       if (std::string(argv[1])=="singletop" && (job_DID=="410648" || job_DID=="410649" || job_DID=="410644" || job_DID=="410645" || job_DID=="410658" || job_DID=="410659") ) correct_did = true;
+      
+      // ttV
       if (std::string(argv[1])=="ttV" && (job_DID=="410155" || job_DID=="410156" || job_DID=="410157" || job_DID=="410218" || job_DID=="410219" || job_DID=="410220" || job_DID=="410276" || job_DID=="410277" || job_DID=="410278") ) correct_did = true;
+      
+      // ttH
       if (std::string(argv[1])=="ttH" && (job_DID=="346345") ) correct_did = true;
+      
+      // Diboson
       if (std::string(argv[1])=="diboson" && (job_DID=="364250" || job_DID=="364253" || job_DID=="364254" || (std::stoi(job_DID)>=364283 && std::stoi(job_DID)<=364290 && job_DID!="364286") || job_DID=="345705" || job_DID=="345706" || job_DID=="345723" || job_DID=="363356" || job_DID=="363358") ) correct_did = true;
+      
+      // Z+jets
       if (std::string(argv[1])=="z_jets" && (std::stoi(job_DID)>=364100 && std::stoi(job_DID)<=364141) ) correct_did = true;
+
+      // Other
       if (std::string(argv[1])=="other" && (job_DID=="410560" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676" || job_DID=="412043") ) correct_did = true;
-      // 411234 - inclusive, 411332 - ttbb, 411333 - ttb, 411334 - ttc
-      if (std::string(argv[1])=="tt" && (/*job_DID=="411233" ||*/ job_DID=="411234" || job_DID=="411332" || job_DID=="411333" || job_DID=="411334"/* || job_DID=="600791" || job_DID=="700122" || job_DID=="700123" || job_DID=="700124" || job_DID=="700167"*/)) correct_did = true;
       
       if (correct_did==false) continue;
       else { std::cout << "\n\nDID: " << job_DID << std::endl; }
@@ -198,7 +223,10 @@ int main(int argc, char *argv[])
           if (bjets_n >=2) bjets_n2_cut = true;
           if (bjets_n >=3) bjets_n3_cut = true;
 	  
-          if ( only_410472==true || ( (topHFFF==1 && (job_DID=="411076" || job_DID=="411332")) || (topHFFF==2 && (job_DID=="411077" || job_DID=="411333")) || (topHFFF==3 && (job_DID=="411078" || job_DID=="411334")) || (topHFFF==0 && (job_DID=="410472" || job_DID=="411234")) ) ) topHFFF_cut = true;
+	  
+	  if (std::string(argv[1])=="tt" && generator=="nominal" && ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) ) topHFFF_cut = true;
+	  if (std::string(argv[1])=="tt" && generator=="phhw713" && ( (topHFFF==1 && job_DID=="411332") || (topHFFF==2 && job_DID=="411333") || (topHFFF==3 && job_DID=="411334") || (topHFFF==0 && job_DID=="411234") ) ) topHFFF_cut = true;
+	  if (std::string(argv[1])=="tt" && generator=="3mtop" && job_DID=="410482") topHFFF_cut = true;
 	  if (std::string(argv[1])!="tt") topHFFF_cut = true;
 	  
 	  
@@ -510,7 +538,20 @@ int main(int argc, char *argv[])
               double dr_jet_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
               if (dr_jet_el <= dr_jet_mu) { m_jet_lep = (jets_lvec[jet_i] + el_lvec).M(); }
               else { m_jet_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
-	      
+
+
+	      // ///
+	      // M of btag and el/mu: Sig/Bkg
+	      if ( (*jet_nGhosts_bHadron)[jet_i]>0 ) {
+                if ( (*topHadronOriginFlag)[jet_i]==4 ) {
+                  h_m_btag_el_from_top->Fill( (jets_lvec[jet_i] + el_lvec).M() , weight);
+                  h_m_btag_mu_from_top->Fill( (jets_lvec[jet_i] + mu_lvec).M() , weight);
+                } else {
+		  h_m_btag_el_not_from_top->Fill( (jets_lvec[jet_i] + el_lvec).M() , weight);
+                  h_m_btag_mu_not_from_top->Fill( (jets_lvec[jet_i] + mu_lvec).M() , weight);
+		}
+              }
+
 	      
 	      // ///
 	      // M min and max of bjet and lepton
@@ -535,7 +576,7 @@ int main(int argc, char *argv[])
               if (std::string(argv[1])=="tt" && (*jet_nGhosts_bHadron)[jet_i]>=1) {
 
 		for (int i=0; i<3; i++) {
-		  for (int j=0; j<4; j++){
+		  for (int j=0; j<job_dids_str.size(); j++){
 		    if (mc16_str[i]==dir_path_components[last_element_index] && job_DID==job_dids_str[j]) {
 		      
 		      int randomval = rand()%6; // random in the range of  [0,5] (throw a dice! :) )
@@ -559,7 +600,7 @@ int main(int argc, char *argv[])
 	    
 	    // Increment the number of processed entries per mc16+did
 	    for (int i=0; i<3; i++) {
-	      for (int j=0; j<4; j++) {
+	      for (int j=0; j<job_dids_str.size(); j++) {
 		if (mc16_str[i]==dir_path_components[last_element_index] && job_DID==job_dids_str[j]) processed[i][j]++;
 	      }
 	    }
@@ -582,7 +623,7 @@ int main(int argc, char *argv[])
   // Show statistics for ftations
   for (int i=0; i<3; i++) {
     std::cout << "\nTotal " << mc16_str[i] << " = " << processed[i][0]+processed[i][1]+processed[i][2]+processed[i][3] << std::endl;
-    for (int j=0; j<4; j++) {
+    for (int j=0; j<job_dids_str.size(); j++) {
       std::cout << mc16_str[i] << " , " << job_dids_str[j] << " = " << processed[i][j] << std::endl;
     }
   }
@@ -608,7 +649,7 @@ int main(int argc, char *argv[])
   
   for (int i=0; i<3; i++) {
     std::cout << mc16_str[i] << std::endl;
-    for (int j=0; j<4; j++)
+    for (int j=0; j<job_dids_str.size(); j++)
       {
 	std::cout << job_dids_str[j] << ", n_saved: " << n_entries[i][j] << " ,\t limit: " << limit[i][j] << std::endl;
        }

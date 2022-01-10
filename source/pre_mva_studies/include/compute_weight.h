@@ -403,6 +403,10 @@ if (job_DID=="411334") {
   campaign_xsection_x_genFiltEff = 3.19;
   kFactor = 1.1392; }
 
+if (job_DID=="410482") {
+  campaign_xsection_x_genFiltEff = 76.9438;
+  kFactor = 1.1392; }
+
 
 // mc16a
 if (runNumber==284500) {  
@@ -496,6 +500,7 @@ if (runNumber==284500) {
   if (job_DID=="411332") sumWeights = 7.20547*pow(10,9);
   if (job_DID=="411333") sumWeights = 6.9191*pow(10,9);
   if (job_DID=="411334") sumWeights = 7.27183*pow(10,9);
+  if (job_DID=="410482") sumWeights = 5.83942*pow(10,10);
 }
 
 
@@ -591,6 +596,7 @@ if (runNumber==300000) {
   if (job_DID=="411332") sumWeights = 9.0294*pow(10,9);
   if (job_DID=="411333") sumWeights = 8.82188*pow(10,9);
   if (job_DID=="411334") sumWeights = 9.00115*pow(10,9);
+  if (job_DID=="410482") sumWeights = 7.2792*pow(10,10);
 }
 
 
@@ -686,6 +692,7 @@ if (runNumber==310000) {
   if (job_DID=="411332") sumWeights = 1.20387*pow(10,10);
   if (job_DID=="411333") sumWeights = 1.2078*pow(10,10);
   if (job_DID=="411334") sumWeights = 1.20945*pow(10,10);
+  if (job_DID=="410482") sumWeights = 9.72087*pow(10,10);
 }
 
     

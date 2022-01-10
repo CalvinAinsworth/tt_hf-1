@@ -15,6 +15,30 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  // Check for the generator choice
+  std::string generator = ttbar_generator();
+  if (generator=="quit") return 0;
+  if (generator=="" && std::string(argv[1])=="tt") {
+    generator="nominal";
+    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; 
+  }
+
+
+  // Check for mc16 campaign choice
+  std::string mc16_choice = "";
+  std::cout << "\nSelect mc16 campaing. Options:" << std::endl;;
+  std::cout << "-- mc16a" << "\n-- mc16d" << "\n-- mc16e" << "\n-- FullRun2" << std::endl;
+  std::cout << "Type in your choice: ";
+  std::cin >> mc16_choice;
+  while (mc16_choice!="mc16a" && mc16_choice!="mc16d" && mc16_choice!="mc16e" && mc16_choice!="FullRun2") {
+    std::cout << "Wrong mc16 campaign choice!\n Select from the options above or type \"exit\" to terminate." << std::endl;
+    std::cout << "Type your choice: ";
+    std::cin >> mc16_choice;
+    if (mc16_choice=="exit") return 0;
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
+
 
   // Get config info about MVA setup
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
@@ -59,7 +83,7 @@ int main(int argc, char *argv[])
       
       // We work with MC only
       if (is_data == true) continue;
-      //if (is_mc16e != true) continue; // TEST
+      if ( (mc16_choice=="mc16a" && is_mc16a!=true) || (mc16_choice=="mc16d" && is_mc16d!=true) || (mc16_choice=="mc16e" && is_mc16e!=true) ) continue;
       
       
       // Create directory for the output file      
@@ -76,7 +100,8 @@ int main(int argc, char *argv[])
       
       
       // Only nominal ntuples
-      dir_paths[dir_counter] += "nominal/";
+      if (generator=="nominal" || generator=="3mtop") { dir_paths[dir_counter] += "nominal/"; }
+      else {  dir_paths[dir_counter] += "newSamples/"; }
       
       
       // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
@@ -97,7 +122,7 @@ int main(int argc, char *argv[])
 	// Select only jobs/physics_processes of our interest
 	// (1) regular, not alternative samples
 	// (2) the process of our interest
-	if (campaign_info[1]!="s3126") continue; // (1)
+	if (campaign_info[1]!="s3126" && generator=="nominal") continue; // (1)
 	if (job_DID!=argv[did_n]) { continue; } // (2)
 	else { std::cout << "\n\nDID: " << job_DID << std::endl; }
 	
@@ -180,7 +205,8 @@ int main(int argc, char *argv[])
 	    // Compute weights
 	    double weight = 1;
 	    #include "include/compute_weight.h"
-	    
+	    weight = w_mc * w_pu * w_leptonSF * w_DL1r_77 * w_jvt * weight_lumi;
+
 
 	    // Decalre cuts names and set to false as the defualt
 	    bool emu_cut = false;

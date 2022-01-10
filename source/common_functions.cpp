@@ -8,30 +8,37 @@
 std::string ttbar_generator()
 {
   std::string sel_gen_yn;
-  bool proper_yn = false;
   std::string generator = "";
   std::string confirm_selection = "no";
-  std::cout << "\n\nNeed to select a generator?\nNeeded for ttbar and TMVA.\nChoise yes/no for other than ttbar and TMVA makes no difference.\nType \"yes\" or \"no\": ";
+  std::cout << "\n\nNeed to select a generator?\nNeeded for ttbar and TMVA.\nChoose yes/no.\nFor other than ttbar and TMVA makes no difference.\nType \"yes\" or \"no\": ";
   std::cin >> sel_gen_yn;
   std::cout << std::endl;
   
-  if (sel_gen_yn=="yes" || sel_gen_yn=="no") proper_yn = true;
-  while (proper_yn==false) {
+  while (sel_gen_yn!="yes" && sel_gen_yn!="no") {
     std::cout << "Invalid input, type \"yes\" or \"no\": ";
     std::cin >> sel_gen_yn;
     std::cout << std::endl;
-    if (sel_gen_yn=="yes" || sel_gen_yn=="no") proper_yn = true;
   }
 
-  if (sel_gen_yn == "no") return generator;
+  if (sel_gen_yn == "no") return generator; // Empty string
 
-  std::cout << "\nNominal or Alternative generator?\nType \"nominal\" for the nominal or anything else for the alternative: ";
+  std::cout << "Which generator?\nOptions:" << std::endl;
+  std::cout << "-- Powheg+Pythia8: \"nominal\"" << std::endl; // 410472, 411076, 411077, 411078 (HF filt)
+  std::cout << "-- Powheg+Pythia8 (hdamp=3*mtop): \"3mtop\"" << std::endl; // 410482
+  std::cout << "-- Powheg+Herwig7.1.3: \"phhw713\"" << std::endl; // 411234, 411332, 411333, 411334 (HF filt)
+  std::cout << "-- Powheg+Herwig7.0.4: \"phhw704\"" << std::endl; // 410558, 411085, 411086, 411087 (HF filt)
+  std::cout << "-- aMC@NLO+Pythia8: \"aMC@nloPy8\"" << std::endl; // 410465, 412069, 412070, 412071 (HF filt)
+  std::cout << "Type in your choice: ";
   std::cin >> generator;
+  std::cout << std::endl;
 
   while (confirm_selection!="yes") {
-    std::cout << "\n\nYou've selected \"" << generator << "\" generator.\nTo confirm type \"yes\", to change your choise of the generator type your new choise (\"nominal\" or anything else): ";
+    std::cout << "\n\nYou've selected \"" << generator << "\" generator.\n-- To confirm type \"yes\",\n-- To change your choice of the generator type your new choice,\n-- To quit the program type \"quit\"." << std::endl;
+    std::cout << "Type in your answer: ";
     std::cin >> confirm_selection;
+    std::cout << std::endl;
     if (confirm_selection!="yes") generator = confirm_selection;
+    if (confirm_selection=="quit") return "quit";
   }
 
   std::cout << "\n\nWorking with the " << generator << " generator\n" << std::endl;
