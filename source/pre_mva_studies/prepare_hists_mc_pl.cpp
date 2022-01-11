@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   // Declare TFile, TTree, TBranches and variables for MVA
   TFile *MVA_tfile;
   if (std::string(argv[1]) == "tt") {
-    TString mva_fname = "results/tt_hf_MVA_input_reco_" + generator + ".root";
+    TString mva_fname = "results/tt_hf_MVA_input_pl_" + generator + ".root";
     MVA_tfile = new TFile(mva_fname, "RECREATE"); }
   TTree *MVA_sig_tree = new TTree("Signal", "inputS");
   TTree *MVA_bkg_tree = new TTree("Background", "inputB");
