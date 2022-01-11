@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
   std::vector<std::vector<TH1*>> mc_hists;
 
   for (int i=0; i<processes.size(); i++) {
-    TString mc_hists_file_name = "results/hists_" + processes[i] + "_test.root";
+    TString mc_hists_file_name = "results/hists_" + processes[i] + "_test_reco.root";
     TFile *mc_hists_file = new TFile(mc_hists_file_name);
     
     std::vector<TH1*> mc_hists_tmp;

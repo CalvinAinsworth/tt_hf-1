@@ -6,7 +6,7 @@ if (std::string(argv[1])=="tt" && generator=="nominal" && (job_DID=="410472" || 
 if (std::string(argv[1])=="tt" && generator=="3mtop" && job_DID=="410482") correct_did = true;
 
 
-// ttbar Powheg+Herwig7.1.3: inclusive, 411332 - ttbb, 411333 - ttb, 411334 - ttc
+// ttbar Powheg+Herwig7.1.3: 411234 - inclusive, 411332 - ttbb, 411333 - ttb, 411334 - ttc
 if (std::string(argv[1])=="tt" && generator=="phhw713" && (job_DID=="411234" || job_DID=="411332" || job_DID=="411333" || job_DID=="411334")) correct_did = true;
 
 
@@ -15,7 +15,7 @@ if (std::string(argv[1])=="tt" && generator=="phhw704" && (job_DID=="410558" || 
 
 
 // ttbar aMC@NLO+Pythia8: 410465, 412069, 412070, 412071
-if (std::string(argv[1])=="tt" && generator=="aMC@nloPy8" && (job_DID=="410465" || job_DID=="412069" || job_DID=="412070" || job_DID="412071")) correct_did = true;
+if (std::string(argv[1])=="tt" && generator=="aMC@nloPy8" && (job_DID=="410465" || job_DID=="412069" || job_DID=="412070" || job_DID=="412071")) correct_did = true;
 
 
 // ttV

@@ -6,6 +6,14 @@
 // ################
 int main(int argc, char *argv[])
 {
+  // Check for the generator choise
+  std::string generator = ttbar_generator();
+  if (generator=="quit") return 0;
+  if (generator=="" && std::string(argv[1])=="tt") {
+    generator="nominal";
+    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
+
+
   // Get config info about MVA setup
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
 
@@ -15,7 +23,8 @@ int main(int argc, char *argv[])
 
   
   // Open the TMVA output file
-  TFile *tmva_file = new TFile("results/TMVA_pl.root");
+  TString in_fname = "results/TMVA_pl_" + generator+ ".root";
+  TFile *tmva_file = new TFile(in_fname);
 
   
   // Open hists

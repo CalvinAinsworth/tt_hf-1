@@ -19,6 +19,6 @@
   
   reader->AddSpectator("jet_GBHInit_topHadronOriginFlag", &topHOF_reader);
 
-  TString dir = "dataset/weights/";
+  TString dir = "results/dataset_" + generator + "/weights/";
   reader->BookMVA(tmva_config_info[0], dir+"MVAnalysis_"+tmva_config_info[0]+".weights.xml");
   

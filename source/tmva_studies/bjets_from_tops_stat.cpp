@@ -132,311 +132,205 @@ int main(int argc, char *argv[])
   
   // Seup MVA reader
   #include "../post_mva/include/setup_tmva_reader.h"
-  
-  
-  // Create a list of directories with ntuples
-  TString path_to_ntuples = "/eos/atlas/atlascerngroupdisk/phys-top/ttjets/v4/";
-  std::vector<TString> dir_paths = get_list_of_files(path_to_ntuples);
-  
-  
-  // Loop over directories with ntuples collections
-  for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++) {
-  
-    // Select only directiories from the list of files and directories
-    TSystemFile dir(dir_paths[dir_counter], dir_paths[dir_counter]);
-    if (!(dir.IsDirectory())) continue;
-    std::cout << "\n\n\n" << dir_paths[dir_counter] << std::endl;
-    
-    
-    // Analyze directiry's name: data/mc, which campaign?
-    std::vector<TString> dir_path_components = split(dir_paths[dir_counter], '/');
-    int last_element_index = dir_path_components.size()-1;
-    bool is_data = false;
-    bool is_mc16a = false;
-    bool is_mc16d = false;
-    bool is_mc16e = false;
-    if (dir_path_components[last_element_index] == "data") is_data = true;
-    if (dir_path_components[last_element_index] == "mc16a") is_mc16a = true;
-    if (dir_path_components[last_element_index] == "mc16d") is_mc16d = true;
-    if (dir_path_components[last_element_index] == "mc16e") is_mc16e = true;
-    
-    
-    // We work with mc only
-    if (is_data == true) continue;
-    if (mc16a_only_test==true && is_mc16a!=true) continue;
-    
-    
-    // Only nominal ntuples
-    if (generator=="nominal" || generator=="3mtop") { dir_paths[dir_counter] += "nominal/"; }
-    else {  dir_paths[dir_counter] += "newSamples/"; }
-    
-    
-    // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
-    std::vector<TString> paths_to_jobs = get_list_of_files(dir_paths[dir_counter]);
-    
-    
-    // Loop over directories (one directory = one mc16 campaign or data_year for one DID)
-    for (int job_number=0; job_number<paths_to_jobs.size(); job_number++) {
+
+
+  // Run a loop over ntuples names from a txt file
+  std::string in_line = "";
+  std::ifstream ntuples_list_file("ntuples_list.txt");
+  if (ntuples_list_file.is_open()) {
+    while (getline(ntuples_list_file, in_line)) {
+      TString ntuple_name = in_line;
       
-      // Get info about the job/DID from its name
-      std::vector<TString> path_to_jobs_components = split(paths_to_jobs[job_number], '/');
-      TString job_name = path_to_jobs_components[path_to_jobs_components.size() - 1];
-      std::vector<TString> job_name_components = split(job_name, '.');
-      std::string job_DID = std::string(job_name_components[2]);
-      std::vector<TString> campaign_info = split(job_name_components[5], '_');
-      
-      
-      // Select only jobs/physics_processes of our interest
-      // (1) regular, not alternative samples
-      // (2) ttbar only
-      if (generator=="nominal" && campaign_info[1]!="s3126") continue; // (1)
-      
+      // Split the ntuple name (that also contains ful path) into components to analyze them
+      std::vector<TString> ntuple_name_components = split(ntuple_name, '/');
+
+      // Analyze the ntuple name: data or mc? which campaign?
+      bool is_data = false;
+      bool is_mc16a = false;
+      bool is_mc16d = false;
+      bool is_mc16e = false;
+      TString mc16_str = "";
+      bool is_fullsim = false;
+      std::string job_DID = "";
+      for (int i=0; i<ntuple_name_components.size(); i++) {
+	std::vector<TString> pieces = split(ntuple_name_components[i], '.');
+        for (int j=0; j<pieces.size(); j++) {
+	  std::string piece = std::string(pieces[j]);
+          if (piece == "data") is_data = true;
+          if (piece == "mc16a") { is_mc16a = true; mc16_str = "mc16a"; }
+          if (piece == "mc16d") { is_mc16d = true; mc16_str = "mc16d"; }
+          if (piece == "mc16e") { is_mc16e = true; mc16_str = "mc16e"; }
+          if (piece == "s3126") is_fullsim = true;
+          if (i==ntuple_name_components.size()-2 && j==2) job_DID = piece;
+        }
+      }
+
+      // We work with MC only
+      if (is_data == true) continue;
+      if (mc16a_only_test==true && is_mc16a!=true) continue;
+
+      // Select only dids of our interest
       bool correct_did = false;
-      // ttbar Powheg+Pythia8: 410472 - incl; 411076 - ttbb, 411077 - ttb, 411078 - ttc
-      if (generator=="nominal" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078"));
-      // ttbar Powheg+Pythia8 (hdamp=3*mtop): 410482 (incl)
-      if (generator=="3mtop" && job_DID=="410482") correct_did = true;
-      // ttbar Powheg+Herwig7.1.3: inclusive, 411332 - ttbb, 411333 - ttb, 411334 - ttc
-      if (generator=="phhw713" && (job_DID=="411234" || job_DID=="411332" || job_DID=="411333" || job_DID=="411334")) correct_did=true;
-      if (correct_did==false) continue; // (2)
-      else { std::cout << "\n\nDID: " << job_DID << std::endl; }
-      
-      
-      // Run over the inclusive sample only - uncommebt the "if" statement line
-      bool only_410472 = false;
-      // Use only inclusive sample. Overlap removal won't be applied.
-      //if (job_DID=="410472") { only_410472=true; } else { continue; }
-      
-      
-      // Make a list of paths to ntuples for the given DID
-      std::vector<TString> paths_to_ntuples = get_list_of_files(paths_to_jobs[job_number]);
+      #include "../pre_mva_studies/include/did_selection.h"
+      if (correct_did==false) continue;
+      std::cout << "\nWorking with:\n" << ntuple_name << std::endl;
 
-    
-      // Loop over samll ntuples of one DID
-      for (int ntuple_number=0; ntuple_number<paths_to_ntuples.size(); ntuple_number++) {
+
+      // Open the ntuple
+      TFile *ntuple = new TFile (ntuple_name);
+      TTree *tree_pl = (TTree*)ntuple->Get("particleLevel");
+      TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
+      
+      
+      // Set needed branches
+      
+      // Nominal tree
+      std::vector<char> *jet_DL1r_77;
+      std::vector<Float_t> *jet_DL1r;
+      std::vector<Float_t> *jet_pt;
+      std::vector<Float_t> *jet_eta;
+      std::vector<Float_t> *jet_phi;
+      std::vector<Float_t> *jet_e;
+      std::vector<Int_t> *jet_GBHInit_topHadronOriginFlag;
+      std::vector<Int_t> *jet_truthflav;
+      std::vector<Float_t> *el_pt;
+      std::vector<Float_t> *el_eta;
+      std::vector<Float_t> *el_phi;
+      std::vector<Float_t> *el_e;
+      std::vector<Float_t> *el_charge;
+      std::vector<Float_t> *mu_pt;
+      std::vector<Float_t> *mu_eta;
+      std::vector<Float_t> *mu_phi;
+      std::vector<Float_t> *mu_e;
+      std::vector<Float_t> *mu_charge;
+      jet_DL1r_77 = 0;
+      jet_pt = jet_eta = jet_phi = jet_e = jet_DL1r = el_pt = el_eta = el_phi = el_e = el_charge = mu_pt = mu_eta = mu_phi = mu_e = mu_charge = 0;
+      jet_GBHInit_topHadronOriginFlag = jet_truthflav = 0;
+      Int_t topHFFF;
+      UInt_t runNumber;
+      Float_t w_mc, w_pu, w_leptonSF, w_DL1r_77, w_jvt;
+      
+      tree_nominal->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_DL1r_77);
+      tree_nominal->SetBranchAddress("jet_DL1r", &jet_DL1r);
+      tree_nominal->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag);
+      tree_nominal->SetBranchAddress("jet_pt", &jet_pt);
+      tree_nominal->SetBranchAddress("jet_eta", &jet_eta);
+      tree_nominal->SetBranchAddress("jet_phi", &jet_phi);
+      tree_nominal->SetBranchAddress("jet_e", &jet_e);
+      tree_nominal->SetBranchAddress("el_pt", &el_pt);
+      tree_nominal->SetBranchAddress("el_eta", &el_eta);
+      tree_nominal->SetBranchAddress("el_phi", &el_phi);
+      tree_nominal->SetBranchAddress("el_e", &el_e);
+      tree_nominal->SetBranchAddress("el_charge", &el_charge);
+      tree_nominal->SetBranchAddress("mu_pt", &mu_pt);
+      tree_nominal->SetBranchAddress("mu_eta", &mu_eta);
+      tree_nominal->SetBranchAddress("mu_phi", &mu_phi);
+      tree_nominal->SetBranchAddress("mu_e", &mu_e);
+      tree_nominal->SetBranchAddress("mu_charge", &mu_charge);
+      tree_nominal->SetBranchAddress("topHeavyFlavorFilterFlag", &topHFFF);
+      tree_nominal->SetBranchAddress("runNumber", &runNumber);
+      tree_nominal->SetBranchAddress("weight_mc", &w_mc);
+      tree_nominal->SetBranchAddress("weight_pileup", &w_pu);
+      tree_nominal->SetBranchAddress("weight_leptonSF", &w_leptonSF);
+      tree_nominal->SetBranchAddress("weight_bTagSF_DL1r_77", &w_DL1r_77);
+      tree_nominal->SetBranchAddress("weight_jvt", &w_jvt);
+      
+      // Particle level
+      std::vector<Int_t> *jet_truthPartonLabel_pl;
+      std::vector<Int_t> *jet_GBHInit_topHadronOriginFlag_pl;
+      std::vector<Int_t> *jet_nGhosts_bHadron;
+      std::vector<Float_t> *jet_pt_pl;
+      std::vector<Float_t> *jet_eta_pl;
+      std::vector<Float_t> *jet_phi_pl;
+      std::vector<Float_t> *jet_e_pl;
+      std::vector<Float_t> *el_pt_pl;
+      std::vector<Float_t> *el_eta_pl;
+      std::vector<Float_t> *el_phi_pl;
+      std::vector<Float_t> *el_e_pl;
+      std::vector<Float_t> *el_charge_pl;
+      std::vector<Float_t> *mu_pt_pl;
+      std::vector<Float_t> *mu_eta_pl;
+      std::vector<Float_t> *mu_phi_pl;
+      std::vector<Float_t> *mu_e_pl;
+      std::vector<Float_t> *mu_charge_pl;
+      jet_nGhosts_bHadron = jet_truthPartonLabel_pl = jet_GBHInit_topHadronOriginFlag_pl = 0;
+      jet_pt_pl = jet_eta_pl = jet_phi_pl = jet_e_pl = el_pt_pl = el_eta_pl = el_phi_pl = el_e_pl = el_charge_pl = mu_pt_pl = mu_eta_pl = mu_phi_pl = mu_e_pl = mu_charge_pl = 0;
+      Float_t w_mc_pl;
+      Float_t w_pu_pl;
+      Int_t topHFFF_pl;
+      
+      tree_pl->SetBranchAddress("jet_truthPartonLabel", &jet_truthPartonLabel_pl);
+      tree_pl->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag_pl);
+      tree_pl->SetBranchAddress("jet_nGhosts_bHadron", &jet_nGhosts_bHadron);
+      tree_pl->SetBranchAddress("jet_pt", &jet_pt_pl);
+      tree_pl->SetBranchAddress("jet_eta", &jet_eta_pl);
+      tree_pl->SetBranchAddress("jet_phi", &jet_phi_pl);
+      tree_pl->SetBranchAddress("jet_e", &jet_e_pl);
+      tree_pl->SetBranchAddress("el_pt", &el_pt_pl);
+      tree_pl->SetBranchAddress("el_eta", &el_eta_pl);
+      tree_pl->SetBranchAddress("el_phi", &el_phi_pl);
+      tree_pl->SetBranchAddress("el_e", &el_e_pl);
+      tree_pl->SetBranchAddress("el_charge", &el_charge_pl);
+      tree_pl->SetBranchAddress("mu_pt", &mu_pt_pl);
+      tree_pl->SetBranchAddress("mu_eta", &mu_eta_pl);
+      tree_pl->SetBranchAddress("mu_phi", &mu_phi_pl);
+      tree_pl->SetBranchAddress("mu_e", &mu_e_pl);
+      tree_pl->SetBranchAddress("mu_charge", &mu_charge_pl);
+      tree_pl->SetBranchAddress("weight_mc", &w_mc_pl);
+      tree_pl->SetBranchAddress("weight_pileup", &w_pu_pl);
+      tree_pl->SetBranchAddress("topHeavyFlavorFilterFlag", &topHFFF_pl);
+      
+      
+      
+      // ///
+      // Loop over Nominal tree entries
+      Int_t nEntries = tree_nominal->GetEntries();
+      std::cout << "\tnEntries Nominal = " << nEntries << std::endl;
+      for (int entry=0; entry<nEntries; entry++) {
 	
-	// Open the ntuple
-	std::cout << paths_to_ntuples[ntuple_number] << std::endl;
-        TFile *ntuple = new TFile (paths_to_ntuples[ntuple_number]);
-        TTree *tree_pl = (TTree*)ntuple->Get("particleLevel");
-	TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
-
+	// Show events counter
+	if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
+	tree_nominal->GetEntry(entry);
 	
-	// Set needed branches
-
-	// Nominal tree
-	std::vector<char> *jet_DL1r_77;
-	std::vector<Float_t> *jet_DL1r;
-	std::vector<Float_t> *jet_pt;
-	std::vector<Float_t> *jet_eta;
-	std::vector<Float_t> *jet_phi;
-	std::vector<Float_t> *jet_e;
-	std::vector<Int_t> *jet_GBHInit_topHadronOriginFlag;
-	std::vector<Int_t> *jet_truthflav;
-	std::vector<Float_t> *el_pt;
-	std::vector<Float_t> *el_eta;
-	std::vector<Float_t> *el_phi;
-	std::vector<Float_t> *el_e;
-	std::vector<Float_t> *el_charge;
-	std::vector<Float_t> *mu_pt;
-	std::vector<Float_t> *mu_eta;
-	std::vector<Float_t> *mu_phi;
-	std::vector<Float_t> *mu_e;
-	std::vector<Float_t> *mu_charge;
-	jet_DL1r_77 = 0;
-	jet_pt = jet_eta = jet_phi = jet_e = jet_DL1r = el_pt = el_eta = el_phi = el_e = el_charge = mu_pt = mu_eta = mu_phi = mu_e = mu_charge = 0;
-	jet_GBHInit_topHadronOriginFlag = jet_truthflav = 0;
-	Int_t topHFFF;
-	UInt_t runNumber;
-	Float_t w_mc, w_pu, w_leptonSF, w_DL1r_77, w_jvt;
-      
-	tree_nominal->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_DL1r_77);
-	tree_nominal->SetBranchAddress("jet_DL1r", &jet_DL1r);
-	tree_nominal->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag);
-	tree_nominal->SetBranchAddress("jet_pt", &jet_pt);
-	tree_nominal->SetBranchAddress("jet_eta", &jet_eta);
-	tree_nominal->SetBranchAddress("jet_phi", &jet_phi);
-	tree_nominal->SetBranchAddress("jet_e", &jet_e);
-	tree_nominal->SetBranchAddress("el_pt", &el_pt);
-	tree_nominal->SetBranchAddress("el_eta", &el_eta);
-	tree_nominal->SetBranchAddress("el_phi", &el_phi);
-	tree_nominal->SetBranchAddress("el_e", &el_e);
-	tree_nominal->SetBranchAddress("el_charge", &el_charge);
-	tree_nominal->SetBranchAddress("mu_pt", &mu_pt);
-	tree_nominal->SetBranchAddress("mu_eta", &mu_eta);
-	tree_nominal->SetBranchAddress("mu_phi", &mu_phi);
-	tree_nominal->SetBranchAddress("mu_e", &mu_e);
-	tree_nominal->SetBranchAddress("mu_charge", &mu_charge);
-	tree_nominal->SetBranchAddress("topHeavyFlavorFilterFlag", &topHFFF);
-	tree_nominal->SetBranchAddress("runNumber", &runNumber);
-	tree_nominal->SetBranchAddress("weight_mc", &w_mc);
-	tree_nominal->SetBranchAddress("weight_pileup", &w_pu);
-	tree_nominal->SetBranchAddress("weight_leptonSF", &w_leptonSF);
-	tree_nominal->SetBranchAddress("weight_bTagSF_DL1r_77", &w_DL1r_77);
-	tree_nominal->SetBranchAddress("weight_jvt", &w_jvt);
-
-	// Particle level
-	std::vector<Int_t> *jet_truthPartonLabel_pl;
-	std::vector<Int_t> *jet_GBHInit_topHadronOriginFlag_pl;
-	std::vector<Int_t> *jet_nGhosts_bHadron;
-	std::vector<Float_t> *jet_pt_pl;
-	std::vector<Float_t> *jet_eta_pl;
-	std::vector<Float_t> *jet_phi_pl;
-	std::vector<Float_t> *jet_e_pl;
-	std::vector<Float_t> *el_pt_pl;
-	std::vector<Float_t> *el_eta_pl;
-	std::vector<Float_t> *el_phi_pl;
-	std::vector<Float_t> *el_e_pl;
-	std::vector<Float_t> *el_charge_pl;
-	std::vector<Float_t> *mu_pt_pl;
-	std::vector<Float_t> *mu_eta_pl;
-	std::vector<Float_t> *mu_phi_pl;
-	std::vector<Float_t> *mu_e_pl;
-	std::vector<Float_t> *mu_charge_pl;
-	jet_nGhosts_bHadron = jet_truthPartonLabel_pl = jet_GBHInit_topHadronOriginFlag_pl = 0;
-	jet_pt_pl = jet_eta_pl = jet_phi_pl = jet_e_pl = el_pt_pl = el_eta_pl = el_phi_pl = el_e_pl = el_charge_pl = mu_pt_pl = mu_eta_pl = mu_phi_pl = mu_e_pl = mu_charge_pl = 0;
-	Float_t w_mc_pl;
-	Float_t w_pu_pl;
-	Int_t topHFFF_pl;
-
-	tree_pl->SetBranchAddress("jet_truthPartonLabel", &jet_truthPartonLabel_pl);
-	tree_pl->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &jet_GBHInit_topHadronOriginFlag_pl);
-	tree_pl->SetBranchAddress("jet_nGhosts_bHadron", &jet_nGhosts_bHadron);
-	tree_pl->SetBranchAddress("jet_pt", &jet_pt_pl);
-	tree_pl->SetBranchAddress("jet_eta", &jet_eta_pl);
-	tree_pl->SetBranchAddress("jet_phi", &jet_phi_pl);
-	tree_pl->SetBranchAddress("jet_e", &jet_e_pl);
-	tree_pl->SetBranchAddress("el_pt", &el_pt_pl);
-	tree_pl->SetBranchAddress("el_eta", &el_eta_pl);
-	tree_pl->SetBranchAddress("el_phi", &el_phi_pl);
-	tree_pl->SetBranchAddress("el_e", &el_e_pl);
-	tree_pl->SetBranchAddress("el_charge", &el_charge_pl);
-	tree_pl->SetBranchAddress("mu_pt", &mu_pt_pl);
-	tree_pl->SetBranchAddress("mu_eta", &mu_eta_pl);
-	tree_pl->SetBranchAddress("mu_phi", &mu_phi_pl);
-	tree_pl->SetBranchAddress("mu_e", &mu_e_pl);
-	tree_pl->SetBranchAddress("mu_charge", &mu_charge_pl);
-	tree_pl->SetBranchAddress("weight_mc", &w_mc_pl);
-	tree_pl->SetBranchAddress("weight_pileup", &w_pu_pl);
-	tree_pl->SetBranchAddress("topHeavyFlavorFilterFlag", &topHFFF_pl);
 	
-      
+	// Compute weight
+	double weight = 1;
+        #include "../pre_mva_studies/include/compute_weight.h"
+	weight = w_mc * w_pu * w_leptonSF * w_DL1r_77 * w_jvt * weight_lumi;
 	
-	// ///
-	// Loop over Nominal tree entries
-	Int_t nEntries = tree_nominal->GetEntries();
-	std::cout << "\tnEntries Nominal = " << nEntries << std::endl;
-	for (int entry=0; entry<nEntries; entry++) {
-	  
-	  // Show events counter
-	  if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
-	  tree_nominal->GetEntry(entry);
-
-
-	  // Compute weight
-	  double weight_lumi = 1;
-	  double sumWeights = 1;
-	  double campaign_lumi = 1;
-	  double campaign_xsection_x_genFiltEff = 1;
-	  double kFactor = 1;
-	  double total_lumi = 3.21956 + 32.9881 + 44.3074 + 58.4501;
-
-	  if (job_DID=="411076") {
-	    campaign_xsection_x_genFiltEff = 0.6740;
-	    kFactor = 1.1397; }
-	  if (job_DID=="411077") {
-	    campaign_xsection_x_genFiltEff = 3.582;
-	    kFactor = 1.1398; }
-	  if (job_DID=="411078") {
-	    campaign_xsection_x_genFiltEff = 3.034;
-	    kFactor = 1.1397; }
-	  if (job_DID=="410472") {
-	    campaign_xsection_x_genFiltEff = 76.95;
-	    kFactor = 1.13975636159; }
-	  if (job_DID=="411234") {
-	    campaign_xsection_x_genFiltEff = 77.01622;
-	    kFactor = 1.1391;}
-	  if (job_DID=="411332") {
-	    campaign_xsection_x_genFiltEff = 0.713;
-	    kFactor = 1.1392; }
-	  if (job_DID=="411333") {
-	    campaign_xsection_x_genFiltEff = 4.84;
-	    kFactor = 1.1392; }
-	  if (job_DID=="411334") {
-	    campaign_xsection_x_genFiltEff = 3.19;
-	    kFactor = 1.1392; }
-	  if (job_DID=="410482") {
-	    campaign_xsection_x_genFiltEff = 76.9438;
-	    kFactor = 1.1392; }
-
-	  if (runNumber==284500) {
-	    campaign_lumi = 3.21956 + 32.9881;
-	    if (job_DID=="411076") sumWeights = 3.33006*pow(10, 9);
-	    if (job_DID=="411077") sumWeights = 3.61088*pow(10, 9);
-	    if (job_DID=="411078") sumWeights = 3.61598*pow(10, 9);
-	    if (job_DID=="410472") sumWeights = 5.82869*pow(10, 10);
-	    if (job_DID=="411234") sumWeights = 1.46019*pow(10,10);
-	    if (job_DID=="411332") sumWeights = 7.20547*pow(10,9);
-	    if (job_DID=="411333") sumWeights = 6.9191*pow(10,9);
-	    if (job_DID=="411334") sumWeights = 7.27183*pow(10,9);
-	    if (job_DID=="410482") sumWeights = 5.83942*pow(10,10);
-	  }
-
-	  if (runNumber==300000) {
-	    campaign_lumi = 44.3074;
-	    if (job_DID=="411076") sumWeights = 4.21891*pow(10, 9);
-	    if (job_DID=="411077") sumWeights = 4.49595*pow(10, 9);
-	    if (job_DID=="411078") sumWeights = 4.49400*pow(10, 9);
-	    if (job_DID=="410472") sumWeights = 7.26510*pow(10, 10);
-	    if (job_DID=="411234") sumWeights = 1.81515*pow(10,10);
-	    if (job_DID=="411332") sumWeights = 9.0294*pow(10,9);
-	    if (job_DID=="411333") sumWeights = 8.82188*pow(10,9);
-	    if (job_DID=="411334") sumWeights = 9.00115*pow(10,9);
-	    if (job_DID=="410482") sumWeights = 7.2792*pow(10,10);
-	  }
-
-	  if (runNumber==310000) {
-	    campaign_lumi = 58.4501;
-	    if (job_DID=="411076") sumWeights = 5.47811*pow(10,9);
-	    if (job_DID=="411077") sumWeights = 5.94763*pow(10,9);
-	    if (job_DID=="411078") sumWeights = 5.94190*pow(10,9);
-	    if (job_DID=="410472") sumWeights = 1.01641*pow(10,11);
-	    if (job_DID=="411234") sumWeights = 2.44336*pow(10,10);
-	    if (job_DID=="411332") sumWeights = 1.20387*pow(10,10);
-	    if (job_DID=="411333") sumWeights = 1.2078*pow(10,10);
-	    if (job_DID=="411334") sumWeights = 1.20945*pow(10,10);
-	    if (job_DID=="410482") sumWeights = 9.72087*pow(10,10);
-	  }
-
-	  weight_lumi = campaign_lumi * pow(10,3) * campaign_xsection_x_genFiltEff * kFactor / sumWeights;
-	  double weight = w_mc * w_pu * w_leptonSF * w_DL1r_77 * w_jvt * weight_lumi;
-	  
-
-	  // Declare cuts names
-	  bool emu_cut = false;
-	  bool OS_cut = false;
-	  bool jets_n_cut = false;
-	  bool btags_n2_cut = false;
-	  bool btags_n3_cut = false;
-	  bool topHFFF_cut = false;
-
-
-	  // Define cuts themselves
-	  if ((*el_charge).size()==1 && (*mu_charge).size()==1) emu_cut = true;
-	  if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
-
-	  int jets_n  = (*jet_pt).size();
-	  if (jets_n >= 3) jets_n_cut = true;
-
-	  int btags_n = 0;
-	  for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_DL1r_77)[i]==1) btags_n++; }
-	  if (btags_n >=2) btags_n2_cut = true;
-	  if (btags_n >=3) btags_n3_cut = true;
-
-	  if ( generator=="nominal" && ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) ) topHFFF_cut = true;
-	  if (generator=="phhw713" && ( (topHFFF==1 && job_DID=="411332") || (topHFFF==2 && job_DID=="411333") || (topHFFF==3 && job_DID=="411334") || (topHFFF==0 && job_DID=="411234") ) ) topHFFF_cut = true;
-	  if (generator=="3mtop" && job_DID=="410482") topHFFF_cut = true;
 	
+	// Declare cuts names
+	bool emu_cut = false;
+	bool OS_cut = false;
+	bool jets_n_cut = false;
+	bool btags_n2_cut = false;
+	bool btags_n3_cut = false;
+	bool topHFFF_cut = false;
+	
+
+	// Define cuts themselves
+	if ((*el_charge).size()==1 && (*mu_charge).size()==1) emu_cut = true;
+	if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
+	
+	int jets_n  = (*jet_pt).size();
+	if (jets_n >= 3) jets_n_cut = true;
+	
+	int btags_n = 0;
+	for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_DL1r_77)[i]==1) btags_n++; }
+	if (btags_n >=2) btags_n2_cut = true;
+	if (btags_n >=3) btags_n3_cut = true;
+	
+	// ttbb
+	if (topHFFF==1 && (job_DID=="411076" || job_DID=="411085" || job_DID=="412069" || job_DID=="411332") ) topHFFF_cut = true;
+	// ttb
+	if (topHFFF==2 && (job_DID=="411077" || job_DID=="411086" || job_DID=="412070" || job_DID=="411333") ) topHFFF_cut = true;
+	// ttc
+	if (topHFFF==3 && (job_DID=="411078" || job_DID=="411087" || job_DID=="412071" || job_DID=="411334") ) topHFFF_cut = true;
+	// inclusive
+	if (topHFFF==0 && (job_DID=="410482" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true;
+	// 3mtop
+	if (job_DID=="410482") topHFFF_cut = true;
+
 	  	  
 	  // TLorentzVector for leptons and jets
 	  TLorentzVector el_lvec;
@@ -675,82 +569,9 @@ int main(int argc, char *argv[])
 
 
 	  // Compute weight
-	  double weight_lumi = 1;
-	  double sumWeights = 1;
-	  double campaign_lumi = 1;
-	  double campaign_xsection_x_genFiltEff = 1;
-	  double kFactor = 1;
-	  double total_lumi = 3.21956 + 32.9881 + 44.3074 + 58.4501;
-
-	  if (job_DID=="411076") {
-	    campaign_xsection_x_genFiltEff = 0.6740;
-	    kFactor = 1.1397; }
-	  if (job_DID=="411077") {
-	    campaign_xsection_x_genFiltEff = 3.582;
-	    kFactor = 1.1398; }
-	  if (job_DID=="411078") {
-	    campaign_xsection_x_genFiltEff = 3.034;
-	    kFactor = 1.1397; }
-	  if (job_DID=="410472") {
-	    campaign_xsection_x_genFiltEff = 76.95;
-	    kFactor = 1.13975636159; }
-	  if (job_DID=="411234") {
-            campaign_xsection_x_genFiltEff = 77.01622;
-            kFactor = 1.1391;}
-          if (job_DID=="411332") {
-            campaign_xsection_x_genFiltEff = 0.713;
-            kFactor = 1.1392; }
-          if (job_DID=="411333") {
-            campaign_xsection_x_genFiltEff = 4.84;
-            kFactor = 1.1392; }
-          if (job_DID=="411334") {
-            campaign_xsection_x_genFiltEff = 3.19;
-            kFactor = 1.1392; }
-	  if (job_DID=="410482") {
-	    campaign_xsection_x_genFiltEff = 76.9438;
-	    kFactor = 1.1392; }
-
-	  if (runNumber==284500) {
-	    campaign_lumi = 3.21956 + 32.9881;
-	    if (job_DID=="411076") sumWeights = 3.33006*pow(10, 9);
-	    if (job_DID=="411077") sumWeights = 3.61088*pow(10, 9);
-	    if (job_DID=="411078") sumWeights = 3.61598*pow(10, 9);
-	    if (job_DID=="410472") sumWeights = 5.82869*pow(10, 10);
-	    if (job_DID=="411234") sumWeights = 1.46019*pow(10,10);
-            if (job_DID=="411332") sumWeights = 7.20547*pow(10,9);
-            if (job_DID=="411333") sumWeights = 6.9191*pow(10,9);
-            if (job_DID=="411334") sumWeights = 7.27183*pow(10,9);
-	    if (job_DID=="410482") sumWeights = 5.83942*pow(10,10);
-	  }
-
-	  if (runNumber==300000) {
-	    campaign_lumi = 44.3074;
-	    if (job_DID=="411076") sumWeights = 4.21891*pow(10, 9);
-	    if (job_DID=="411077") sumWeights = 4.49595*pow(10, 9);
-	    if (job_DID=="411078") sumWeights = 4.49400*pow(10, 9);
-	    if (job_DID=="410472") sumWeights = 7.26510*pow(10, 10);
-	    if (job_DID=="411234") sumWeights = 1.81515*pow(10,10);
-            if (job_DID=="411332") sumWeights = 9.0294*pow(10,9);
-            if (job_DID=="411333") sumWeights = 8.82188*pow(10,9);
-            if (job_DID=="411334") sumWeights = 9.00115*pow(10,9);
-	    if (job_DID=="410482") sumWeights = 7.2792*pow(10,10);
-	  }
-
-	  if (runNumber==310000) {
-	    campaign_lumi = 58.4501;
-	    if (job_DID=="411076") sumWeights = 5.47811*pow(10,9);
-	    if (job_DID=="411077") sumWeights = 5.94763*pow(10,9);
-	    if (job_DID=="411078") sumWeights = 5.94190*pow(10,9);
-	    if (job_DID=="410472") sumWeights = 1.01641*pow(10,11);
-	    if (job_DID=="411234") sumWeights = 2.44336*pow(10,10);
-            if (job_DID=="411332") sumWeights = 1.20387*pow(10,10);
-            if (job_DID=="411333") sumWeights = 1.2078*pow(10,10);
-            if (job_DID=="411334") sumWeights = 1.20945*pow(10,10);
-	    if (job_DID=="410482") sumWeights = 9.72087*pow(10,10);
-	  }
-
-	  weight_lumi = campaign_lumi * pow(10,3) * campaign_xsection_x_genFiltEff * kFactor / sumWeights;
-	  double weight = w_mc_pl * weight_lumi; // removed weight_pileup
+	  double weight = 1;
+          #include "../pre_mva_studies/include/compute_weight.h"
+	  weight = w_mc_pl * weight_lumi; // removed weight_pileup
 	  
 	  
 	  // Declare cuts names
@@ -774,9 +595,16 @@ int main(int argc, char *argv[])
 	  if (bjets_n >=2) bjets_n2_cut = true;
 	  if (bjets_n >=3) bjets_n3_cut = true;
 
-	  if (generator=="nominal" && ( only_410472==true || ( (topHFFF==1 && job_DID=="411076") || (topHFFF==2 && job_DID=="411077") || (topHFFF==3 && job_DID=="411078") || (topHFFF==0 && job_DID=="410472") ) ) ) topHFFF_cut = true;
-	  if (generator=="phhw713" && ( (topHFFF==1 && job_DID=="411332") || (topHFFF==2 && job_DID=="411333") || (topHFFF==3 && job_DID=="411334") || (topHFFF==0 && job_DID=="411234") ) ) topHFFF_cut = true;
-	  if (generator=="3mtop" && job_DID=="410482") topHFFF_cut = true;
+	  // ttbb
+	  if (topHFFF==1 && (job_DID=="411076" || job_DID=="411085" || job_DID=="412069" || job_DID=="411332") ) topHFFF_cut = true;
+	  // ttb
+	  if (topHFFF==2 && (job_DID=="411077" || job_DID=="411086" || job_DID=="412070" || job_DID=="411333") ) topHFFF_cut = true;
+	  // ttc
+	  if (topHFFF==3 && (job_DID=="411078" || job_DID=="411087" || job_DID=="412071" || job_DID=="411334") ) topHFFF_cut = true;
+	  // inclusive
+	  if (topHFFF==0 && (job_DID=="410482" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true;
+	  // 3mtop
+	  if (job_DID=="410482") topHFFF_cut = true;
 	  
 
 	  // TLorentzVector for leptons and jets
@@ -1000,11 +828,9 @@ int main(int argc, char *argv[])
 	    
 	ntuple->Close();
 	
-      } // [ntuple_number] - loop over over samll ntuples of one DID
-       
-    } // [job_number] - loop over directories (one directory = one mc16 campaign or data_year for one DID)
-    
-  } // [dir_counter] - loop over directories with ntuples collections
+    } // loop over ntuple names from the file
+
+  } // if (ntuples_list_file.is_open) - checking the file
 
 
 

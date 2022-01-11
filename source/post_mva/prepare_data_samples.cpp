@@ -6,6 +6,14 @@ int main(int argc, char *argv[])
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
 
 
+  // Check for the generator and mc16a_only choises
+  std::string generator = ttbar_generator();
+  if (generator=="quit") return 0;
+  if (generator=="" && std::string(argv[1])=="tt") {
+    generator="nominal";
+    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
+
+
   // Setup MVA reader
   #include "include/setup_tmva_reader.h"
 

@@ -5,12 +5,17 @@
 // ///
 int main(int argc, char *argv[])
 {
+  // Check for the generator and mc16a_only choises
+  std::string generator = ttbar_generator();
+  if (generator=="quit") return 0;
+  if (generator=="" && std::string(argv[1])=="tt") {
+    generator="nominal";
+    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
+  bool mc16a_only_test = mc16a_only_choise();
+
+
   // Get config info about MVA setup
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
-
-
-  // Do we ran only mc16a -- data15-16?
-  bool mc16a_only_test = mc16a_only_choise();
   
   
   // Declare hists discriminative variables and bdt, 0 - all, 1- ft, 2- nft 

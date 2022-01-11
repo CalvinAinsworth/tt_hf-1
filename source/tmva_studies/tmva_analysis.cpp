@@ -5,12 +5,21 @@
 // ///
 int main(int argc, char *argv[])
 {
+  // Check for the generator choise
+  std::string generator = ttbar_generator();
+  if (generator=="quit") return 0;
+  if (generator=="" && std::string(argv[1])=="tt") {
+    generator="nominal";
+    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
+  
+  
   // Get config info about MVA setup
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
 
   
   // Create an output file
-  TFile *outputFile = new TFile("/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/TMVA_pl.root", "RECREATE");
+  TString out_fname = "/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/TMVA_pl" + generator + ".root";
+  TFile *outputFile = new TFile(out_fname, "RECREATE");
 
 
   // Create factory and dataloader
@@ -20,7 +29,8 @@ int main(int argc, char *argv[])
 
   
   // Open an input file
-  TFile *input = TFile::Open("/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/tt_hf_MVA_input_pl_small.root");
+  TString in_fname = "/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/tt_hf_MVA_input_pl_" + generator + ".root";
+  TFile *input = TFile::Open(in_fname);
   std::cout << "==> Opened an input file\n" << std::endl;
 
 
@@ -79,6 +89,12 @@ int main(int argc, char *argv[])
   outputFile->Close();
   delete factory;
   delete dataloader;
+
+
+  //Save a copy of the dataset
+  TString exec_str = "cp -r dataset results/dataset_" + generator;
+  gSystem->Exec(exec_str);
+
 
   return 0;
 }
