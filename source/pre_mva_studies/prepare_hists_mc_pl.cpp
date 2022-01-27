@@ -6,32 +6,19 @@
 // ///
 int main(int argc, char *argv[])
 {
-  // Check for the request: sig (tt) or bkg (others)?
-  if (argc == 1) {
-    std::cout << "\nError: I don't know what to do =(\n" << std::endl;
-    std::cout << "Aks for a process:" << std::endl;
-    std::cout << "./run/prepare_hists_mc PROCESS\n" << std::endl;
-    std::cout << "PROCESS = tt  or  singletop  or  ttV  or  ttH  or  diboson  or  z_jets  or  other\n" << std::endl;
-    return 0;
+  // Get MC config info
+  std::map<TString, TString> mc_config_info = get_mc_config_info(std::string(argv[1]));
+  if (mc_config_info.size()==0) return 0;
+  std::map<TString, TString>::iterator it;
+  for (it=mc_config_info.begin(); it!=mc_config_info.end(); it++) {
+    std::cout << it->first << " :\t" << it->second << std::endl;
   }
-  if ( argc>1 && (std::string(argv[1])=="tt" || std::string(argv[1])=="singletop" || std::string(argv[1])=="ttV" || std::string(argv[1])=="ttH" || std::string(argv[1])=="diboson" || std::string(argv[1])=="z_jets" || std::string(argv[1])=="other") ) {
-    std::cout << "Working with " << std::string(argv[1]) << "\n\n" <<std::endl; 
-  } else {
-    std::cout << "Error: Unknown argument " << std::string(argv[1]) << std::endl;
-    std::cout << "Try \"tt\" or \"singletop\" or \"ttV\" or \"ttH\" or \"diboson\" or \"z_jets\" or \"other\" (without quotes)\n" << std::endl;
-    return 0;
-  }
+  TString process = mc_config_info["process"];
+  TString generator = mc_config_info["generator"];
+  TString lep_pt_cut_suffix = mc_config_info["lep_pt_cut_suffix"];
+  TString campaign = mc_config_info["campaign"];
 
 
-  // Check for the generator and mc16a_only choises
-  std::string generator = ttbar_generator();
-  if (generator=="quit") return 0;
-  if (generator=="" && std::string(argv[1])=="tt") {
-    generator="nominal";
-    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
-  bool mc16a_only_test = mc16a_only_choise();
-
-  
   // Create directory for results
   gSystem->Exec("mkdir results");
   
@@ -42,8 +29,8 @@ int main(int argc, char *argv[])
   
   // Declare TFile, TTree, TBranches and variables for MVA
   TFile *MVA_tfile;
-  if (std::string(argv[1]) == "tt") {
-    TString mva_fname = "results/tt_hf_MVA_input_pl_" + generator + ".root";
+  if (process == "tt") {
+    TString mva_fname = "results/tt_hf_MVA_input_pl_" + generator + lep_pt_cut_suffix + ".root";
     MVA_tfile = new TFile(mva_fname, "RECREATE"); }
   TTree *MVA_sig_tree = new TTree("Signal", "inputS");
   TTree *MVA_bkg_tree = new TTree("Background", "inputB");
@@ -100,6 +87,10 @@ int main(int argc, char *argv[])
 
       // Analyze the ntuple name: data or mc? which campaign?
       bool is_data = false;
+      bool is_data15 = false;
+      bool is_data16 = false;
+      bool is_data17 = false;
+      bool is_data18 = false;
       bool is_mc16a = false;
       bool is_mc16d = false;
       bool is_mc16e = false;
@@ -110,18 +101,37 @@ int main(int argc, char *argv[])
 	std::vector<TString> pieces = split(ntuple_name_components[i], '.');
         for (int j=0; j<pieces.size(); j++) {
 	  std::string piece = std::string(pieces[j]);
-          if (piece == "data") is_data = true;
-          if (piece == "mc16a") { is_mc16a = true; mc16_str = "mc16a"; } 
-          if (piece == "mc16d") { is_mc16d = true; mc16_str = "mc16d"; }
-          if (piece == "mc16e") { is_mc16e = true; mc16_str = "mc16e"; }
-          if (piece == "s3126") is_fullsim = true;
-          if (i==ntuple_name_components.size()-2 && j==2) job_DID = piece;
-        }
-      }
+	  std::vector<TString> subpieces = split(piece, '_');
+          for (int k=0; k<subpieces.size(); k++) {
+	    std::string subpiece = std::string(subpieces[k]);
+
+	    if (subpiece == "data") is_data = true;
+            if (subpiece == "grp15") is_data15 = true;
+            if (subpiece == "grp16") is_data16 = true;
+            if (subpiece == "grp17") is_data17 = true;
+            if (subpiece == "grp18") is_data18 = true;
+            if (subpiece == "mc16a") { is_mc16a = true; mc16_str = "mc16a"; }
+            if (subpiece == "mc16d") { is_mc16d = true; mc16_str = "mc16d"; }
+            if (subpiece == "mc16e") { is_mc16e = true; mc16_str = "mc16e"; }
+            if (subpiece == "s3126") is_fullsim = true;
+
+	    // DID is a 6-digits code
+	    try {
+              int tmp_int_did = stoi(subpiece);
+              if (tmp_int_did>=300000 && tmp_int_did<=999999) job_DID = subpiece;
+            } catch(const std::exception& e) {
+              // Do nothing
+	    }
+
+	  } // [k] - split wrt "_"
+	} // [j] - split wrt "."
+      } // [i] - split wrt "/"
       
       // We work with MC only
       if (is_data == true) continue;
-      if (mc16a_only_test==true && is_mc16a!=true) continue;
+      if (campaign=="mc16a" && is_mc16a!=true) continue;
+      if (campaign=="mc16d" && is_mc16d!=true) continue;
+      if (campaign=="mc16e" && is_mc16e!=true) continue;
 
       // Select only dids of our interest
       bool correct_did = false;
@@ -158,6 +168,7 @@ int main(int argc, char *argv[])
 	// Declare cuts names
 	bool emu_cut = false;
 	bool OS_cut = false;
+	bool lep_pt_cut = false; // 28
 	bool jets_n_cut = false;
 	bool bjets_n2_cut = false;
 	bool bjets_n3_cut = false;
@@ -167,7 +178,8 @@ int main(int argc, char *argv[])
 	// Define cuts themselves
 	if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
 	if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
-	  
+	if ( ((*el_pt)[0]*0.001>28 && (*mu_pt)[0]*0.001>28) || lep_pt_cut_suffix=="") lep_pt_cut = true; // 28 GeV
+
 	int jets_n = (*jet_pt).size();
 	if (jets_n >=3) jets_n_cut = true;
 	
@@ -177,7 +189,7 @@ int main(int argc, char *argv[])
 	if (bjets_n >=3) bjets_n3_cut = true;
 	
 	
-	if (std::string(argv[1])=="tt") {
+	if (process=="tt") {
 	  // ttbb
 	  if (topHFFF==1 && (job_DID=="411076" || job_DID=="411085" || job_DID=="412069" || job_DID=="411332") ) topHFFF_cut = true;
 	  // ttb
@@ -185,7 +197,7 @@ int main(int argc, char *argv[])
 	  // ttc
 	  if (topHFFF==3 && (job_DID=="411078" || job_DID=="411087" || job_DID=="412071" || job_DID=="411334") ) topHFFF_cut = true;
 	  // inclusive
-	  if (topHFFF==0 && (job_DID=="410482" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true;
+	  if (topHFFF==0 && (job_DID=="410472" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true;
 	  // 3mtop
 	  if (job_DID=="410482") topHFFF_cut = true;
 	} else { topHFFF_cut = true; }
@@ -214,8 +226,8 @@ int main(int argc, char *argv[])
 	// ///
 	// 3b (jet) incl, emu, OS
 	// ///
-	if (emu_cut*OS_cut*bjets_n3_cut*topHFFF_cut*jets_n_cut == true) {	    
-	    
+	if (emu_cut*OS_cut*lep_pt_cut*bjets_n3_cut*topHFFF_cut*jets_n_cut == true) {
+	  
 	  
 	  // ///
 	  // Variables for min dR (sub)leaning bjets and leptons, and dR between bjet and 1st/2nd leptons - sig/bkg and data/mc
@@ -232,7 +244,7 @@ int main(int argc, char *argv[])
 	    
 	    // ///
 	    // jets parameters - sig/bkg
-	    if (std::string(argv[1])=="tt") {
+	    if (process=="tt") {
 	      if ( (*topHadronOriginFlag)[jet_i]==4 ) {
 		h_all_jets_from_top_pt->Fill((*jet_pt)[jet_i]*0.001, weight);
 		h_all_jets_from_top_eta->Fill((*jet_eta)[jet_i], weight);
@@ -259,7 +271,7 @@ int main(int argc, char *argv[])
 		dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
 		dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
 	      
-	      if (std::string(argv[1])=="tt") {
+	      if (process=="tt") {
 		if ((*topHadronOriginFlag)[jet_i]==4) {
 		  min_dR0_top = std::min(min_dR0_top, dR0);
 		  min_dR1_top = std::min(min_dR1_top, dR1);}
@@ -268,6 +280,11 @@ int main(int argc, char *argv[])
 		  min_dR1_not_top = std::min(min_dR1_not_top, dR0); }
 	      } // if "tt" 
 	    } // [if] bjet
+
+	    h_min_dR_lep0_btags_from_top->Fill(min_dR0_top, weight);
+	    h_min_dR_lep0_btags_not_from_top->Fill(min_dR0_not_top, weight);
+	    h_min_dR_lep1_btags_from_top->Fill(min_dR1_top, weight);
+	    h_min_dR_lep1_btags_not_from_top->Fill(min_dR1_not_top, weight);
 	    
 	    
 	    
@@ -284,7 +301,7 @@ int main(int argc, char *argv[])
 	    double min_dR_bjet_not_from_top_to_lep = 999999.;
 	    double min_dR_not_bjet_to_lep = 999999.;
 	    
-	    if (std::string(argv[1])=="tt") {
+	    if (process=="tt") {
 	      
 	      for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
 		if (jet_i==jet_j) continue;
@@ -358,7 +375,7 @@ int main(int argc, char *argv[])
 	    double min_m_lep_other_jet = 999999;
 	    double max_m_lep_other_jet = 0;
 	    
-	    if (std::string(argv[1])=="tt") {
+	    if (process=="tt") {
 	      
 	      // bjet and the closest lepton
 	      if ((*jet_nGhosts_bHadron)[jet_i]>0) {
@@ -430,7 +447,7 @@ int main(int argc, char *argv[])
 	    float m_min_jet_jet = 999999.;
 	    float m_max_jet_jet = 0.;
 	    
-	    if (std::string(argv[1])=="tt") {
+	    if (process=="tt") {
 	      
 	      if ( (*jet_nGhosts_bHadron)[jet_i]>=1) {
 		n_bjets_tmp++ ;
@@ -534,21 +551,19 @@ int main(int argc, char *argv[])
 	    
 	    // ///
 	    // Populate the MVA ntuple with values
-	    if (std::string(argv[1])=="tt" && (*jet_nGhosts_bHadron)[jet_i]>=1) {
-
+	    if (process=="tt" && (*jet_nGhosts_bHadron)[jet_i]>=1) {
 	      for (int i=0; i<sizeof(mc16_arr_str)/sizeof(mc16_arr_str[0]); i++) {
 		for (int j=0; j<job_dids_str.size(); j++){
 		  if (mc16_arr_str[i]==mc16_str && job_DID==job_dids_str[j]) {
-		    n_entries[i][j]++;
-		    #include "include/populate_mva_ntuple.h"		      
+		    
+		    n_entries[i][j]++;		      
 		  } // if - figuring out the actual mc16+DID pair
 		} // [j] - loop over 4 DIDs
 	      } // [i] - loop over mc16X
-	      
+	      #include "include/populate_mva_ntuple.h"
 	    } // if - tt samples
 	    
 	  } // [jet_i] - loop over jets (populating MVA input ntuple)
-	  
 	  
 	  
 	} // 3b, emu-OS
@@ -565,14 +580,14 @@ int main(int argc, char *argv[])
 
  
   // Write hists
-  TString savename = std::string("results/hists_") + std::string(argv[1]) + std::string("_test_pl_" + generator + ".root");
+  TString savename = std::string("results/hists_") + process + std::string("_pl_" + generator + lep_pt_cut_suffix + ".root");
   TFile *hists_file = new TFile(savename, "RECREATE");
   hists_file->cd();
   #include "include/write_hists_sig_bkg.h"
 
 
   // Save trees to the MVA ntuple
-  if (std::string(argv[1])=="tt") {
+  if (process=="tt") {
     MVA_sig_tree->SetDirectory(MVA_tfile);
     MVA_bkg_tree->SetDirectory(MVA_tfile);
     MVA_tfile->cd();

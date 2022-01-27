@@ -53,24 +53,42 @@ std::string ttbar_generator()
 // #############################
 bool mc16a_only_choise() {
   std::string sel_mc16a_yn;
-  bool proper_yn = false;
   bool selection = false;
   
   std::cout << "\n\nDo you want to run over mc16a only?\nThat's a useful option for debugging runs.\nType \"yes\" or \"no\": ";
   std::cin >> sel_mc16a_yn;
   std::cout << std::endl;
   
-  if (sel_mc16a_yn=="yes" || sel_mc16a_yn=="no") proper_yn = true;
-  while (proper_yn==false) {
+  while ( !(sel_mc16a_yn=="yes" || sel_mc16a_yn=="no") ) {
     std::cout << "Invalid input, type \"yes\" or \"no\": ";
     std::cin >> sel_mc16a_yn;
     std::cout << std::endl;
-    if (sel_mc16a_yn=="yes" || sel_mc16a_yn=="no") proper_yn = true;
   }
-
-  if (sel_mc16a_yn=="yes") selection = true;
   
   return selection;
+}
+
+
+
+// ####################
+// ## Leptons pT cut ##
+// ####################
+TString leptons_pt_cut_suffix() {
+  
+  TString answer = "";
+  std::cout << "\nApply flat lep pT cut >28 GeV?\nType \"yes\" or \"no\": ";
+  std::cin >> answer;
+  std::cout << std::endl;
+  
+  while ( !(answer=="yes" || answer=="no") ) {
+    std::cout << "Wrong selection.\nType \"yes\" or \"no\": ";
+  } 
+
+  if (answer=="yes") { 
+    return "_lep_pT_28";
+  } else {
+    return "";
+  }
 }
 
 
@@ -146,4 +164,42 @@ std::vector<TString> get_tmva_config_info(TString config_file_name)
   container.push_back(method_options);
 
   return container;
+}
+
+
+
+// ########################
+// ## Get MC Config Info ##
+// ########################
+std::map<TString, TString> get_mc_config_info(std::string config_fname) 
+{
+  std::cout << "Config file: " << config_fname << std::endl;
+
+  std::map<TString, TString> container = {};
+  
+  std::string fname = config_fname;
+  std::ifstream config_file(fname, std::ios::in);
+  if (config_file.is_open()) {
+    std::string str1;
+    std::string delim = ": ";
+    while (getline(config_file, str1)) {
+      std::string par_name = str1.substr(0, str1.find(delim));
+      std::string par_val = str1.substr(str1.find(delim)+2, str1.size()); // +2 due to delim length
+      container[par_name] = par_val;
+    }
+  }
+
+  config_file.close();
+
+  bool quit = false;
+  if (!(container.find("process")!=container.end())) { std::cout << "Add process" << std::endl; quit=true; }
+  if (!(container.find("generator")!=container.end())) { std::cout << "Add generator" << std::endl; quit=true; }
+  if (!(container.find("lep_pt_cut_suffix")!=container.end())) { std::cout << "Add lep_pt_cut_suffix" << std::endl; quit=true; }
+  if (!(container.find("campaign")!=container.end())) { std::cout << "Add campaign" << std::endl; quit=true; }
+
+  if (quit==true) {
+    return {};
+  } else {
+    return container;
+  }
 }

@@ -1,7 +1,10 @@
 #mkdir run
 
+echo "Compiling compute_sum_weights.cpp"
+gcc source/pre_mva_studies/compute_sum_weights.cpp source/common_functions.cpp -o run/compute_sum_weights -lstdc++ `root-config --cflags --glibs`
+
 echo "Compiling prepare_hists_mc.cpp"
-gcc source/pre_mva_studies/prepare_hists_mc.cpp   source/common_functions.cpp -o run/prepare_hists_mc   -lstdc++ `root-config --cflags --glibs`
+gcc source/pre_mva_studies/prepare_hists_mc.cpp source/common_functions.cpp -o run/prepare_hists_mc -lstdc++ `root-config --cflags --glibs`
 
 echo "Compiling prepare_hists_mc_pl.cpp"
 gcc source/pre_mva_studies/prepare_hists_mc_pl.cpp source/common_functions.cpp -o run/prepare_hists_mc_pl -lstdc++ `root-config --cflags --glibs`

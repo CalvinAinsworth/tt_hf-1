@@ -12,8 +12,12 @@ int main(int argc, char *argv[])
   gSystem->Exec("mkdir results/plots/data_mc");
 
 
+  // Leptons pT cut choise
+  TString lep_pt_cut_suffix = leptons_pt_cut_suffix();
+
 
   // Get data hists
+  TString data_hists_fname = "results/hists_data_" + lep_pt_cut_suffix + ".root";
   TFile *data_hists_file = new TFile("results/hists_data_test.root");
   TIter next(data_hists_file->GetListOfKeys());
   TKey *key;
@@ -41,7 +45,7 @@ int main(int argc, char *argv[])
   std::vector<std::vector<TH1*>> mc_hists;
 
   for (int i=0; i<processes.size(); i++) {
-    TString mc_hists_file_name = "results/hists_" + processes[i] + "_test_reco.root";
+    TString mc_hists_file_name = "results/hists_" + processes[i] + "_reco_nominal" + lep_pt_cut_suffix + ".root";
     TFile *mc_hists_file = new TFile(mc_hists_file_name);
     
     std::vector<TH1*> mc_hists_tmp;

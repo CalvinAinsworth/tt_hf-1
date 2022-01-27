@@ -6,12 +6,8 @@
 // ################
 int main(int argc, char *argv[])
 {
-  // Check for the generator choise
-  std::string generator = ttbar_generator();
-  if (generator=="quit") return 0;
-  if (generator=="" && std::string(argv[1])=="tt") {
-    generator="nominal";
-    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
+  // Leptons pT cut choise
+  TString lep_pt_cut_suffix = leptons_pt_cut_suffix();
 
 
   // Get config info about MVA setup
@@ -23,7 +19,7 @@ int main(int argc, char *argv[])
 
   
   // Open the TMVA output file
-  TString in_fname = "results/TMVA_pl_" + generator+ ".root";
+  TString in_fname = "results/TMVA_pl_nominal" + lep_pt_cut_suffix + ".root";
   TFile *tmva_file = new TFile(in_fname);
 
   
@@ -37,10 +33,6 @@ int main(int argc, char *argv[])
   TH1 *h_min_dR_bjet_lep_S = (TH1F*)tmva_file->Get(var_hists_address+"min_dR_jet_lep__Signal");
   TH1 *h_m_bjet_el_S = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_el__Signal");
   TH1 *h_m_bjet_mu_S = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_mu__Signal");
-  //TH1 *h_m_bjet_lep_max_S = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_lep_max__Signal");
-  //TH1 *h_min_dR_jet_bjet_S = (TH1F*)tmva_file->Get(var_hists_address+"min_dR_jet_bjet__Signal");
-  //TH1 *h_jet_pt_S = (TH1F*)tmva_file->Get(var_hists_address+"jet_pt__Signal");
-  //TH1 *h_jet_eta_S = (TH1F*)tmva_file->Get(var_hists_address+"jet_eta__Signal");
   TH2 *h_corr_mtrx_S = (TH2F*)tmva_file->Get("dataset/CorrelationMatrixS");
   
   // Background hists
@@ -49,10 +41,6 @@ int main(int argc, char *argv[])
   TH1 *h_min_dR_bjet_lep_B = (TH1F*)tmva_file->Get(var_hists_address+"min_dR_jet_lep__Background");
   TH1 *h_m_bjet_el_B = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_el__Background");
   TH1 *h_m_bjet_mu_B = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_mu__Background");
-  //TH1 *h_m_bjet_lep_max_B = (TH1F*)tmva_file->Get(var_hists_address+"m_jet_lep_max__Background");
-  //TH1 *h_min_dR_jet_bjet_B = (TH1F*)tmva_file->Get(var_hists_address+"min_dR_jet_bjet__Background");
-  //TH1 *h_jet_pt_B = (TH1F*)tmva_file->Get(var_hists_address+"jet_pt__Background");
-  //TH1 *h_jet_eta_B =(TH1F*)tmva_file->Get(var_hists_address+"jet_eta__Background");
   TH2 *h_corr_mtrx_B = (TH2F*)tmva_file->Get("dataset/CorrelationMatrixB");
   
   // Other hists
@@ -70,10 +58,7 @@ int main(int argc, char *argv[])
   int min_dR_bjet_lep_draw = draw_tmva_hists(h_min_dR_bjet_lep_S, h_min_dR_bjet_lep_B, "#bf{#DeltaR_{min}(jet, lep)}", "min_dR_jet_lep");
   int m_bjet_el_draw = draw_tmva_hists(h_m_bjet_el_S, h_m_bjet_el_B, "#bf{m_{inv}(jet, el)}", "m_jet_el");
   int m_bjet_mu_draw = draw_tmva_hists(h_m_bjet_mu_S, h_m_bjet_mu_B, "#bf{m_{inv}(jet, mu)}", "m_jet_mu");
-  //int m_bjet_lep_max = draw_tmva_hists(h_m_bjet_lep_max_S, h_m_bjet_lep_max_B, "#bf{m_{inv}^{max}(jet, lep)}", "m_jet_lep_max");
-  //int min_dR_jet_bjet_draw = draw_tmva_hists(h_min_dR_jet_bjet_S, h_min_dR_jet_bjet_B, "#bf{#DeltaR_{min}(jet, bjet)}", "min_dR_jet_bjet");
-  //int jet_pt_draw = draw_tmva_hists(h_jet_pt_S, h_jet_pt_B, "#bf{p_{T}^{jet}}", "jet_pt");
-  //int jet_eta_draw = draw_tmva_hists(h_jet_eta_S, h_jet_eta_B, "#bf{#eta^{jet}}", "jet_eta");
+  
 
   // Draw correlation matrices
   std::vector<TString> axis_labels = {"#bf{#DeltaR(jet - lep0)}", "#bf{#DeltaR(jet - lep1)}", "#bf{#DeltaR_{min}(jet, lep)}", "#bf{m_{inv}(jet, el)}", "#bf{m_{inv}(jet, mu)}", "#bf{m_{inv}^{max}(jet, lep)}", "#bf{#DeltaR_{min}(jet, bjet)}"};

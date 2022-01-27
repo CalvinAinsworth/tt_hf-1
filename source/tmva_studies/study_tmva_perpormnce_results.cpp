@@ -6,12 +6,8 @@
 // ###################
 int main(int argc, char *argv[])
 {
-  // Check for the generator choise
-  std::string generator = ttbar_generator();
-  if (generator=="quit") return 0;
-  if (generator=="" && std::string(argv[1])=="tt") {
-    generator="nominal";
-    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
+  // Leptons pT cut choise
+  TString lep_pt_cut_suffix = leptons_pt_cut_suffix();
 
 
   // Get config info about MVA setup
@@ -19,7 +15,7 @@ int main(int argc, char *argv[])
   
   
   // Open the tfile - mtva ouput
-  TString in_fname = "results/TMVA_pl_" + generator+ ".root";
+  TString in_fname = std::string("results/TMVA_pl_nominal") + lep_pt_cut_suffix + std::string(".root");
   TFile *tmva_file = new TFile(in_fname);
 
   

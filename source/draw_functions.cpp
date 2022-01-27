@@ -153,7 +153,7 @@ int draw_data_mc_plot(TH1 *h_data, std::vector<TH1*> h_mc, TString title, TStrin
 // ###########################
 // ## Draw a few histograms ##
 // ###########################
-int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString x_axis_title, TString title, bool normalize, Double_t y_min, Double_t y_max)
+int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString x_axis_title, TString title, bool normalize, Double_t y_min, Double_t y_max, bool setlogy)
 {
   // Draws N histograms in one canvas (not stacked)
   std::cout << "Start drawing " << title << " !" << std::endl;
@@ -166,7 +166,7 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
   TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 1200);
   gStyle->SetOptStat(0);
   gPad->SetGrid();
-  if (normalize==true) {
+  if (setlogy==true) {
     if (y_min<=0) y_min = y_max/1000;
     gPad->SetLogy();
   }
@@ -194,7 +194,7 @@ int draw_n_hists(std::vector<TH1*> h_vec, std::vector<TString> h_title, TString 
       h_vec[i]->Draw("hist"); 
       h_vec[i]->SetTitle("");
 
-      if (normalize==true) {
+      if (normalize==true || (y_max <=1) ) {
         h_vec[i]->GetYaxis()->SetRangeUser(y_min, y_max);
         h_vec[i]->GetYaxis()->SetTitle("#bf{Events, norm to 1}"); }
       else {

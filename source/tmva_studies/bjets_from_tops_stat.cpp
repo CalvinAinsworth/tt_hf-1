@@ -6,24 +6,28 @@
 //////////////
 int main(int argc, char *argv[])
 {
-  // Check for the generator and mc16a_only choises
-  std::string generator = ttbar_generator();
-  if (generator=="quit") return 0;
-  if (generator=="" && std::string(argv[1])=="tt") {
-    generator="nominal";
-    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
-  bool mc16a_only_test = mc16a_only_choise();
-  
+  // Get MC config info
+  std::map<TString, TString> mc_config_info = get_mc_config_info(std::string(argv[1]));
+  if (mc_config_info.size()==0) return 0;
+  std::map<TString, TString>::iterator it;
+  for (it=mc_config_info.begin(); it!=mc_config_info.end(); it++) {
+    std::cout << it->first << " :\t" << it->second << std::endl;
+  }
+  TString process = mc_config_info["process"];
+  TString generator = mc_config_info["generator"];
+  TString lep_pt_cut_suffix = mc_config_info["lep_pt_cut_suffix"];
+  TString campaign = mc_config_info["campaign"];
+
 
   // Get config info about MVA setup
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
   
 
-  // Counters of the total number of events on the Reco and PL
-  double reco_integral_3b = 0;
-  double reco_integral_4b = 0;
-  double pl_integral_3b = 0;
-  double pl_integral_4b = 0;
+  // Counters for yields in both reco and PL 3b and 4+b regions
+  double reco_integral_3b[2] = {0, 0};
+  double reco_integral_4b[2] = {0, 0};
+  double pl_integral_3b[2] = {0, 0};
+  double pl_integral_4b[2] = {0, 0};
 
   
   // Declare a hist to keep stats on b-jets MVA identification
@@ -133,7 +137,7 @@ int main(int argc, char *argv[])
   // Seup MVA reader
   #include "../post_mva/include/setup_tmva_reader.h"
 
-
+  
   // Run a loop over ntuples names from a txt file
   std::string in_line = "";
   std::ifstream ntuples_list_file("ntuples_list.txt");
@@ -167,14 +171,16 @@ int main(int argc, char *argv[])
 
       // We work with MC only
       if (is_data == true) continue;
-      if (mc16a_only_test==true && is_mc16a!=true) continue;
-
+      if (campaign=="mc16a" && is_mc16a!=true) continue;
+      if (campaign=="mc16d" && is_mc16d!=true) continue;
+      if (campaign=="mc16e" && is_mc16e!=true) continue;
+      
       // Select only dids of our interest
       bool correct_did = false;
       #include "../pre_mva_studies/include/did_selection.h"
       if (correct_did==false) continue;
       std::cout << "\nWorking with:\n" << ntuple_name << std::endl;
-
+      
 
       // Open the ntuple
       TFile *ntuple = new TFile (ntuple_name);
@@ -204,7 +210,7 @@ int main(int argc, char *argv[])
       std::vector<Float_t> *mu_e;
       std::vector<Float_t> *mu_charge;
       jet_DL1r_77 = 0;
-      jet_pt = jet_eta = jet_phi = jet_e = jet_DL1r = el_pt = el_eta = el_phi = el_e = el_charge = mu_pt = mu_eta = mu_phi = mu_e = mu_charge = 0;
+      jet_DL1r = jet_pt = jet_eta = jet_phi = jet_e = el_pt = el_eta = el_phi = el_e = el_charge = mu_pt = mu_eta = mu_phi = mu_e = mu_charge = 0;
       jet_GBHInit_topHadronOriginFlag = jet_truthflav = 0;
       Int_t topHFFF;
       UInt_t runNumber;
@@ -302,6 +308,7 @@ int main(int argc, char *argv[])
 	// Declare cuts names
 	bool emu_cut = false;
 	bool OS_cut = false;
+	bool lep_pt_cut = false; // 28
 	bool jets_n_cut = false;
 	bool btags_n2_cut = false;
 	bool btags_n3_cut = false;
@@ -311,6 +318,7 @@ int main(int argc, char *argv[])
 	// Define cuts themselves
 	if ((*el_charge).size()==1 && (*mu_charge).size()==1) emu_cut = true;
 	if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
+	if (((*el_pt)[0]*0.001>28 && (*mu_pt)[0]*0.001>28) || lep_pt_cut_suffix=="") lep_pt_cut = true; // 28 GeV
 	
 	int jets_n  = (*jet_pt).size();
 	if (jets_n >= 3) jets_n_cut = true;
@@ -327,7 +335,7 @@ int main(int argc, char *argv[])
 	// ttc
 	if (topHFFF==3 && (job_DID=="411078" || job_DID=="411087" || job_DID=="412071" || job_DID=="411334") ) topHFFF_cut = true;
 	// inclusive
-	if (topHFFF==0 && (job_DID=="410482" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true;
+	if (topHFFF==0 && (job_DID=="410472" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true;
 	// 3mtop
 	if (job_DID=="410482") topHFFF_cut = true;
 
@@ -345,11 +353,16 @@ int main(int argc, char *argv[])
 
 	
 	  // 3b, emu-OS
-	  if (emu_cut*OS_cut*jets_n_cut*btags_n3_cut*topHFFF_cut==true) {
+	  if (emu_cut*OS_cut*lep_pt_cut*jets_n_cut*btags_n3_cut*topHFFF_cut==true) {
 
 	    // Increment yields
-	    if (btags_n==3) reco_integral_3b += weight;
-	    if (btags_n>=4) reco_integral_4b += weight;
+	    if (btags_n==3) { 
+	      reco_integral_3b[0] += 1;
+	      reco_integral_3b[1] += weight; }
+	    if (btags_n>=4) {
+	      reco_integral_4b[0] += 1;
+	      reco_integral_4b[1] += weight;
+	    }
 
 
 	    // Create a vector of MVA scores sorted wrt jet_pT
@@ -554,7 +567,7 @@ int main(int argc, char *argv[])
 	  } // 3b, emu-OS -- Nominal
 	  
 	} // [entry] - loop over Nominal tree entries
-	
+      
 	
 
 	// ///
@@ -577,6 +590,7 @@ int main(int argc, char *argv[])
 	  // Declare cuts names
 	  bool emu_cut = false;
 	  bool OS_cut = false;
+	  bool lep_pt_cut = false; // 28
 	  bool jets_n_cut = false;
 	  bool bjets_n2_cut = false;
 	  bool bjets_n3_cut = false;
@@ -586,6 +600,7 @@ int main(int argc, char *argv[])
 	  // Define cuts themselves
 	  if ((*el_charge_pl).size()==1 && (*mu_charge_pl).size()==1) emu_cut = true;
 	  if ((*el_charge_pl)[0]!=(*mu_charge_pl)[0]) OS_cut = true;
+	  if (((*el_pt_pl)[0]*0.001>28 && (*mu_pt_pl)[0]*0.001>28) || lep_pt_cut_suffix=="") lep_pt_cut = true; // 28 GeV
 
 	  int jets_n = (*jet_pt_pl).size();
 	  if (jets_n >=3) jets_n_cut = true;
@@ -602,7 +617,7 @@ int main(int argc, char *argv[])
 	  // ttc
 	  if (topHFFF==3 && (job_DID=="411078" || job_DID=="411087" || job_DID=="412071" || job_DID=="411334") ) topHFFF_cut = true;
 	  // inclusive
-	  if (topHFFF==0 && (job_DID=="410482" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true;
+	  if (topHFFF==0 && (job_DID=="410472" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true;
 	  // 3mtop
 	  if (job_DID=="410482") topHFFF_cut = true;
 	  
@@ -620,11 +635,16 @@ int main(int argc, char *argv[])
 	  
 	  
 	  // 3b, emu-OS PL
-	  if (emu_cut*OS_cut*jets_n_cut*bjets_n3_cut*topHFFF_cut==true) {
+	  if (emu_cut*OS_cut*lep_pt_cut*jets_n_cut*bjets_n3_cut*topHFFF_cut==true) {
 
 	    // Increment yields
-	    if (bjets_n==3) pl_integral_3b += weight;
-	    if (bjets_n>=4) pl_integral_4b += weight;
+	    if (bjets_n==3) {
+	      pl_integral_3b[0] += 1;
+	      pl_integral_3b[1] += weight; }
+	    if (bjets_n>=4) {
+	      pl_integral_4b[0] += 1;
+	      pl_integral_4b[1] += weight;
+	    }
 	    
 	    
 	    // Create a vector of MVA scores sorted wrt jet_pT
@@ -679,7 +699,7 @@ int main(int argc, char *argv[])
 	    for (it = bjet_MVAscore_pTidx_map.begin(); it != bjet_MVAscore_pTidx_map.end(); it++) {
 	      b_bdt_indeces.push_back(it->second);
 	    }
-
+	    
 	    // Sort 1. btags from top in pT order and 2. the additional btags in pT order
 	    std::sort(b_bdt_indeces.begin(), b_bdt_indeces.begin()+2); // 1.
 	    std::sort(b_bdt_indeces.begin()+2, b_bdt_indeces.end()); // 2.
@@ -693,7 +713,7 @@ int main(int argc, char *argv[])
             for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
               if ( (*jet_GBHInit_topHadronOriginFlag_pl)[jet_i]!=4 && (*jet_nGhosts_bHadron)[jet_i]>=1) b_truth_indeces.push_back(jet_i);
             }
-
+	    
 	    
 	    // Fill the stats hist
 	    if (n_bjets_from_top==2) {
@@ -703,7 +723,7 @@ int main(int argc, char *argv[])
 		else if ((*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[0]]==4 && (*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[2]]==4) { h_jets_origin_stat_pl_3b->Fill(1.5, weight); }
 		else if ((*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[1]]==4 && (*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[2]]==4) { h_jets_origin_stat_pl_3b->Fill(2.5, weight); }
 	      }
-
+	      
 	      if (bjets_n>=4) {
 		if ((*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[0]]==4 && (*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[1]]==4) { h_jets_origin_stat_pl_4b->Fill(0.5, weight); }
 		else if ((*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[0]]==4 && (*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[2]]==4) { h_jets_origin_stat_pl_4b->Fill(1.5, weight); }
@@ -711,7 +731,7 @@ int main(int argc, char *argv[])
 		else if ((*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[3]]==4 && ((*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[0]]==4 || (*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[1]]==4 || (*jet_GBHInit_topHadronOriginFlag_pl)[b_bdt_indeces[2]]==4)) { h_jets_origin_stat_pl_4b->Fill(3.5, weight); }
 	      }
 	    }
- 
+	    
 
 	    // Jets origin identification efficiency with pT order (leading pT FT - correct, sub-leading pT FT - correct, leadinf pT add - correct ... ) 
 	    for (int i=0; i<std::min(bjets_n, 4); i++) {
@@ -835,7 +855,7 @@ int main(int argc, char *argv[])
 
 
   // Save hists to a file
-  TString histfile_savename = std::string("results/hists_bdt_eff_study.root");
+  TString histfile_savename = std::string("results/hists_bdt_eff_study_" + generator + lep_pt_cut_suffix + ".root");
   TFile *histfile = new TFile(histfile_savename, "UPDATE");
   histfile->cd();
   std::vector<TString> disrc_vars_str = {"_reco_all", "_reco_bdt_ft", "_reco_bdt_nft", "_reco_truth_ft", "_reco_truth_nft", "_pl_all", "_pl_bdt_ft", "_pl_bdt_nft", "_pl_truth_ft", "_pl_truth_nft"};
@@ -861,45 +881,36 @@ int main(int argc, char *argv[])
   h_bAdd_2_bdt_pl->Write("bAdd_2_pl", TObject::kOverwrite);
 
 
+  h_bjets_n_pl->Write("bjets_n_pl", TObject::kOverwrite);
+  h_btags_n_reco->Write("btags_n_reco", TObject::kOverwrite);
+  h_jets_n_ft_pl->Write("jets_n_ft_pl", TObject::kOverwrite);
+  h_jets_n_ft_reco->Write("jets_n_ft_reco", TObject::kOverwrite);
+  h_bjets_n_ft_pl->Write("bjets_n_ft_pl", TObject::kOverwrite);
+  h_btags_n_ft_reco->Write("btags_n_ft_reco", TObject::kOverwrite);
+  h_jets_origin_stat_pl_3b->Write("jets_origin_stat_pl_3b", TObject::kOverwrite);
+  h_jets_origin_stat_reco_3b->Write("jets_origin_stat_reco_3b", TObject::kOverwrite);
+  h_jets_origin_stat_pl_4b->Write("jets_origin_stat_pl_4b", TObject::kOverwrite);
+  h_jets_origin_stat_reco_4b->Write("jets_origin_stat_reco_4b", TObject::kOverwrite);
+  
+  // Scale stats hist to the number of events, not number of jets!
+  h_origin_tag_eff_pl_3b->Scale(1/pl_integral_3b[1]);
+  h_origin_tag_eff_pl_3b->Write("origin_tag_eff_pl_3b", TObject::kOverwrite);
+  h_origin_tag_eff_reco_3b->Scale(1/reco_integral_3b[1]);
+  h_origin_tag_eff_reco_3b->Write("origin_tag_eff_reco_3b", TObject::kOverwrite);
+  h_origin_tag_eff_pl_4b->Scale(1/pl_integral_4b[1]);
+  h_origin_tag_eff_pl_4b->Write("origin_tag_eff_pl_4b", TObject::kOverwrite);
+  h_origin_tag_eff_reco_4b->Scale(1/reco_integral_4b[1]);
+  h_origin_tag_eff_reco_4b->Write("origin_tag_eff_reco_4b", TObject::kOverwrite);
 
-  // Drat number of b 
-  std::vector<TH1*> h_b_n_vec = {h_bjets_n_pl, h_btags_n_reco};
-  std::vector<TString> h_b_n_title = {"bjets, PL", "btags DL1r 77, Reco"};
-  int draw_h_b_n = draw_n_hists(h_b_n_vec, h_b_n_title, "#bf{N_{bjets or btags}}", "mc/bjets_btags_n", false, 1, 100000);
+  histfile->Close();
 
-
-  // Draw number of jets from top
-  std::vector<TH1*> h_jets_n_ft_vec = {h_jets_n_ft_pl, h_jets_n_ft_reco};
-  std::vector<TString> h_jets_n_ft_title = {"particle level", "reco level"};
-  int draw_jets_n_ft = draw_n_hists(h_jets_n_ft_vec, h_jets_n_ft_title, "number fo jets from top", "mc/jets_n_from_top", false, 1, 100000);
-
-
-  // Draw number of b from top
-  std::vector<TH1*> h_b_n_ft_vec = {h_bjets_n_ft_pl, h_btags_n_ft_reco};
-  std::vector<TString> h_b_n_ft_title = {"bjets, PL", "btags DL1r 77, Reco"};
-  int draw_b_n_ft = draw_n_hists(h_b_n_ft_vec, h_b_n_ft_title, "number of b from top", "mc/bjets_btags_n_from_top", false, 1, 100000);
-
-
-  // Draw stats hist
-  std::vector<TH1*> h_stats_3b_vec = {h_jets_origin_stat_pl_3b, h_jets_origin_stat_reco_3b};
-  std::vector<TString> h_stats_title = {"particle level", "reco level"};
-  int draw_stats_3b = draw_n_hists(h_stats_3b_vec, h_stats_title, "bjets/btags pairs from top (truth info) in "+tmva_config_info[0]+" order", "mc/bjets_pairs_from_tops_study_"+tmva_config_info[0]+"_3b", true, 0, 1);
-
-  std::vector<TH1*> h_stats_4b_vec = {h_jets_origin_stat_pl_4b, h_jets_origin_stat_reco_4b};
-  int draw_stats_4b = draw_n_hists(h_stats_4b_vec, h_stats_title, "bjets/btags pairs from top (truth info) in "+tmva_config_info[0]+" order", "mc/bjets_pairs_from_tops_study_"+tmva_config_info[0]+"_4b", true, 0, 1);
-
-
-  // Draw jets origin identification efficiency with pT taken into account
-  h_origin_tag_eff_pl_3b->Scale(1/pl_integral_3b);
-  h_origin_tag_eff_reco_3b->Scale(1/reco_integral_3b);
-  std::vector<TH1*> h_origin_tag_eff_3b = {h_origin_tag_eff_pl_3b, h_origin_tag_eff_reco_3b};
-  int draw_origin_tag_eff_3b = draw_n_hists(h_origin_tag_eff_3b, h_stats_title, "bjets/btags origin identification eff. in pT order", "mc/bjets_from_tops_study_"+tmva_config_info[0]+"_3b", false, 0, 1);
-
-  h_origin_tag_eff_pl_4b->Scale(1/pl_integral_4b);
-  h_origin_tag_eff_reco_4b->Scale(1/reco_integral_4b);
-  std::vector<TH1*> h_origin_tag_eff_4b= {h_origin_tag_eff_pl_4b, h_origin_tag_eff_reco_4b};
-  int draw_origin_tag_eff_4b = draw_n_hists(h_origin_tag_eff_4b, h_stats_title, "bjets/btags origin identification eff. in pT order", "mc/bjets_from_tops_study_"+tmva_config_info[0]+"_4b", false, 0, 1);
-
+  
+  // Print yileds
+  std::cout << "\n\nYields for " << generator << " generator:" << std::endl;
+  std::cout << "3b reco:\t" << reco_integral_3b[0] << " raw,\t" << reco_integral_3b[1] << " weighted" << std::endl;
+  std::cout << "3b PL:\t" << pl_integral_3b[0] << " raw,\t" << pl_integral_3b[1] << " weighted" << std::endl;
+  std::cout << "4b reco:\t" << reco_integral_4b[0] << " raw,\t" << reco_integral_4b[1] << " weighted" << std::endl;
+  std::cout << "4b PL:\t" << pl_integral_4b[0] << " raw,\t" << pl_integral_4b[1] << " weighted" << std::endl;
 
   return 0;
 }

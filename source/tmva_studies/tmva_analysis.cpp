@@ -5,20 +5,25 @@
 // ///
 int main(int argc, char *argv[])
 {
-  // Check for the generator choise
-  std::string generator = ttbar_generator();
-  if (generator=="quit") return 0;
-  if (generator=="" && std::string(argv[1])=="tt") {
-    generator="nominal";
-    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
-  
+  // Get MC config info
+  std::map<TString, TString> mc_config_info = get_mc_config_info(std::string(argv[1]));
+  if (mc_config_info.size()==0) return 0;
+  std::map<TString, TString>::iterator it;
+  for (it=mc_config_info.begin(); it!=mc_config_info.end(); it++) {
+    std::cout << it->first << " :\t" << it->second << std::endl;
+  }
+  TString process = mc_config_info["process"];
+  TString generator = mc_config_info["generator"];
+  TString lep_pt_cut_suffix = mc_config_info["lep_pt_cut_suffix"];
+  TString campaign = mc_config_info["campaign"];
+
   
   // Get config info about MVA setup
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
 
   
   // Create an output file
-  TString out_fname = "/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/TMVA_pl" + generator + ".root";
+  TString out_fname = "/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/TMVA_pl_" + generator + lep_pt_cut_suffix + ".root";
   TFile *outputFile = new TFile(out_fname, "RECREATE");
 
 
@@ -29,7 +34,7 @@ int main(int argc, char *argv[])
 
   
   // Open an input file
-  TString in_fname = "/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/tt_hf_MVA_input_pl_" + generator + ".root";
+  TString in_fname = "/afs/cern.ch/work/e/eantipov/public/tt_jets_analyses/tt_hf/results/tt_hf_MVA_input_pl_" + generator + lep_pt_cut_suffix + ".root";
   TFile *input = TFile::Open(in_fname);
   std::cout << "==> Opened an input file\n" << std::endl;
 
@@ -40,13 +45,6 @@ int main(int argc, char *argv[])
   dataloader->AddVariable("min_dR_jet_lep", 'F');
   dataloader->AddVariable("m_jet_el", 'F');
   dataloader->AddVariable("m_jet_mu", 'F');
-  //dataloader->AddVariable("m_jet_lep_max", 'F');
-  //dataloader->AddVariable("min_dR_jet_bjet", 'F');
-  //dataloader->AddVariable("jet_pt", 'F');
-  //dataloader->AddVariable("jet_eta", 'F');
-  //dataloader->AddVariable("jet_m", 'F');
-  //dataloader->AddVariable("m_min_jet_jet", 'F');
-  //dataloader->AddVariable("m_max_jet_jet", 'F');
   std::cout << "==> Added variables\n" << std::endl;
 
 
@@ -92,7 +90,7 @@ int main(int argc, char *argv[])
 
 
   //Save a copy of the dataset
-  TString exec_str = "cp -r dataset results/dataset_" + generator;
+  TString exec_str = "cp -r dataset results/dataset_" + generator + lep_pt_cut_suffix;
   gSystem->Exec(exec_str);
 
 

@@ -6,9 +6,17 @@
 // ///
 int main(int argc, char *argv[])
 {
-  // Get config info about MVA setup
-  bool mc16a_only_test = mc16a_only_choise();
-
+  std::map<TString, TString> mc_config_info = get_mc_config_info(std::string(argv[1]));
+  if (mc_config_info.size()==0) return 0;
+  std::map<TString, TString>::iterator it;
+  for (it=mc_config_info.begin(); it!=mc_config_info.end(); it++) {
+    std::cout << it->first << " :\t" << it->second << std::endl;
+  }
+  TString process = mc_config_info["process"];
+  TString generator = mc_config_info["generator"];
+  TString lep_pt_cut_suffix = mc_config_info["lep_pt_cut_suffix"];
+  TString campaign = mc_config_info["campaign"];
+  
 
   // Create directory for results
   gSystem->Exec("mkdir results");
@@ -17,61 +25,75 @@ int main(int argc, char *argv[])
   // Create a list of directories with ntuples
   TString path_to_ntuples = "/eos/atlas/atlascerngroupdisk/phys-top/ttjets/v4/data/";
   std::vector<TString> dir_paths = get_list_of_files(path_to_ntuples);
-
+  
 
   // Declare histograms
   #include "include/declare_hists_data_mc.h"
 
 
-  // Loop over directories with ntuples collections
-  for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++) {
 
-    // Select only directiories from the list of files and directories
-    TSystemFile dir(dir_paths[dir_counter], dir_paths[dir_counter]);
-    if (!(dir.IsDirectory())) continue;
-    std::cout << "\n\n\n" << dir_paths[dir_counter] << std::endl;
+  // Run a loop over ntuples names from a txt file
+  std::string in_line = "";
+  std::ifstream ntuples_list_file("ntuples_list.txt");
+  if (ntuples_list_file.is_open()) {
+    while (getline(ntuples_list_file, in_line)) {
+      TString ntuple_name = in_line;
 
-    
-    // Analyze directiry's name: data/mc, which campaign?
-    std::vector<TString> dir_path_components = split(dir_paths[dir_counter], '/');
-    int last_element_index = dir_path_components.size();
-    std::vector<TString> dir_name_components = split(dir_path_components[last_element_index-1], '.');
-    bool is_data = false;
-    bool is_2015 = false;
-    bool is_2016 = false;
-    bool is_2017 = false;
-    bool is_2018 = false;
-    bool is_mc16a = false;
-    bool is_mc16d = false;
-    bool is_mc16e = false;
-    for (int i=0; i<dir_name_components.size(); i++) {
-      if (dir_name_components[i] == "periodAllYear") is_data = true;
-      if (dir_name_components[i] == "grp15_v01_p4030") is_2015 = true;
-      if (dir_name_components[i] == "grp16_v01_p4030") is_2016 = true;
-      if (dir_name_components[i] == "grp17_v01_p4030") is_2017 = true;
-      if (dir_name_components[i] == "grp18_v01_p4030") is_2018 = true;
-      if (dir_name_components[i] == "mc16a") is_mc16a = true;
-      if (dir_name_components[i] == "mc16d") is_mc16d = true;
-      if (dir_name_components[i] == "mc16e") is_mc16e = true; }
-  
+      // Split the ntuple name (that also contains ful path) into components to analyze them
+      std::vector<TString> ntuple_name_components = split(ntuple_name, '/');
 
-    // We work with data
-    if (is_data != true) continue;
-    if (mc16a_only_test==true && (is_2017==true || is_2018==true)) continue;
-    std::cout << dir_path_components[last_element_index-1] << std::endl;
+      // Analyze the ntuple name: data or mc? which campaign?
+      bool is_data = false;
+      bool is_data15 = false;
+      bool is_data16 = false;
+      bool is_data17 = false;
+      bool is_data18 = false;
+      bool is_mc16a = false;
+      bool is_mc16d = false;
+      bool is_mc16e = false;
+      bool is_fullsim = false;
+      std::string job_DID = "";
+      for (int i=0; i<ntuple_name_components.size(); i++) {
+	std::vector<TString> pieces = split(ntuple_name_components[i], '.');
+        for (int j=0; j<pieces.size(); j++) {
+	  std::string piece = std::string(pieces[j]);
+	  std::vector<TString> subpieces = split(piece, '_');
+          for (int k=0; k<subpieces.size(); k++) {
+	    std::string subpiece = std::string(subpieces[k]);
 
+            if (subpiece == "data") is_data = true;
+            if (subpiece == "grp15") is_data15 = true;
+            if (subpiece == "grp16") is_data16 = true;
+            if (subpiece == "grp17") is_data17 = true;
+            if (subpiece == "grp18") is_data18 = true;
+            if (subpiece == "mc16a") is_mc16a = true;
+            if (subpiece == "mc16d") is_mc16d = true;
+            if (subpiece == "mc16e") is_mc16e = true;
+            if (subpiece == "s3126") is_fullsim = true;
 
-    // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
-    std::vector<TString> paths_to_jobs = get_list_of_files(dir_paths[dir_counter]);
+            // DID is a 6-digits code
+	    try {
+              int tmp_int_did = stoi(subpiece);
+              if (tmp_int_did>=300000 && tmp_int_did<=999999) job_DID = subpiece;
+            } catch(const std::exception& e) {
+              // Do nothing
+	    }
 
-    
-    // Loop over files
-    for (int job_number=0; job_number<paths_to_jobs.size(); job_number++) {
+	  } // [k] - split wrt "_"
+	} // [j] - split wrt "."
+      } // [i] - split wrt "/"
+
+      // Work with data only here
+      if (is_data != true) continue;
+      if (campaign=="mc16a" && (is_data17==true || is_data18==true)) continue;
+      if (campaign=="mc16d" && is_data17!=true) continue;
+      if (campaign=="mc16e" && is_data18!=true) continue;
+      std::cout << "\nWorking with:\n" << ntuple_name << std::endl;
       
-      TFile *ntuple = new TFile (paths_to_jobs[job_number]);
-      TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
 
-      std::cout << paths_to_jobs[job_number] << "\n" << std::endl;
+      // Open an ntuples
+      TFile *ntuple = new TFile (ntuple_name);
+      TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
       
       
       // Set all needed branches
@@ -97,6 +119,7 @@ int main(int argc, char *argv[])
 	// Declare cuts names
 	bool emu_cut = false;
 	bool OS_cut = false;
+	bool lep_pt_cut = false;
 	bool jets_n_cut = false;
 	bool btags_n2_cut = false;
 	bool btags_n3_cut = false;
@@ -105,6 +128,7 @@ int main(int argc, char *argv[])
 	// Define cuts themselves
 	if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
 	if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
+	if ( ((*el_pt)[0]*0.001>28 && (*mu_pt)[0]*0.001>28) || lep_pt_cut_suffix=="")  lep_pt_cut = true;
 
 	int jets_n = (*jet_pt).size();
 	if (jets_n >=3) jets_n_cut = true;
@@ -129,9 +153,9 @@ int main(int argc, char *argv[])
 
 	
 	// ///
-	// 2b (tags) incl, emu, OS
+	// 3b (tags) incl, emu, OS
 	// ///
-	if (emu_cut*OS_cut*btags_n2_cut*jets_n_cut == true) {
+	if (emu_cut*OS_cut*btags_n3_cut*jets_n_cut == true) {
 	  
 	  // ///
 	  // jets_n - data/mc
@@ -241,14 +265,14 @@ int main(int argc, char *argv[])
 
       ntuple->Close();
       
-    } // [job_number]
-    
-  } // [dir_counter]
+    } // loop over line of the ntuples tist (txt)
+  } // "if (ntuples_list_file.is_open())"
 
 
-  
+      
   // Save hists
-  TFile *hists_file = new TFile("results/hists_data_test.root", "RECREATE");
+  TString savename = "results/hists_data_" + lep_pt_cut_suffix + ".root";
+  TFile *hists_file = new TFile(savename, "RECREATE");
   hists_file->cd();
   #include "include/write_hists_data_mc.h"
   hists_file->Close();

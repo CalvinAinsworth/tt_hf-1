@@ -5,19 +5,28 @@
 // ///
 int main(int argc, char *argv[])
 {
-  // Check for the generator and mc16a_only choises
-  std::string generator = ttbar_generator();
-  if (generator=="quit") return 0;
-  if (generator=="" && std::string(argv[1])=="tt") {
-    generator="nominal";
-    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
-  bool mc16a_only_test = mc16a_only_choise();
+  // Get MC config info
+  std::map<TString, TString> mc_config_info = get_mc_config_info(std::string(argv[1]));
+  if (mc_config_info.size()==0) return 0;
+  std::map<TString, TString>::iterator it;
+  for (it=mc_config_info.begin(); it!=mc_config_info.end(); it++) {
+    std::cout << it->first << " :\t" << it->second << std::endl;
+  }
+  TString process = mc_config_info["process"];
+  TString generator = mc_config_info["generator"];
+  TString lep_pt_cut_suffix = mc_config_info["lep_pt_cut_suffix"];
+  TString campaign = mc_config_info["campaign"];
 
 
   // Get config info about MVA setup
   std::vector<TString> tmva_config_info = get_tmva_config_info("source/tmva_config.txt");
-  
-  
+
+
+  // Counter for yields in 3b and 4+b regions
+  int integral_3b = 0;
+  int integral_4b = 0;
+
+
   // Declare hists discriminative variables and bdt, 0 - all, 1- ft, 2- nft 
   TH1 *h_dR_jet_lep0[3];
   TH1 *h_dR_jet_lep1[3];
@@ -72,19 +81,19 @@ int main(int argc, char *argv[])
     int last_element_index = dir_path_components.size();
     std::vector<TString> dir_name_components = split(dir_path_components[last_element_index-1], '.');
     bool is_data = false;
-    bool is_2015 = false;
-    bool is_2016 = false;
-    bool is_2017 = false;
-    bool is_2018 = false;
+    bool is_data15 = false;
+    bool is_data16 = false;
+    bool is_data17 = false;
+    bool is_data18 = false;
     bool is_mc16a = false;
     bool is_mc16d = false;
     bool is_mc16e = false;
     for (int i=0; i<dir_name_components.size(); i++) {
       if (dir_name_components[i] == "periodAllYear") is_data = true;
-      if (dir_name_components[i] == "grp15_v01_p4030") is_2015 = true;
-      if (dir_name_components[i] == "grp16_v01_p4030") is_2016 = true;
-      if (dir_name_components[i] == "grp17_v01_p4030") is_2017 = true;
-      if (dir_name_components[i] == "grp18_v01_p4030") is_2018 = true;
+      if (dir_name_components[i] == "grp15_v01_p4030") is_data15 = true;
+      if (dir_name_components[i] == "grp16_v01_p4030") is_data16 = true;
+      if (dir_name_components[i] == "grp17_v01_p4030") is_data17 = true;
+      if (dir_name_components[i] == "grp18_v01_p4030") is_data18 = true;
       if (dir_name_components[i] == "mc16a") is_mc16a = true;
       if (dir_name_components[i] == "mc16d") is_mc16d = true;
       if (dir_name_components[i] == "mc16e") is_mc16e = true; }
@@ -92,7 +101,9 @@ int main(int argc, char *argv[])
 
     // We work with data
     if (is_data != true) continue;
-    if (mc16a_only_test==true && (is_2017==true || is_2018==true)) continue;
+    if (campaign=="mc16a" && (is_data17==true || is_data18==true)) continue;
+    if (campaign=="mc16d" && is_data17!=true) continue;
+    if (campaign=="mc16e" && is_data18!=true) continue;
     std::cout << dir_path_components[last_element_index-1] << std::endl;
 
     
@@ -111,7 +122,7 @@ int main(int argc, char *argv[])
 
       // Set all needed branches
       #include "../pre_mva_studies/include/branches.h"
-      std::cout << "\nSome branches don't exists for data - that's normal and won't affect performance" << std::cout;
+      std::cout << "\nSome branches don't exists for data - that's normal and won't affect performance" << std::endl;
 
       
       // Loop over entries
@@ -131,6 +142,7 @@ int main(int argc, char *argv[])
 	// Declare cuts names
 	bool emu_cut = false;
         bool OS_cut = false;
+	bool lep_pt_cut = false; // 28
         bool jets_n_cut = false;
         bool btags_n2_cut = false;
         bool btags_n3_cut = false;
@@ -139,7 +151,8 @@ int main(int argc, char *argv[])
 	// Define cuts themselves
 	if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
         if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
-
+	if (((*el_pt)[0]*0.001>28 && (*mu_pt)[0]*0.001>28) || lep_pt_cut_suffix=="") lep_pt_cut = true; // 28 GeV
+	
         int jets_n = (*jet_pt).size();
         if (jets_n >=3) jets_n_cut = true;
 
@@ -162,7 +175,12 @@ int main(int argc, char *argv[])
 
 
 	// 3b incl channel
-	if (emu_cut*OS_cut*jets_n_cut*btags_n3_cut) {
+	if (emu_cut*OS_cut*lep_pt_cut*jets_n_cut*btags_n3_cut) {
+
+	  // Increment yields
+	  if (btags_n==3) integral_3b += 1;
+	  if (btags_n>=4) integral_4b += 1;
+	  
 
 	  // Create a vector of MVA scores sorted wrt jet_pT
 	  std::vector<Float_t> MVA_score = {};
@@ -286,7 +304,7 @@ int main(int argc, char *argv[])
   } // [dir_counter] - loop over directories with ntuples collections
 
   // Save hists to a file
-  TString histfile_savename = std::string("results/hists_bdt_eff_study.root");
+  TString histfile_savename = std::string("results/hists_bdt_eff_study_" + generator + lep_pt_cut_suffix + ".root");
   TFile *histfile = new TFile(histfile_savename, "UPDATE");
   histfile->cd();
   std::vector<TString> disrc_vars_str = {"_data_all", "_data_ft", "_data_nft"};
@@ -306,8 +324,13 @@ int main(int argc, char *argv[])
   h_bAdd_1_bdt->Write("bAdd_1_data", TObject::kOverwrite);
   h_bAdd_2_bdt->Write("bAdd_2_data", TObject::kOverwrite);
 
-
   histfile->Close();
 
+
+  // Print yileds
+  std::cout << "\n\nYields for " << generator << " generator:" << std::endl;
+  std::cout << "3b: " << integral_3b << std::endl;
+  std::cout << "4b: " << integral_4b << std::endl;
+  
   return 0;
 } // END of MAIN
