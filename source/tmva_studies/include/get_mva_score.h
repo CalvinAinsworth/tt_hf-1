@@ -26,17 +26,9 @@
     if (m_jet_jet <= m_min_jet_jet) m_min_jet_jet = m_jet_jet;
     if (m_jet_jet >= m_max_jet_jet) m_max_jet_jet = m_jet_jet;
 
-    bool jet_is_b = false;
-    if (obj_name!="particleLevel") {
-      if ((*jet_DL1r_77)[jet_j]==1) jet_is_b = true;
-    } else {
-      if ( (*jet_nGhosts_bHadron)[jet_j]>=1) jet_is_b = true;
-    }
-    if (jet_is_b==true) {
+    if ((*jet_DL1r_77)[jet_j]==1) {
       float dR_jet_bjet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
-      if (dR_jet_bjet <= min_dR_jet_bjet) min_dR_jet_bjet = dR_jet_bjet; 
-    }
-  
+      if (dR_jet_bjet <= min_dR_jet_bjet) min_dR_jet_bjet = dR_jet_bjet; }
   } // [jet_j] - nested loop over jets
   
   

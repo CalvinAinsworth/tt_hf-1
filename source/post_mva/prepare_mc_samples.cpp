@@ -9,36 +9,24 @@
 
 int main(int argc, char *argv[])
 {
+  // Get MC config info
+  std::map<TString, TString> mc_config_info = get_mc_config_info(std::string(argv[1]));
+  if (mc_config_info.size()==0) return 0;
+  std::map<TString, TString>::iterator it;
+  for (it=mc_config_info.begin(); it!=mc_config_info.end(); it++) {
+    std::cout << it->first << " :\t" << it->second << std::endl;
+  }
+  TString process = mc_config_info["process"];
+  TString generator = mc_config_info["generator"];
+  TString lep_pt_cut_suffix = mc_config_info["lep_pt_cut_suffix"];
+  TString campaign = mc_config_info["campaign"];
+
+
   // Check for provided DIDs
-  if (argc == 1) {
-    std::cout << "\nNo DID provided! \nUse the command line argv to add DID, ex: ./prepare_jets_bkg 410472 \nAborting! \n" << std::endl;
+  if (argc <= 2) {
+    std::cout << "\nNo DID provided! \nUse the command line argv to add DID,\nex: ./prepare_jets_bkg config.txt 410472 \nAborting! \n" << std::endl;
     return 0;
   }
-
-  // Check for the generator and mc16a choice
-  std::string generator = ttbar_generator();
-  if (generator=="quit") return 0;
-  if (generator=="" && std::string(argv[1])=="tt") {
-    generator="nominal";
-    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; 
-  }
-  bool mc16a_only_test = mc16a_only_choise();
-
-
-  // Check for mc16 campaign choice
-  std::string mc16_choice = "";
-  std::cout << "\nSelect mc16 campaing. Options:" << std::endl;;
-  std::cout << "-- mc16a" << "\n-- mc16d" << "\n-- mc16e" << "\n-- FullRun2" << std::endl;
-  std::cout << "Type in your choice: ";
-  std::cin >> mc16_choice;
-  while (mc16_choice!="mc16a" && mc16_choice!="mc16d" && mc16_choice!="mc16e" && mc16_choice!="FullRun2") {
-    std::cout << "Wrong mc16 campaign choice!\n Select from the options above or type \"exit\" to terminate." << std::endl;
-    std::cout << "Type your choice: ";
-    std::cin >> mc16_choice;
-    if (mc16_choice=="exit") return 0;
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
 
 
   // Get config info about MVA setup
@@ -58,7 +46,7 @@ int main(int argc, char *argv[])
 
     // Run a loop over ntuples names from a txt file
     std::string in_line = "";
-    std::ifstream ntuples_list_file("ntuples_list.txt");
+    std::ifstream ntuples_list_file("ntuples_list_systs_test.txt");
     if (ntuples_list_file.is_open()) {
       while (getline(ntuples_list_file, in_line)) {
 	TString ntuple_name = in_line;
@@ -68,28 +56,55 @@ int main(int argc, char *argv[])
 
 	// Analyze the ntuple name: data or mc? which campaign?
 	bool is_data = false;
+	bool is_data15 = false;
+	bool is_data16 = false;
+	bool is_data17 = false;
+	bool is_data18 = false;
 	bool is_mc16a = false;
 	bool is_mc16d = false;
 	bool is_mc16e = false;
-	TString mc16_dir = "";
+	TString mc16_str = "";
 	bool is_fullsim = false;
 	std::string job_DID = "";
 	for (int i=0; i<ntuple_name_components.size(); i++) {
 	  std::vector<TString> pieces = split(ntuple_name_components[i], '.');
 	  for (int j=0; j<pieces.size(); j++) {
 	    std::string piece = std::string(pieces[j]);
-	    if (piece == "data") is_data = true;
-	    if (piece == "mc16a") { is_mc16a = true; mc16_dir = "mc16a"; }
-	    if (piece == "mc16d") { is_mc16d = true; mc16_dir = "mc16d"; }
-	    if (piece == "mc16e") { is_mc16e = true; mc16_dir = "mc16e"; }
-	    if (piece == "s3126") is_fullsim = true;
-	    if (i==ntuple_name_components.size()-2 && j==2) job_DID = piece;
-	  }
-	}
+	    std::vector<TString> subpieces = split(piece, '_');
+	    for (int k=0; k<subpieces.size(); k++) {
+	      std::string subpiece = std::string(subpieces[k]);
+
+	      if (subpiece == "data") is_data = true;
+	      if (subpiece == "grp15") is_data15 = true;
+	      if (subpiece == "grp16") is_data16 = true;
+	      if (subpiece == "grp17") is_data17 = true;
+	      if (subpiece == "grp18") is_data18 = true;
+	      if (subpiece == "mc16a") { is_mc16a = true; mc16_str = "mc16a"; }
+	      if (subpiece == "mc16d") { is_mc16d = true; mc16_str = "mc16d"; }
+	      if (subpiece == "mc16e") { is_mc16e = true; mc16_str = "mc16e"; }
+	      if (subpiece == "s3126") is_fullsim = true;
+
+	      // DID is a 6-digits code
+	      try {
+		int tmp_int_did = stoi(subpiece);
+		if (tmp_int_did>=300000 && tmp_int_did<=999999) job_DID = subpiece;
+	      } catch(const std::exception& e) {
+		// Do nothing
+	      }
+	    
+	    } // [k] - split wrt "_"
+	  } // [j] - split wrt "."
+	} // [i] - split wrt "/"
 	
+	// Skip DIDs that are not of outr interest
+	if (std::string(argv[did_n])!=job_DID) continue;
+
 	// We work with MC only
 	if (is_data == true) continue;
-	if (mc16a_only_test==true && is_mc16a!=true) continue;
+	if (campaign=="mc16a" && is_mc16a!=true) continue;
+	if (campaign=="mc16d" && is_mc16d!=true) continue;
+	if (campaign=="mc16e" && is_mc16e!=true) continue;
+	
 
 	// Select only dids of our interest
 	bool correct_did = false;
@@ -99,11 +114,11 @@ int main(int argc, char *argv[])
 
       
 	// Create directory for the output file      
-	TString dir1 = std::string("/eos/user/e/eantipov/Files/tthf_analysis/") + mc16_dir;
+	TString dir1 = std::string("/eos/user/e/eantipov/Files/tthf_analysis/") + mc16_str;
 	if (did_n==2) { 
 	  gSystem->Exec(std::string("mkdir ") + dir1);
 	  std::cout << "Created " << dir1 << std::endl; }
-	TString dir2 = dir1 + std::string("/") + argv[1];
+	TString dir2 = dir1 + std::string("/") + process;
 	gSystem->Exec(std::string("mkdir ") + dir2);
 	std::cout << "Created " << dir2 << std::endl;
 	TString dir3 = dir2 + std::string("/") + argv[did_n];
@@ -112,201 +127,151 @@ int main(int argc, char *argv[])
       
 
 	// If just one ntuple needs to be created
-	bool tmp_bool = false;
-	//if (ntuple_number==22) tmp_bool = true;
-	//if (tmp_bool==false) continue;
+	bool one_ntuple_bool = false;
+	//if (ntuple_number==22) one_ntuple_bool = true;
+	//if (one_ntuple_bool==false) continue;
 	  
 	
 	// Declare the output file and set all branches
-	TString savefile_name = dir3 + std::string("/") + std::to_string(ntuple_number) + std::string(".root");
+	//TString savefile_name = dir3 + std::string("/") + std::to_string(ntuple_number) + std::string(".root");
+	TString savefile_name = std::to_string(ntuple_number) + ".root";
 	TFile *out_ntuple = new TFile(savefile_name, "RECREATE");
-	TTree *out_tree_pl = new TTree("particleLevel", "particleLevel");
-	TTree *out_tree = new TTree("nominal", "nominal");
-        #include "include/savefile_declare_branches.h"
-
+	
 	  
 	// Open the ntuple
 	TFile *ntuple = new TFile(ntuple_name);
+
+
+	// Count number of trees
+	int n_trees_to_work_with = 0;
+	TIter next1(ntuple->GetListOfKeys());
+        TKey *key1;
+        while (key1 = (TKey*)next1()) {
+
+	  TString obj_name = key1->GetName();
+	  TString obj_class_name = key1->GetClassName();
+          if (obj_class_name!="TTree") continue;
+
+	  bool is_syst_tree = false;
+	  std::vector<TString> obj_name_parts = split(obj_name, '_');
+	  if (obj_name_parts[obj_name_parts.size()-1]=="1down" || obj_name_parts[obj_name_parts.size()-1]=="1up" || obj_name_parts[obj_name_parts.size()-1]=="ResoPara" || obj_name_parts[obj_name_parts.size()-1]=="ResoPrep" || obj_name_parts[obj_name_parts.size()-1]=="ScaleDown" || obj_name_parts[obj_name_parts.size()-1]=="ScaleUp") is_syst_tree = true;
+
+	  if (is_syst_tree!=true && obj_name!="nominal" && obj_name!="particleLevel") continue;
+	  n_trees_to_work_with++;
+	} // [key] - loop over trees
 	
-	// Set trees. Particle level exists not for all the ntuples.
-	TTree *tree_pl;
-	bool tree_pl_exists = false;
+
+	// Run actual preparation of output trees
+	int tree_number = 0;
 	TIter next(ntuple->GetListOfKeys());
 	TKey *key;
 	while (key = (TKey*)next()) {
+	  
 	  TString obj_name = key->GetName();
 	  TString obj_class_name = key->GetClassName();
-	  if (obj_name=="particleLevel" && obj_class_name=="TTree") {
-	    tree_pl = (TTree*)ntuple->Get(obj_name);
-	    tree_pl_exists = true; }
-	} // while key
-	
-	TTree *tree_sumWeights = (TTree*)ntuple->Get("sumWeights");
-	TTree *tree_truth = (TTree*)ntuple->Get("truth");
-	TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
-	
-	
-	// Set all the needed branches
-        #include "include/branches.h"
 	  
-	  
-	// Ignore the "ReadStreamerInfo, class:string, illegal uid=-2" error
+	  if (obj_class_name!="TTree") continue;
+
+	  bool is_syst_tree = false;
+	  std::vector<TString> obj_name_parts = split(obj_name, '_');
+	  if (obj_name_parts[obj_name_parts.size()-1]=="1down" || obj_name_parts[obj_name_parts.size()-1]=="1up" || obj_name_parts[obj_name_parts.size()-1]=="ResoPara" || obj_name_parts[obj_name_parts.size()-1]=="ResoPrep" || obj_name_parts[obj_name_parts.size()-1]=="ScaleDown" || obj_name_parts[obj_name_parts.size()-1]=="ScaleUp") is_syst_tree = true;
 
 
-
-	// ///
-	// Loop over entries - nominal tree
-	
-	Int_t nEntries = tree_nominal->GetEntries();
-	std::cout << "\tEntries = " << nEntries << std::endl;
-	for (int entry=0; entry<nEntries; entry++) {
-	
-	  if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
-	  tree_nominal->GetEntry(entry);
-	    
-	    
-	  // Zero vectors for output file 
-	  dR_jet_lep0_out->clear();
-	  dR_jet_lep1_out->clear();
-	  min_dR_jet_lep_out->clear();
-	  m_jet_el_out->clear();
-	  m_jet_mu_out->clear();
-	  m_jet_lep_max_out->clear();
-	  jet_m_out->clear();
-	  m_min_jet_jet_out->clear();
-	  m_max_jet_jet_out->clear();
-	  min_dR_jet_bjet_out->clear();
-	  MVA_score->clear();
-	  
-	  
-	  // Compute weights
-	  double weight = 1;
-	  #include "include/compute_weight.h"
-	  weight = w_mc * w_pu * w_leptonSF * w_DL1r_77 * w_jvt * weight_lumi;
-	  
-	  
-	  // Decalre cuts names and set to false as the defualt
-	  bool emu_cut = false;
-	  bool OS_cut = false;
-	  bool jets_n_cut = false;
-	  bool btags_n2_cut = false;
-	  bool btags_n3_cut = false;
-	  bool btags_n3plus_cut = false;
-	  
-	  // Declare cuts themselves
-	  if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
-	  if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
-	  
-	  int jets_n = (*jet_pt).size();
-	  if (jets_n >=3) jets_n_cut = true;
-	  
-	  int btags_n = 0;
-	  for (int i=0; i<(*jet_pt).size(); i++) { if ((*jet_DL1r_77)[i]==1) btags_n++; }
-	  if (btags_n >= 2) btags_n2_cut = true;
-	  if (btags_n == 3) btags_n3_cut = true;
-	  if (btags_n >= 3) btags_n3plus_cut = true;
-	  
-	  
-	  // TLorentzVector for leptons and jets
-	  TLorentzVector el_lvec;
-	  TLorentzVector mu_lvec;
-	  std::vector<TLorentzVector> jets_lvec;
-	  el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
-	  mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
-	  for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
-	    TLorentzVector lvec;
-	    lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
-	    jets_lvec.push_back(lvec); }
-	  
-	  
-	  
-	  // 2b (tags) inclusive, emu, OS
-	  //if (emu_cut*OS_cut*btags_n2_cut*jets_n_cut == true) {
-	  // TEST: get all events
-	  if (btags_n2_cut == true) {
-	    
-	    // Loop over jets
-	    for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
-	      
-	      // Set localVar = treeVar for further mva score estimation
-	      #include "include/get_mva_score.h"
-	      for (int i=0; i<(*MVA_score).size(); i++) {
-		if (mvaValue==(*MVA_score)[i]) {
-		  if (min_dR_jet_lep >= (*min_dR_jet_lep_out)[i]) { mvaValue = mvaValue + 0.000001; }
-		  else { mvaValue = mvaValue - 0.000001; }
-		}
-	      }
-	      MVA_score->push_back(mvaValue);
-	      
-	      dR_jet_lep0_out->push_back(dR_jet_lep0);
-	      dR_jet_lep1_out->push_back(dR_jet_lep1);
-	      min_dR_jet_lep_out->push_back(min_dR_jet_lep);
-	      m_jet_el_out->push_back(m_jet_el);
-	      m_jet_mu_out->push_back(m_jet_mu);
-	      m_jet_lep_max_out->push_back(m_jet_lep_max);
-	      jet_m_out->push_back(jet_m);
-	      m_min_jet_jet_out->push_back(m_min_jet_jet);
-	      m_max_jet_jet_out->push_back(m_max_jet_jet);
-	      min_dR_jet_bjet_out->push_back(min_dR_jet_bjet);
-	      
-	    }  // [jet_i] - loop over jets
-	    
-	    // var_out = var_in for those that we don't need to change
-	    #include "include/var_out.h"
-
-	      out_tree->Fill();
-	      
-	  } // [if] - 2b dilep OS cuts
-	  
-	} // [entry] - loop over entries, nominal tree
-	
-
+	  // Declare the input and output trees
+	  TTree *tree =  (TTree*)ntuple->Get(obj_name);
+	  TTree *out_tree;
 
 	  
-	// ///
-	// Loop over entries - Partilce level tree
-	
-	if (tree_pl_exists==true) {
+	  // Skip all trees where BDT is not needed, but save them
+	  if (is_syst_tree!=true && obj_name!="nominal" && obj_name!="particleLevel") {
+	    
+	    out_tree = (TTree*)tree->CloneTree(0);
+	    out_tree->CopyEntries(tree);
+	    out_tree->SetDirectory(out_ntuple);
+	    out_tree->Write(obj_name, TTree::kOverwrite);
+	    
+	    continue;
+	  }
+
 	  
-	  Int_t nEntries_pl = tree_pl->GetEntries();
-	  std::cout << "\tEntris PL = " << nEntries_pl << std::endl;
-	  for (int entry=0; entry<nEntries_pl; entry++) {
+	  // Print what we're working with
+	  tree_number++;
+	  std::cout << "\n\n\t" << "[" << tree_number << "/" << n_trees_to_work_with << "] Branch: " << obj_name << std::endl;
+
+	  
+	  // Declare output tree and branches
+	  out_ntuple->cd();
+	  out_tree = new TTree(obj_name, obj_name);
+	  #include "include/savefile_declare_branches.h"
+
+	  // Set all the needed branches in the input file
+	  ntuple->cd();
+          #include "include/branches.h"
+
+	  // Ignore the "ReadStreamerInfo, class:string, illegal uid=-2" error
+
 	    
-	    if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
-	    tree_pl->GetEntry(entry);
+	  // ///
+	  // Loop over entries
+	  
+	  Int_t nEntries = tree->GetEntries();
+	  std::cout << "\tEntries = " << nEntries << std::endl;
+	  for (int entry=0; entry<nEntries; entry++) {
+	    
+	    if (((entry+1)*1000/nEntries)%10==0) { std::cout << "\t" << int((entry+1)*100/nEntries) << "%\r"; std::cout.flush(); }
+	    tree->GetEntry(entry);
+	    
+	    // Zero vectors for output file
+	    dR_jet_lep0_out->clear();
+	    dR_jet_lep1_out->clear();
+	    min_dR_jet_lep_out->clear();
+	    m_jet_el_out->clear();
+	    m_jet_mu_out->clear();
+	    m_jet_lep_max_out->clear();
+	    jet_m_out->clear();
+	    m_min_jet_jet_out->clear();
+	    m_max_jet_jet_out->clear();
+	    min_dR_jet_bjet_out->clear();
+	    MVA_score->clear();
 	    
 	    
-	    // Zero vector for output file (particle level tree)
-	    dR_jet_lep0_pl_out->clear();
-	    dR_jet_lep1_pl_out->clear();
-	    min_dR_jet_lep_pl_out->clear();
-	    m_jet_el_pl_out->clear();
-	    m_jet_mu_pl_out->clear();
-	    m_jet_lep_max_pl_out->clear();
-	    jet_m_pl_out->clear();
-	    m_min_jet_jet_pl_out->clear();
-	    m_max_jet_jet_pl_out->clear();
-	    min_dR_jet_bjet_pl_out->clear();
-	    MVA_score_pl->clear();
+	    // Compute weights
+	    double weight = 1; 
+	    #include "../pre_mva_studies/include/compute_weight.h"
+	    if (obj_name!="particleLevel") {
+	      weight = w_mc * w_pu * w_leptonSF * w_DL1r_77 * w_jvt * weight_lumi;
+	    } else {
+	      weight = w_mc * weight_lumi;
+	    }
 	    
 	    
-	    // Declare cuts names nad set to false as the default
+	    // Decalre cuts names and set to false as the defualt
 	    bool emu_cut = false;
 	    bool OS_cut = false;
+	    bool lep_pt_cut = false;
 	    bool jets_n_cut = false;
 	    bool btags_n2_cut = false;
+	    bool btags_n3_cut = false;
 	    bool btags_n3plus_cut = false;
 	    
 	    // Declare cuts themselves
-	    if ((*el_pt_pl).size()==1 && (*mu_pt_pl).size()==1) emu_cut = true;
-	    if ((*el_charge_pl)[0]!=(*mu_charge_pl)[0]) OS_cut = true;
+	    if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
+	    if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
+	    if ( ((*el_pt)[0]*0.001>28 && (*mu_pt)[0]*0.001>28) || lep_pt_cut_suffix=="")  lep_pt_cut = true;
 	    
-	    int jets_n = (*jet_pt_pl).size();
-	    if (jets_n >= 3) jets_n_cut = true;
+	    int jets_n = (*jet_pt).size();
+	    if (jets_n >=3) jets_n_cut = true;
 	    
 	    int btags_n = 0;
-	    for (int i=0; i<(*jet_pt_pl).size(); i++) { if ( (*jet_nGhosts_bHadron)[i]>=1 ) btags_n++; }
+	    for (int i=0; i<(*jet_pt).size(); i++) { 
+	      if (obj_name!="particleLevel") {
+		if ((*jet_DL1r_77)[i]==1) btags_n++;
+	      } else {
+		if ( (*jet_nGhosts_bHadron)[i]>=1) btags_n++;
+	      } 
+	    }
 	    if (btags_n >= 2) btags_n2_cut = true;
+	    if (btags_n == 3) btags_n3_cut = true;
 	    if (btags_n >= 3) btags_n3plus_cut = true;
 	    
 	    
@@ -314,83 +279,66 @@ int main(int argc, char *argv[])
 	    TLorentzVector el_lvec;
 	    TLorentzVector mu_lvec;
 	    std::vector<TLorentzVector> jets_lvec;
-	    el_lvec.SetPtEtaPhiE((*el_pt_pl)[0]*0.001, (*el_eta_pl)[0], (*el_phi_pl)[0], (*el_e_pl)[0]*0.001);
-	    mu_lvec.SetPtEtaPhiE((*mu_pt_pl)[0]*0.001, (*mu_eta_pl)[0], (*mu_phi_pl)[0], (*mu_e_pl)[0]*0.001);
-	    for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
+	    if (obj_name!="particleLevel") {
+	      el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_cl_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
+	    } else {
+	      el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
+	    }
+	    mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
+	    for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
 	      TLorentzVector lvec;
-	      lvec.SetPtEtaPhiE((*jet_pt_pl)[jet_i]*0.001, (*jet_eta_pl)[jet_i], (*jet_phi_pl)[jet_i], (*jet_e_pl)[jet_i]*0.001);
+	      lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
 	      jets_lvec.push_back(lvec); }
 	    
 	    
-	    
-	    // 2b (truth) inclusive, emu, OS
-	    //if (emu_cut*OS_cut*jets_n_cut*btags_n2_cut == true) {
-	    // TEST: get all events
-	    if (btags_n2_cut == true) {
+	    // 3b inclusive channel, emu-OS
+	    if (emu_cut*OS_cut*lep_pt_cut*btags_n3plus_cut*jets_n_cut == true) {
 	      
 	      // Loop over jets
-	      for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
+	      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
 		
-		// Set localVar - treeVar for furthe mva score estimation
-		#include "include/get_mva_score_pl.h"
-		for (int i=0; i<(*MVA_score_pl).size(); i++) {
-		  if (mvaValue==(*MVA_score_pl)[i]) {
-		    if (min_dR_jet_lep >= (*min_dR_jet_lep_pl_out)[i]) { mvaValue = mvaValue + 0.000001; }
+		// Set localVar = treeVar for further mva score estimation
+                #include "include/get_mva_score.h"
+		for (int i=0; i<(*MVA_score).size(); i++) {
+		  if (mvaValue==(*MVA_score)[i]) {
+		    if (min_dR_jet_lep >= (*min_dR_jet_lep_out)[i]) { mvaValue = mvaValue + 0.000001; }
 		    else { mvaValue = mvaValue - 0.000001; }
 		  }
 		}
-		MVA_score_pl->push_back(mvaValue);
+		MVA_score->push_back(mvaValue);
 		
-		dR_jet_lep0_pl_out->push_back(dR_jet_lep0);
-		dR_jet_lep1_pl_out->push_back(dR_jet_lep1);
-		min_dR_jet_lep_pl_out->push_back(min_dR_jet_lep);
-		m_jet_el_pl_out->push_back(m_jet_el);
-		m_jet_mu_pl_out->push_back(m_jet_mu);
-		m_jet_lep_max_pl_out->push_back(m_jet_lep_max);
-		jet_m_pl_out->push_back(jet_m);
-		m_min_jet_jet_pl_out->push_back(m_min_jet_jet);
-		m_max_jet_jet_pl_out->push_back(m_max_jet_jet);
-		min_dR_jet_bjet_pl_out->push_back(min_dR_jet_bjet);
+		dR_jet_lep0_out->push_back(dR_jet_lep0);
+		dR_jet_lep1_out->push_back(dR_jet_lep1);
+		min_dR_jet_lep_out->push_back(min_dR_jet_lep);
+		m_jet_el_out->push_back(m_jet_el);
+		m_jet_mu_out->push_back(m_jet_mu);
+		m_jet_lep_max_out->push_back(m_jet_lep_max);
+		jet_m_out->push_back(jet_m);
+		m_min_jet_jet_out->push_back(m_min_jet_jet);
+		m_max_jet_jet_out->push_back(m_max_jet_jet);
+		min_dR_jet_bjet_out->push_back(min_dR_jet_bjet);
 		
-	      } // [jet_i] - loop over jets
-	      
-	      // var_out = var_in for those that we don't need to change
-	      #include "include/var_out_pl.h"
+	      } // [jet_i] - loop over jets 
 
-	      out_tree_pl->Fill();
-		
-	    } // if - 2b (truth) inclusive, emu, OS
+	      // var_out = var_in for those that we don't need to change
+	      #include "include/var_out.h"
+
+	      out_tree->Fill();
+	      
+	    } //3b incl, emu-OS
 	    
-	  } // [entry] - loop over entries, particle level tree
-	  
-	} // if PL tree exists
-	
-	
-        // ///
-	// Save all the trees to the new file now
-	
-	out_ntuple->cd();
-	  
-	TTree *out_sumWeights_tree = (TTree*)tree_sumWeights->CloneTree(0);
-	out_sumWeights_tree->CopyEntries(tree_sumWeights);
-	out_sumWeights_tree->SetDirectory(out_ntuple);
-	out_sumWeights_tree->Write("sumWeights", TTree::kOverwrite); 
-	
-	TTree *out_truth_tree = (TTree*)tree_truth->CloneTree(0);
-	out_truth_tree->CopyEntries(tree_truth);
-	out_truth_tree->SetDirectory(out_ntuple);
-	out_truth_tree->Write("truth", TTree::kOverwrite); 
-	  
-	out_tree->SetDirectory(out_ntuple);
-	out_tree->Write("nominal", TTree::kOverwrite);
-	
-	if (tree_pl_exists==true) {
-	  out_tree_pl->SetDirectory(out_ntuple);
-	  out_tree_pl->Write("particleLevel", TTree::kOverwrite);
-	}
-	
+	  } // [entry] - loop over entries 
+	 
+
+	  // Save the output tree
+	  out_ntuple->cd();
+	  out_tree->SetDirectory(out_ntuple);
+	  out_tree->Write(obj_name, TTree::kOverwrite);
+ 
+	} // while key 
+	    
 	out_ntuple->Close();
-	
+       
 	ntuple->Close();
 	
       } // loop over ntuple names from the file

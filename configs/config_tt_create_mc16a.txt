@@ -1,0 +1,4 @@
+process: tt
+generator: nominal
+campaign: mc16a
+lep_pt_cut_suffix: _lep_pT_28

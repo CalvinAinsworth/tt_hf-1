@@ -18,6 +18,10 @@ if (process=="tt" && generator=="phhw704" && (job_DID=="410558" || job_DID=="411
 if (process=="tt" && generator=="aMC@nloPy8" && (job_DID=="410465" || job_DID=="412069" || job_DID=="412070" || job_DID=="412071")) correct_did = true;
 
 
+// ttbar: sherpa 2.2.10
+if (process=="tt" && generator=="sherpa2210" && (job_DID=="700122" || job_DID=="700123" || job_DID=="700124" || job_DID=="700167")) correct_did = true;
+
+
 // ttV
 if (process=="ttV" && (job_DID=="410155" || job_DID=="410156" || job_DID=="410157" || job_DID=="410218" || job_DID=="410219" || job_DID=="410220" || job_DID=="410276" || job_DID=="410277" || job_DID=="410278") ) correct_did = true;
 

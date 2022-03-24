@@ -1,0 +1,4 @@
+process: tt
+generator: 3mtop
+campaign: fullRun2
+lep_pt_cut_suffix: _lep_pT_28

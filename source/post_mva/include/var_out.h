@@ -34,6 +34,10 @@
   el_true_firstEgMotherPdgId_out = el_true_firstEgMotherPdgId;
   el_true_firstEgMotherPdgId_out = el_true_firstEgMotherPdgId;
   el_true_isChargeFl_out = el_true_isChargeFl;
+  el_pt_bare_out = el_pt_bare;
+  el_eta_bare_out = el_eta_bare;
+  el_phi_bare_out = el_phi_bare;
+  el_e_bare_out = el_e_bare;
 
   // Muons
   mu_pt_out = mu_pt;
@@ -48,6 +52,10 @@
   mu_true_type_out = mu_true_type;
   mu_true_origin_out = mu_true_origin;
   mu_true_isPrompt_out = mu_true_isPrompt;
+  mu_pt_bare_out = mu_pt_bare;
+  mu_eta_bare_out = mu_eta_bare;
+  mu_phi_bare_out = mu_phi_bare;
+  mu_e_bare_out = mu_e_bare;
 
   // Other
   met_out = met;

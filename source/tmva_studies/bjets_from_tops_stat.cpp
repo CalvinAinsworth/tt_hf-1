@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
 	    std::vector<Float_t> MVA_score = {};
 	    std::vector<Float_t> tie_breaker = {};
 	    for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
-	      #include "../post_mva/include/get_mva_score.h"
+	      #include "include/get_mva_score.h"
 	      for (int i=0; i<MVA_score.size(); i++) {
 		if (mvaValue==MVA_score[i]) {
 		  if (min_dR_jet_lep >= tie_breaker[i]) { mvaValue = mvaValue + 0.000001; }
@@ -651,7 +651,7 @@ int main(int argc, char *argv[])
 	    std::vector<Float_t> MVA_score_pl = {};
 	    std::vector<Float_t> tie_breaker = {};
 	    for (int jet_i=0; jet_i<(*jet_pt_pl).size(); jet_i++) {
-	      #include "../post_mva/include/get_mva_score_pl.h"
+	      #include "include/get_mva_score_pl.h"
 	      for (int i=0; i<MVA_score_pl.size(); i++) {
                 if (mvaValue==MVA_score_pl[i]) {
                   if (min_dR_jet_lep >= tie_breaker[i]) { mvaValue = mvaValue + 0.000001; }

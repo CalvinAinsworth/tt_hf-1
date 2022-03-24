@@ -5,17 +5,21 @@
 // ///
 int main(int argc, char *argv[]) {
 
-  // Check for the generator and mc16a_only choises
-  std::string generator = ttbar_generator();
-  if (generator=="quit") return 0;
-  if (generator=="" && std::string(argv[1])=="tt") {
-    generator="nominal";
-    std::cout << "No generator was selected for ttbar, assuming nominal" << std::endl; }
-  bool mc16a_only_test = mc16a_only_choise();
+  // Get config info
+  std::map<TString, TString> mc_config_info = get_mc_config_info(std::string(argv[1]));
+  if (mc_config_info.size()==0) return 0;
+  std::map<TString, TString>::iterator it;
+  for (it=mc_config_info.begin(); it!=mc_config_info.end(); it++) {
+    std::cout << it->first << " :\t" << it->second << std::endl;
+  }
+  TString process = mc_config_info["process"];
+  TString generator = mc_config_info["generator"];
+  TString lep_pt_cut_suffix = mc_config_info["lep_pt_cut_suffix"];
+  TString campaign = mc_config_info["campaign"];
 
   
   // Declare events counter
-  std::map<TString, double> sumWeights_map; // kets will be as "did mc16X"
+  std::map<TString, double> sumWeights_map; // keys will be as "did mc16X"
 
 
   // Run a loop over ntuples names from a txt file
@@ -51,7 +55,6 @@ int main(int argc, char *argv[]) {
 
       // We work with MC only
       if (is_data == true) continue;
-      if (mc16a_only_test==true && is_mc16a!=true) continue;
 
       // Select only dids of our interest
       bool correct_did = false;

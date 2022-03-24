@@ -1,0 +1,4 @@
+process: tt
+generator: phhw704
+campaign: fullRun2
+lep_pt_cut_suffix: _lep_pT_28

@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 
   // Get data hists
   TString data_hists_fname = "results/hists_data_" + lep_pt_cut_suffix + ".root";
-  TFile *data_hists_file = new TFile("results/hists_data_test.root");
+  TFile *data_hists_file = new TFile(data_hists_fname);
   TIter next(data_hists_file->GetListOfKeys());
   TKey *key;
   std::vector<TString> hists_names = {};
