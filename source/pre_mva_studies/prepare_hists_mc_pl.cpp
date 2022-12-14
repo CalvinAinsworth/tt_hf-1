@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
   // Declare events counters for each mc16 campaign
   std::vector<TString> job_dids_str = {};
   if (generator=="nominal") { 
-    job_dids_str.push_back("410472"); 
+    job_dids_str.push_back("410470"); 
     job_dids_str.push_back("411076"); 
     job_dids_str.push_back("411077"); 
     job_dids_str.push_back("411078"); }

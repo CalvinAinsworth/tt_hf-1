@@ -64,10 +64,10 @@
   tree_nominal->SetBranchAddress("mu_phi", &mu_phi);
   tree_nominal->SetBranchAddress("mu_charge", &mu_charge);
   tree_nominal->SetBranchAddress("mu_e", &mu_e);
-  tree_nominal->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &topHadronOriginFlag); // https://gitlab.cern.ch/TTJ/Ntuple/-/blob/master/TTJNtuple/TTJNtuple/EventSaver.h#L55
+  tree_nominal->SetBranchAddress("truth_hadron_TopHadronOriginFlag", &topHadronOriginFlag); // https://gitlab.cern.ch/TTJ/Ntuple/-/blob/master/TTJNtuple/TTJNtuple/EventSaver.h#L55
   tree_nominal->SetBranchAddress("met_met", &met);
   tree_nominal->SetBranchAddress("met_phi", &met_phi);
-  tree_nominal->SetBranchAddress("topHeavyFlavorFilterFlag", &topHFFF);
+  tree_nominal->SetBranchAddress("TopHeavyFlavorFilterFlag", &topHFFF);
   tree_nominal->SetBranchAddress("runNumber", &runNumber);
   
 

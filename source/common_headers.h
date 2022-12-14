@@ -13,6 +13,7 @@
 #include <TMath.h>
 #include <TCollection.h>
 #include <TKey.h>
+#include <algorithm>
 
 #include <TCanvas.h>
 #include <TPad.h>

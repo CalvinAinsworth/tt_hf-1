@@ -373,7 +373,7 @@ if (job_DID=="364113") {
 
 if (job_DID=="411076") {
   campaign_xsection_x_genFiltEff = 0.6740;
-  kFactor = 1.1397; }
+  kFactor = 1.1398; }
 
 if (job_DID=="411077") {
   campaign_xsection_x_genFiltEff = 3.582;
@@ -387,20 +387,24 @@ if (job_DID=="410472") {
   campaign_xsection_x_genFiltEff = 76.95;
   kFactor = 1.13975636159; }
 
+if (job_DID=="410470") {
+  campaign_xsection_x_genFiltEff = 396.87;
+  kFactor = 1.13975636159; }
+
 if (job_DID=="411234") {
   campaign_xsection_x_genFiltEff = 77.01622;
   kFactor = 1.1391; } 
 
 if (job_DID=="411332") {
-  campaign_xsection_x_genFiltEff = 0.713;
+  campaign_xsection_x_genFiltEff = 0.710546812;
   kFactor = 1.1392; }
 
 if (job_DID=="411333") {
-  campaign_xsection_x_genFiltEff = 4.84;
+  campaign_xsection_x_genFiltEff = 4.8465;
   kFactor = 1.1392; }
 
 if (job_DID=="411334") {
-  campaign_xsection_x_genFiltEff = 3.19;
+  campaign_xsection_x_genFiltEff = 3.187148;
   kFactor = 1.1392; }
 
 if (job_DID=="410482") {
@@ -469,7 +473,9 @@ if (runNumber==284500) {
   if (job_DID=="410277") sumWeights = 6380.91;
   if (job_DID=="410278") sumWeights = 579.889;
   if (job_DID=="410658") sumWeights = 9.16561*pow(10,6);
+  //if (job_DID=="410658") sumWeights = 9.16561*pow(10,8);
   if (job_DID=="410659") sumWeights = 5.48748*pow(10,6);
+  //if (job_DID=="410659") sumWeights = 5.48748*pow(10,8);
   if (job_DID=="410644") sumWeights = 4.05637*pow(10,6);
   if (job_DID=="410645") sumWeights = 2.53797*pow(10,6);
   if (job_DID=="346345") sumWeights = 273019;
@@ -487,8 +493,10 @@ if (runNumber==284500) {
   if (job_DID=="364287") sumWeights = 100818;
   if (job_DID=="345705") sumWeights = 100065;
   if (job_DID=="345706") sumWeights = 1.17615*pow(10,6);
-  if (job_DID=="345723") sumWeights = 100100;
-  if (job_DID=="363356") sumWeights = 6.971*pow(10,6);
+  //if (job_DID=="345723") sumWeights = 100100;
+  if (job_DID=="345723") sumWeights = 1.47663*pow(10,6);
+  //if (job_DID=="363356") sumWeights = 6.971*pow(10,6);
+  if (job_DID=="363356") sumWeights = 6.98404*pow(10,6);
   if (job_DID=="363358") sumWeights = 254404;
   if (job_DID=="364128") sumWeights = 5.37604*pow(10,6);
   if (job_DID=="364129") sumWeights = 2.86944*pow(10,6);
@@ -520,9 +528,10 @@ if (runNumber==284500) {
   if (job_DID=="364127") sumWeights = 1.01652*pow(10,6);
   if (job_DID=="364100") sumWeights = 5.37248*pow(10,6);
   if (job_DID=="364101") sumWeights = 2.87199*pow(10,6);
-  if (job_DID=="364102") sumWeights = 4.12098*pow(10,6);
+  //if (job_DID=="364102") sumWeights = 4.12098*pow(10,6);
+  if (job_DID=="364102") sumWeights = 4.08486*pow(10,6);
   if (job_DID=="364103") sumWeights = 2.16649*pow(10,6);
-  if (job_DID=="364104") sumWeights = 732465;
+  if (job_DID=="364104") sumWeights = 732466;//was 65
   if (job_DID=="364105") sumWeights = 2.08226*pow(10,6);
   if (job_DID=="364106") sumWeights = 2.97401*pow(10,6);
   if (job_DID=="364107") sumWeights = 1.99109*pow(10,6);
@@ -532,10 +541,12 @@ if (runNumber==284500) {
   if (job_DID=="364111") sumWeights = 3.74946*pow(10,6);
   if (job_DID=="364112") sumWeights = 2.98051*pow(10,6);
   if (job_DID=="364113") sumWeights = 1.01705*pow(10,6);
-  if (job_DID=="411076") sumWeights = 3.33006*pow(10, 9);
+  //if (job_DID=="411076") sumWeights = 3.33006*pow(10, 9);
+  if (job_DID=="411076") sumWeights = 3.21333*pow(10, 9);
   if (job_DID=="411077") sumWeights = 3.61088*pow(10, 9);
   if (job_DID=="411078") sumWeights = 3.61598*pow(10, 9);
-  if (job_DID=="410472") sumWeights = 5.82869*pow(10, 10);
+  if (job_DID=="410470") sumWeights = 1.74412*pow(10, 11);
+  if (job_DID=="410472") sumWeights = 5.83109*pow(10, 10);
   if (job_DID=="410482") sumWeights = 5.83942*pow(10,10);
   if (job_DID=="411234") sumWeights = 5.79341*pow(10,10);
   if (job_DID=="411332") sumWeights = 7.20547*pow(10,9);
@@ -573,25 +584,33 @@ if (runNumber==300000) {
   if (job_DID=="410277") sumWeights = 6385.65;
   if (job_DID=="410278") sumWeights = 565.507;
   if (job_DID=="410658") sumWeights = 1.15403*pow(10,6);
+  //if (job_DID=="410658") sumWeights = 1.15403*pow(10,9);
   if (job_DID=="410659") sumWeights = 6.86025*pow(10,6);
+  //if (job_DID=="410659") sumWeights = 6.86025*pow(10,8);
   if (job_DID=="410644") sumWeights = 5.0656*pow(10,6);
+  //if (job_DID=="410644") sumWeights = 2.43343*pow(10,6);
   if (job_DID=="410645") sumWeights = 3.17182*pow(10,6);
   if (job_DID=="346345") sumWeights = 355020;
   if (job_DID=="346344") sumWeights = 3.41184*pow(10,6);
   if (job_DID=="346343") sumWeights = 1.54907*pow(10,6);
-  if (job_DID=="364250") sumWeights = 1.51851*pow(10,6);
-  if (job_DID=="364253") sumWeights = 1.10668*pow(10,6);;
-  if (job_DID=="364254") sumWeights = 1.0238*pow(10,6);
+  if (job_DID=="364250") sumWeights = 1.51851*pow(10,7);//7 was 6
+  //if (job_DID=="364253") sumWeights = 1.10668*pow(10,6);
+  if (job_DID=="364253") sumWeights = 8.72878*pow(10,6);
+  //if (job_DID=="364254") sumWeights = 1.0238*pow(10,6);
+  if (job_DID=="364254") sumWeights = 9.29636*pow(10,6);
   if (job_DID=="364288") sumWeights = 247974;
   if (job_DID=="364289") sumWeights = 2.77882*pow(10,6);
   if (job_DID=="364290") sumWeights = 40270.6;
   if (job_DID=="364283") sumWeights = 427261;
   if (job_DID=="364284") sumWeights = 2.21104*pow(10,6);
-  if (job_DID=="364285") sumWeights = 383024;
+  //if (job_DID=="364285") sumWeights = 383024;
+  if (job_DID=="364285") sumWeights = 231749;
   if (job_DID=="364287") sumWeights = 126659;
   if (job_DID=="345705") sumWeights = 125057;
-  if (job_DID=="345706") sumWeights = 1.00532*pow(10,6);
-  if (job_DID=="345723") sumWeights = 115179;
+  //if (job_DID=="345706") sumWeights = 1.00532*pow(10,6);
+  if (job_DID=="345706") sumWeights = 1.52166*pow(10,6);
+  //if (job_DID=="345723") sumWeights = 115179;
+  if (job_DID=="345723") sumWeights = 1.74001*pow(10,6);
   if (job_DID=="363356") sumWeights = 3.49307*pow(10,6);
   if (job_DID=="363358") sumWeights = 1.26717*pow(10,6);
   if (job_DID=="364128") sumWeights = 6.72628*pow(10,6);
@@ -613,33 +632,45 @@ if (runNumber==300000) {
   if (job_DID=="364116") sumWeights = 5.1392*pow(10,6);
   if (job_DID=="364117") sumWeights = 2.70266*pow(10,6);
   if (job_DID=="364118") sumWeights = 907295;
-  if (job_DID=="364119") sumWeights = 2.62872*pow(10,6);
-  if (job_DID=="364120") sumWeights = 3.74416*pow(10,6);
+  //if (job_DID=="364119") sumWeights = 2.62872*pow(10,6);
+  if (job_DID=="364119") sumWeights = 2.01967*pow(10,6);
+  //if (job_DID=="364120") sumWeights = 3.74416*pow(10,6);
+  if (job_DID=="364120") sumWeights = 3.62449*pow(10,6);
   if (job_DID=="364121") sumWeights = 2.49978*pow(10,6);
-  if (job_DID=="364122") sumWeights = 1.08892*pow(10,7);
+  //if (job_DID=="364122") sumWeights = 1.08892*pow(10,7);
+  if (job_DID=="364122") sumWeights = 5.70487*pow(10,6);
   if (job_DID=="364123") sumWeights = 2.15262*pow(10,6);
   if (job_DID=="364124") sumWeights = 1.14707*pow(10,6);
-  if (job_DID=="364125") sumWeights = 4.67242*pow(10,6);
+  //if (job_DID=="364125") sumWeights = 4.67242*pow(10,6);
+  if (job_DID=="364125") sumWeights = 4.68178*pow(10,6);
   if (job_DID=="364126") sumWeights = 3.67771*pow(10,6);
   if (job_DID=="364127") sumWeights = 1.27033*pow(10,6);
-  if (job_DID=="364100") sumWeights = 6.69374*pow(10,6);
+  //if (job_DID=="364100") sumWeights = 6.69374*pow(10,6);
+  if (job_DID=="364100") sumWeights = 6.59901*pow(10,6);
   if (job_DID=="364101") sumWeights = 3.57621*pow(10,6);
   if (job_DID=="364102") sumWeights = 4.96649*pow(10,6);
-  if (job_DID=="364103") sumWeights = 2.7176*pow(10,6);
+  //if (job_DID=="364103") sumWeights = 2.7176*pow(10,6);
+  if (job_DID=="364103") sumWeights = 2.68115*pow(10,6);
   if (job_DID=="364104") sumWeights = 902414;
-  if (job_DID=="364105") sumWeights = 2.60676*pow(10,6);
+  //if (job_DID=="364105") sumWeights = 2.60676*pow(10,6);
+  if (job_DID=="364105") sumWeights = 2.55458*pow(10,6);
   if (job_DID=="364106") sumWeights = 3.71602*pow(10,6);
   if (job_DID=="364107") sumWeights = 2.49178*pow(10,6);
   if (job_DID=="364108") sumWeights = 1.08331*pow(10,7);
   if (job_DID=="364109") sumWeights = 2.11655*pow(10,6);
-  if (job_DID=="364110") sumWeights = 1.14598*pow(10,6);
-  if (job_DID=="364111") sumWeights = 4.6748*pow(10,6);
+  //if (job_DID=="364110") sumWeights = 1.14598*pow(10,6);
+  if (job_DID=="364110") sumWeights = 916475;
+  //if (job_DID=="364111") sumWeights = 4.6748*pow(10,6);
+  if (job_DID=="364111") sumWeights = 4.68323*pow(10,6);
   if (job_DID=="364112") sumWeights = 3.72533*pow(10,6);
   if (job_DID=="364113") sumWeights = 1.27407*pow(10,6); 
-  if (job_DID=="411076") sumWeights = 4.21891*pow(10,9);
-  if (job_DID=="411077") sumWeights = 4.49595*pow(10,9);
-  if (job_DID=="411078") sumWeights = 4.49400*pow(10,9);
-  if (job_DID=="410472") sumWeights = 7.26510*pow(10,10);
+  //if (job_DID=="411076") sumWeights = 4.21891*pow(10,9);
+  if (job_DID=="411076") sumWeights = 4.03779*pow(10,9);
+  //if (job_DID=="411077") sumWeights = 4.49595*pow(10,9);
+  if (job_DID=="411077") sumWeights = 4.38654*pow(10,9);
+  if (job_DID=="411078") sumWeights = 4.49600*pow(10,9);
+  if (job_DID=="410470") sumWeights = 2.18068*pow(10,11);
+  if (job_DID=="410472") sumWeights = 6.97367*pow(10,10);
   if (job_DID=="410482") sumWeights = 7.2792*pow(10,10);
   if (job_DID=="411234") sumWeights = 7.28906*pow(10,10);
   if (job_DID=="411332") sumWeights = 9.0294*pow(10,9);
@@ -667,17 +698,21 @@ if (runNumber==310000) {
   if (job_DID=="346678") sumWeights = 0; // !!!
   if (job_DID=="346676") sumWeights = 0; // !!!
   if (job_DID=="412043") sumWeights = 0; // !!!
-  if (job_DID=="410155") sumWeights = 6.60172*pow(10,6);
+  if (job_DID=="410155") sumWeights = 6.60173*pow(10,6);
   if (job_DID=="410156") sumWeights = 310260;
-  if (job_DID=="410157") sumWeights = 1.89573*pow(10,6);
+  //if (job_DID=="410157") sumWeights = 1.89573*pow(10,6);
+  if (job_DID=="410157") sumWeights = 1.63102*pow(10,6);
   if (job_DID=="410218") sumWeights = 79922.4;
-  if (job_DID=="410219") sumWeights = 80098.1;
+  //if (job_DID=="410219") sumWeights = 80098.1;
+  if (job_DID=="410219") sumWeights = 43949.4;
   if (job_DID=="410220") sumWeights = 35092;
   if (job_DID=="410276") sumWeights = 8518.3;
   if (job_DID=="410277") sumWeights = 8509.1;
   if (job_DID=="410278") sumWeights = 885.35;
   if (job_DID=="410658") sumWeights = 1.54136*pow(10,6);
+  //if (job_DID=="410658") sumWeights = 1.54136*pow(10,9);
   if (job_DID=="410659") sumWeights = 9.19187*pow(10,6);
+  //if (job_DID=="410659") sumWeights = 9.16303*pow(10,8);
   if (job_DID=="410644") sumWeights = 6.69946*pow(10,6);
   if (job_DID=="410645") sumWeights = 4.20759*pow(10,6);
   if (job_DID=="346345") sumWeights = 452972;
@@ -694,8 +729,10 @@ if (runNumber==310000) {
   if (job_DID=="364285") sumWeights = 605580;
   if (job_DID=="364287") sumWeights = 1.01272*pow(10,6);
   if (job_DID=="345705") sumWeights = 500338;
-  if (job_DID=="345706") sumWeights = 994333;
-  if (job_DID=="345723") sumWeights = 170174;
+  //if (job_DID=="345706") sumWeights = 994333;
+  if (job_DID=="345706") sumWeights = 1.66958*pow(10,6);
+  //if (job_DID=="345723") sumWeights = 170174;
+  if (job_DID=="345723") sumWeights = 3.00737*pow(10,6);
   if (job_DID=="363356") sumWeights = 5.7981*pow(10,6);
   if (job_DID=="363358") sumWeights = 421819;
   if (job_DID=="364128") sumWeights = 8.93207*pow(10,6);
@@ -707,7 +744,7 @@ if (runNumber==310000) {
   if (job_DID=="364134") sumWeights = 4.9663*pow(10,6);
   if (job_DID=="364135") sumWeights = 3.32968*pow(10,6);
   if (job_DID=="364136") sumWeights = 5.75619*pow(10,6);
-  if (job_DID=="364137") sumWeights = 1.1374*pow(10,6);
+  if (job_DID=="364137") sumWeights = 1.1374*pow(10,7);//7 was 6 in pow
   if (job_DID=="364138") sumWeights = 1.53285*pow(10,6);
   if (job_DID=="364139") sumWeights = 3.11996*pow(10,6);
   if (job_DID=="364140") sumWeights = 4.92279*pow(10,6);
@@ -717,33 +754,43 @@ if (runNumber==310000) {
   if (job_DID=="364116") sumWeights = 6.83013*pow(10,6);
   if (job_DID=="364117") sumWeights = 3.6381*pow(10,6);
   if (job_DID=="364118") sumWeights = 1.20844*pow(10,6);
-  if (job_DID=="364119") sumWeights = 3.45048*pow(10,6);
+  //if (job_DID=="364119") sumWeights = 3.45048*pow(10,6);
+  if (job_DID=="364119") sumWeights = 3.47115*pow(10,6);
   if (job_DID=="364120") sumWeights = 5.01136*pow(10,6);
   if (job_DID=="364121") sumWeights = 3.32398*pow(10,6);
   if (job_DID=="364122") sumWeights = 1.44376*pow(10,7);
-  if (job_DID=="364123") sumWeights = 2.95158*pow(10,6);
+  //if (job_DID=="364123") sumWeights = 2.95158*pow(10,6);
+  if (job_DID=="364123") sumWeights = 2.13519*pow(10,6);
   if (job_DID=="364124") sumWeights = 1.59351*pow(10,6);
-  if (job_DID=="364125") sumWeights = 6.20312*pow(10,6);
+  //if (job_DID=="364125") sumWeights = 6.20312*pow(10,6);
+  if (job_DID=="364125") sumWeights = 6.10931*pow(10,6);
   if (job_DID=="364126") sumWeights = 4.93026*pow(10,6);
   if (job_DID=="364127") sumWeights = 1.69792*pow(10,6);
   if (job_DID=="364100") sumWeights = 8.93622*pow(10,6);
-  if (job_DID=="364101") sumWeights = 4.70476*pow(10,6);
+  //if (job_DID=="364101") sumWeights = 4.70476*pow(10,6);
+  if (job_DID=="364101") sumWeights = 4.77926*pow(10,6);
   if (job_DID=="364102") sumWeights = 6.78255*pow(10,6);
   if (job_DID=="364103") sumWeights = 3.61556*pow(10,6);
   if (job_DID=="364104") sumWeights = 1.19295*pow(10,6);
   if (job_DID=="364105") sumWeights = 3.47067*pow(10,6);
-  if (job_DID=="364106") sumWeights = 4.89956*pow(10,6);
-  if (job_DID=="364107") sumWeights = 3.32423*pow(10,6);
-  if (job_DID=="364108") sumWeights = 1.43114*pow(10,7);
+  //if (job_DID=="364106") sumWeights = 4.89956*pow(10,6);
+  if (job_DID=="364106") sumWeights = 4.92912*pow(10,6);
+  //if (job_DID=="364107") sumWeights = 3.32423*pow(10,6);
+  if (job_DID=="364107") sumWeights = 2.99956*pow(10,6);
+  //if (job_DID=="364108") sumWeights = 1.43114*pow(10,7);
+  if (job_DID=="364108") sumWeights = 1.43671*pow(10,7);
   if (job_DID=="364109") sumWeights = 2.86554*pow(10,6);
   if (job_DID=="364110") sumWeights = 1.53185*pow(10,6);
   if (job_DID=="364111") sumWeights = 6.20587*pow(10,6);
   if (job_DID=="364112") sumWeights = 5.07812*pow(10,6);
   if (job_DID=="364113") sumWeights = 1.6227*pow(10,6);
-  if (job_DID=="411076") sumWeights = 5.47811*pow(10,9);
-  if (job_DID=="411077") sumWeights = 5.94763*pow(10,9);
+  //if (job_DID=="411076") sumWeights = 5.47811*pow(10,9);
+  if (job_DID=="411076") sumWeights = 5.24625*pow(10,9);
+  //if (job_DID=="411077") sumWeights = 5.94763*pow(10,9);
+  if (job_DID=="411077") sumWeights = 5.61199*pow(10,9);
   if (job_DID=="411078") sumWeights = 5.94190*pow(10,9);
-  if (job_DID=="410472") sumWeights = 1.01641*pow(10,11);
+  if (job_DID=="410470") sumWeights = 2.90826*pow(10,11);
+  if (job_DID=="410472") sumWeights = 5.42364*pow(10,10);
   if (job_DID=="410482") sumWeights = 9.72087*pow(10,10);
   if (job_DID=="411234") sumWeights = 9.69581*pow(10,10);
   if (job_DID=="411332") sumWeights = 7.97883*pow(10,9);

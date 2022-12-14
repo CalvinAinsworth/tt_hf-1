@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
   
 
   // Create a list of directories with ntuples
-  TString path_to_ntuples = "/eos/atlas/atlascerngroupdisk/phys-top/ttjets/v4/data/";
+  TString path_to_ntuples = "/eos/user/c/cainswor/File/tt_c_dilpeton_samples/data/";
   std::vector<TString> dir_paths = get_list_of_files(path_to_ntuples);
   
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 
       // Open an ntuples
       TFile *ntuple = new TFile (ntuple_name);
-      TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
+      TTree *tree_nominal = (TTree*)ntuple->Get("nominal_Loose");
       
       
       // Set all needed branches
@@ -126,7 +126,11 @@ int main(int argc, char *argv[])
 
 
 	// Define cuts themselves
-	if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
+	if ((*el_pt).size()==1 && (*mu_pt).size()==1){
+	  emu_cut = true;
+	}else{
+	  continue;
+	}
 	if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
 	if ( ((*el_pt)[0]*0.001>28 && (*mu_pt)[0]*0.001>28) || lep_pt_cut_suffix=="")  lep_pt_cut = true;
 
@@ -155,7 +159,7 @@ int main(int argc, char *argv[])
 	// ///
 	// 3b (tags) incl, emu, OS
 	// ///
-	if (emu_cut*OS_cut*btags_n3_cut*jets_n_cut == true) {
+	if (emu_cut*OS_cut*btags_n2_cut*jets_n_cut == true) {
 	  
 	  // ///
 	  // jets_n - data/mc
@@ -174,7 +178,31 @@ int main(int argc, char *argv[])
             h_all_jets_eta->Fill((*jet_eta)[jet_i], weight);
             h_all_jets_phi->Fill((*jet_phi)[jet_i], weight);
 	    
+	    // Discriminatory variables used in NN //
+	    
+	    float dR_jel = jets_lvec[jet_i].DeltaR(el_lvec);
+	    float dR_jmu = jets_lvec[jet_i].DeltaR(mu_lvec);
+	    float dR_jl = std::min(dR_jel, dR_jmu);
+	    float dR_jj = 999999.;
+	    float dR_jb = 999999.; 
+	    float dR_jj_tmp = jets_lvec[jet_i].DeltaR(jets_lvec[jet_i]);
+	    dR_jj = std::min(dR_jj, dR_jj_tmp);
+	    float m_jel = ( jets_lvec[jet_i] + el_lvec).M();
+	    float m_jmu = ( jets_lvec[jet_i] + mu_lvec).M();
+	    float m_jl_min = std::min(m_jel, m_jmu);
+	    float m_jl_max = std::max(m_jel, m_jmu);
+	    float m_jl_closest;
+	    if (dR_jel >= dR_jmu) { m_jl_closest = m_jel; }
+	    else { m_jl_closest = m_jmu; }
 
+	    h_dR_jel->Fill(dR_jel, weight);
+	    h_dR_jmu->Fill(dR_jmu, weight);
+	    h_dR_jl->Fill(dR_jl, weight);
+	    h_dR_jj->Fill(dR_jj, weight);
+	    h_m_jel->Fill(m_jel, weight);
+	    h_m_jmu->Fill(m_jmu, weight);
+	    h_m_jl_min->Fill(m_jl_min, weight);
+	    h_m_jl_closest->Fill(m_jl_closest, weight);
 
 	    // ///
 	    // dR between btag and the 1st/2nd lepton

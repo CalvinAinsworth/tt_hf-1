@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
       // Get the number
       for (int entry=0; entry<tree_sw->GetEntries(); entry++) {
 	tree_sw->GetEntry(entry);
-	TString map_key = job_DID + " " + mc16X_str;
+	TString map_key = job_DID +""+ mc16X_str;
 	if (!sumWeights_map[map_key]) {
 	  sumWeights_map[map_key] = sw;
 	} else {

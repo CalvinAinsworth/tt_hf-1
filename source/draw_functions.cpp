@@ -5,7 +5,7 @@
 // ###############################
 int draw_data_mc_plot(TH1 *h_data, std::vector<TH1*> h_mc, TString title, TString savename, std::vector<TString> legend_entries, bool norm_to_1){
   std::cout << "Drawing " << title << std::endl;
-  std::vector<Int_t> colors = {4, 616-9, 416+1, 2, 9, 5, 18};
+  std::vector<Int_t> colors = {4, 616-9, 416+1, 2, 9, 5, 15};//15 was 18
 
 
   if (h_mc.size()==0) {

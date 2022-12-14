@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   // Declare TFile, TTree, TBranches and variables for MVA
   TFile *MVA_tfile;
   if (process == "tt") {
-    TString mva_fname = "results/tt_hf_MVA_input_reco_" + generator + lep_pt_cut_suffix + ".root";
+    TString mva_fname = "results/tt_c_MVA_input_reco_" + generator + lep_pt_cut_suffix + ".root";
     MVA_tfile = new TFile(mva_fname, "RECREATE"); }
   TTree *MVA_sig_tree = new TTree("Signal", "inputS");
   TTree *MVA_bkg_tree = new TTree("Background", "inputB");
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	  std::vector<TString> subpieces = split(piece, '_');
 	  for (int k=0; k<subpieces.size(); k++) {
 	    std::string subpiece = std::string(subpieces[k]);
-	    
+	    std::cout<<subpiece<<std::endl;
 	    if (subpiece == "data") is_data = true;
 	    if (subpiece == "grp15") is_data15 = true;
 	    if (subpiece == "grp16") is_data16 = true;
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
       
       // Select only dids of our interest
       bool correct_did = false;
-      std::cout << job_DID << std::endl;
+      //std::cout << job_DID << std::endl;
       #include "include/did_selection.h"
       if (correct_did==false) continue;
       std::cout << "\nWorking with:\n" << ntuple_name << std::endl; 
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 
       // Open the ntuple
       TFile *ntuple = new TFile (ntuple_name);
-      TTree *tree_nominal = (TTree*)ntuple->Get("nominal");
+      TTree *tree_nominal = (TTree*)ntuple->Get("nominal_Loose");
 
       // Set all the needed branches
       #include "include/branches.h"
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 	// Show events counter
 	if (entry%1000==0) { std::cout << "\t" << entry << "\r"; std::cout.flush(); }
 	tree_nominal->GetEntry(entry);
-	
+
 	
 	// Compute weights
 	double weight = 1;
@@ -139,7 +139,11 @@ int main(int argc, char *argv[])
 	
 	
 	// Define cuts themselves
-	if ((*el_pt).size()==1 && (*mu_pt).size()==1) emu_cut = true;
+	if ((*el_pt).size()==1 && (*mu_pt).size()==1) { 
+	  emu_cut = true;
+	} else {
+	  continue;
+	}
 	if ((*el_charge)[0]!=(*mu_charge)[0]) OS_cut = true;
 	if ( ((*el_pt)[0]*0.001>28 && (*mu_pt)[0]*0.001>28) || lep_pt_cut_suffix=="")  lep_pt_cut = true; // 28 GeV
 	
@@ -159,7 +163,7 @@ int main(int argc, char *argv[])
 	  // ttc
 	  if (topHFFF==3 && (job_DID=="411078" || job_DID=="411087" || job_DID=="412071" || job_DID=="411334") ) topHFFF_cut = true;
 	  // inclusive
-	  if (topHFFF==0 && (job_DID=="410472" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true;
+	  if (topHFFF==0 && (job_DID == "410472" || job_DID=="410558" || job_DID=="410465" || job_DID=="411234") ) topHFFF_cut = true; //had 410470
 	  // 3mtop
 	  if (job_DID=="410482") topHFFF_cut = true;
 	} else { topHFFF_cut = true; }
@@ -186,9 +190,9 @@ int main(int argc, char *argv[])
 	
 	
 	// ///
-	// 3b (tag) incl, emu, OS
+	// 3b (tag) incl, emu, OS //I removed lep_pt_cut
 	// ///
-	if (emu_cut*OS_cut*lep_pt_cut*btags_n3_cut*topHFFF_cut*jets_n_cut == true) {
+	if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut*lep_pt_cut == true) {
 	  
 	  // ///
 	  // jets_n - data/mc
@@ -217,6 +221,33 @@ int main(int argc, char *argv[])
 	    h_all_jets_phi->Fill((*jet_phi)[jet_i], weight);
 	    
 	    
+	    ///
+	    // Discriminatory variables used in NN //
+	    
+	    float dR_jel = jets_lvec[jet_i].DeltaR(el_lvec);
+	    float dR_jmu = jets_lvec[jet_i].DeltaR(mu_lvec);
+	    float dR_jl = std::min(dR_jel, dR_jmu);
+	    float dR_jj = 999999.;
+	    float dR_jb = 999999.; 
+	    float dR_jj_tmp = jets_lvec[jet_i].DeltaR(jets_lvec[jet_i]);
+	    dR_jj = std::min(dR_jj, dR_jj_tmp);
+	    float m_jel = ( jets_lvec[jet_i] + el_lvec).M();
+	    float m_jmu = ( jets_lvec[jet_i] + mu_lvec).M();
+	    float m_jl_min = std::min(m_jel, m_jmu);
+	    float m_jl_max = std::max(m_jel, m_jmu);
+	    float m_jl_closest;
+	    if (dR_jel >= dR_jmu) { m_jl_closest = m_jel; }
+	    else { m_jl_closest = m_jmu; }
+
+	    h_dR_jel->Fill(dR_jel, weight);
+	    h_dR_jmu->Fill(dR_jmu, weight);
+	    h_dR_jl->Fill(dR_jl, weight);
+	    h_dR_jj->Fill(dR_jj, weight);
+	    h_m_jel->Fill(m_jel, weight);
+	    h_m_jmu->Fill(m_jmu, weight);
+	    h_m_jl_min->Fill(m_jl_min, weight);
+	    h_m_jl_closest->Fill(m_jl_closest, weight);
+
 	    // ///
 	    // jets parameters - sig/bkg
 	    if (process=="tt") { 

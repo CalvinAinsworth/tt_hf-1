@@ -1,5 +1,5 @@
-// ttbar Powheg+Pythia8: 410472 - incl; 411076 - ttbb, 411077 - ttb, 411078 - ttc
-if (process=="tt" && generator=="nominal" && (job_DID=="410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
+// ttbar Powheg+Pythia8: 410472 - incl; 411076 - ttbb, 411077 - ttb, 411078 - ttc had 410470
+if (process=="tt" && generator=="nominal" && (job_DID == "410472" || job_DID=="411076" || job_DID=="411077" || job_DID=="411078") ) correct_did = true;
 
 
 // ttbar Powheg+Pythia8 (hdamp=3*mtop): 410482 (incl)
@@ -40,3 +40,8 @@ if (process=="z_jets" && (std::stoi(job_DID)>=364100 && std::stoi(job_DID)<=3641
 
 // Other 
 if (process=="other" && (job_DID=="410560" || job_DID=="410408" || job_DID=="346678" || job_DID=="346676" || job_DID=="412043") ) correct_did = true;
+
+
+//singletop
+
+if (process=="singletop" && (job_DID == "410644" || job_DID == "410645" || job_DID == "410658" || job_DID == "410659")) correct_did = true;

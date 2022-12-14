@@ -2,6 +2,15 @@
   TH1 *h_jets_n = new TH1F("h_jets_n", "h_jets_n", 8, 2, 10);
   TH1 *h_btags_n = new TH1F("h_btags_n", "h_btags_n", 6, 2, 8);
 
+  //Disciminative Variables 
+  TH1 *h_dR_jel = new TH1F("h_dR_jel", "h_dR_jel", 40, 0, 5);
+  TH1 *h_dR_jmu = new TH1F("h_dR_jmu", "h_dR_jmu", 40, 0, 5);
+  TH1 *h_dR_jl = new TH1F("h_dR_jl", "h_dR_jl", 40, 0, 5);
+  TH1 *h_dR_jj = new TH1F("h_dR_jj", "h_dR_jj", 40, 0, 5);
+  TH1 *h_m_jel = new TH1F("h_m_jel", "h_m_jel", 40, 0, 800);
+  TH1 *h_m_jmu = new TH1F("h_m_jmu", "h_m_jmu", 40, 0, 800);
+  TH1 *h_m_jl_closest = new TH1F("h_m_jl_closest", "h_m_jl_closest", 40, 0, 800);// invariant mass of the jet + closest lepton
+  TH1 *h_m_jl_min = new TH1F("h_m_jl_min", "h_m_jl_min", 40, 0, 800);// minimal invariant mass of jet-lepton pair
 
   // MVA variables hists - data/mc 
   TH1 *h_m_btag_lep_min_dR = new TH1F("h_m_btag_lep_min_dR", "h_m_btag_lep_min_dR", 50, 0, 1000);
